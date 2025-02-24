@@ -29,3 +29,5 @@ const authorizeRoles = (...roles) => {
 };
 
 module.exports = { protect, authorizeRoles };
+
+// Ensure that the middleware is used in routes that require specific roles

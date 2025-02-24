@@ -4,7 +4,7 @@ const { generateToken } = require("../config/JwtConfig");
 // Register User
 exports.register = async (req, res) => {
   try {
-    const { username, email, password, role } = req.body;
+    const { username, email, password, role = "user" } = req.body;
     const user = await User.create({ username, email, password, role });
     res.status(201).json({ message: "User registered successfully", token: generateToken(user) });
   } catch (error) {
