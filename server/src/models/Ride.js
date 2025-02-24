@@ -1,14 +1,14 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const RideSchema = new mongoose.Schema({
     user: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: "User", 
+        ref: 'User', 
         required: true 
     },
     bike: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: "Bike", 
+        ref: 'Bike', 
         required: true 
     },
     startTime: { 
@@ -19,23 +19,29 @@ const RideSchema = new mongoose.Schema({
         type: Date 
     },
     startLocation: { 
-        type: { lat: Number, lon: Number }, 
-        required: true 
-    },
+        type: { type: String, default: 'Point' }, 
+        coordinates: { type: [Number], default: [0, 0] }
+    }, 
     endLocation: { 
-        type: { lat: Number, lon: Number },
-        required: true 
+        type: { type: String, default: 'Point' }, 
+        coordinates: { type: [Number], default: [0, 0] }
     },
     distance: { 
         type: Number, 
         default: 0 
     }, 
-    ride_cost: { 
+    cost: { 
         type: Number, 
         default: 0 
-    },  
+    }, 
+    status: { 
+        type: String, 
+        enum: ['active', 'completed'], 
+        default: 'active' 
+    }
 }, { timestamps: true });
 
-const Ride = mongoose.model("Ride", RideSchema);
+
+const Ride = mongoose.model('Ride', RideSchema);
 
 module.exports = Ride;
