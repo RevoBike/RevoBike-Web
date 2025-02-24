@@ -11,7 +11,7 @@ const PaymentSchema = new mongoose.Schema({
         ref: "Ride" 
     },
     amount: { 
-        type: Number, 
+        type: Number,  
         required: true 
     },
     status: { 
