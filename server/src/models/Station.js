@@ -6,8 +6,11 @@ const StationSchema = new mongoose.Schema({
         required: true 
     },
     location: { 
-        type: { lat: Number, lon: Number }, 
-        required: true 
+        type: { type: String, enum: ['Point'], default: 'Point' },
+        coordinates: { 
+            type: [Number], 
+            required: true 
+        }
     },
     available_bikes: [{ 
         type: mongoose.Schema.Types.ObjectId, 
