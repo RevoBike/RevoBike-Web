@@ -6,6 +6,7 @@ import DashboardPage from "../../components/DashboardPage";
 import UsersPage from "../../components/UsersPage";
 import SettingsPage from "../../components/SettingsPage";
 import NotFound from "../../components/NotFound";
+import StationsPage from "../../components/StationsPage";
 
 function Dashboard() {
   return (
@@ -17,6 +18,7 @@ function Dashboard() {
         <div className="flex-1 overflow-y-auto p-4">
           <Routes>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/stations" element={<StationsPage />}/>
             <Route path="/bikes" element={<BikesPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/settings" element={<SettingsPage />} />
