@@ -7,6 +7,8 @@ const AppError = require('../utils/AppError');
 exports.registerUser = catchAsync(async (req, res, next) => {
     const { name, email, password, role } = req.body;
 
+    // Ensure the user is created with a hashed password
+
     const newUser = await User.create({
         name,
         email,
@@ -15,6 +17,7 @@ exports.registerUser = catchAsync(async (req, res, next) => {
     });
 
     const token = signToken(newUser._id, newUser.role);
+    // Send the token in the response
     res.status(201).json({ success: true, token });
 });
 
@@ -28,5 +31,6 @@ exports.loginUser = catchAsync(async (req, res, next) => {
     }
 
     const token = signToken(user._id, user.role);
+    // Send the token in the response
     res.status(200).json({ success: true, token });
 });
