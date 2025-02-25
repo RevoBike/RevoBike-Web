@@ -7,15 +7,15 @@ const NavBar = () => {
       <div></div>
       <div className="flex items-center space-x-4">
         <button className="text-gray-700 hover:text-gray-900">
-          <MdNotifications />
+          <MdNotifications size={25} color="blue"/>
         </button>
 
         <button className="text-gray-700 hover:text-gray-900">
-          <MdAccountCircle />
+          <MdAccountCircle size={25} color="green"/>
         </button>
 
         <button className="text-gray-700 hover:text-gray-900">
-          <MdExitToApp />
+          <MdExitToApp size={25} color="red"/>
         </button>
       </div>
     </div>

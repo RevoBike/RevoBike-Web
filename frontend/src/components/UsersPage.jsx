@@ -2,7 +2,6 @@ import React from "react";
 import { MdEdit, MdDelete, MdAdd } from "react-icons/md";
 
 const UsersPage = () => {
-  // Sample data for users
   const users = [
     { id: 1, name: "John Doe", email: "john@example.com", role: "Admin" },
     { id: 2, name: "Jane Smith", email: "jane@example.com", role: "User" },
