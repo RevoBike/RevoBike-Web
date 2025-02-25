@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaTachometerAlt, FaBicycle, FaUsers, FaCog } from "react-icons/fa";
+import { FaTachometerAlt, FaBicycle, FaUsers, FaCog, FaChargingStation } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
@@ -28,6 +28,16 @@ const Sidebar = () => {
             >
               <FaTachometerAlt className="mr-2" />
               <span className={`${collapsed ? "hidden" : "block"}`}>Dashboard</span>
+            </NavLink>
+          </li>
+          <li className="mb-2">
+            <NavLink
+              to="/admin/stations"
+              className="flex items-center p-2 hover:bg-gray-700 rounded transition-all duration-300"
+              activeClassName="bg-gray-700"
+            >
+              <FaChargingStation className="mr-2" />
+              <span className={`${collapsed ? "hidden" : "block"}`}>Stations</span>
             </NavLink>
           </li>
           <li className="mb-2">
