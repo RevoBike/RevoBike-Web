@@ -1,7 +1,6 @@
 const User = require("../models/User");
 const { signToken } = require("../utils/JWTUtils");
 const catchAsync = require("../utils/catchAsync");
-const AppError = require("../utils/AppError");
 
 // Register user
 exports.registerUser = catchAsync(async (req, res, next) => {
@@ -31,7 +30,9 @@ exports.loginUser = catchAsync(async (req, res, next) => {
   try {
     const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))) {
-      return next(new AppError("Invalid credentials", 401));
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid credentials" });
     }
 
     const token = signToken(user._id, user.role);
