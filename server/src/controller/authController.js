@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const { signToken } = require("../utils/JWTUtils");
 const catchAsync = require("../utils/catchAsync");
+const jwt = require("jsonwebtoken");
 
 // Register user
 exports.registerUser = catchAsync(async (req, res, next) => {
@@ -41,5 +42,27 @@ exports.loginUser = catchAsync(async (req, res, next) => {
   } catch (e) {
     console.error("Login error:", error);
     res.status(500).json({ success: false, message: e.message });
+  }
+});
+
+// Get user profile
+exports.profile = catchAsync(async (req, res, next) => {
+  // Get the user from the request object
+  try {
+    const token = req.header("x-auth-token");
+    if (!token)
+      return res
+        .status(401)
+        .json({ message: "No token, authorization denied" });
+
+    const verified = jwt.verify(token, process.env.JWT_SECRET);
+    if (!verified) return res.status(401).json({ message: "Invalid token" });
+
+    const user = await User.findById(verified.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    res.status(200).json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 });
