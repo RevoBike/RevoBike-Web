@@ -109,6 +109,10 @@ router.post("/register", registerUser);
  */
 router.post("/login", loginUser);
 
+router.get("/profile", protect, (req, res) => {
+  res.status(200).json({ success: true, user: req.user });
+});
+
 // Admin-only route
 router.get("/admin", protect, authorizeRoles("Admin"), (req, res) => {
   res.status(200).json({ message: "Welcome Admin!" });
