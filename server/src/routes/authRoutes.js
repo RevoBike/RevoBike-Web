@@ -58,7 +58,10 @@ const { registerUser, loginUser } = require("../controller/authController");
  *                   type: string
  *                   example: All fields are required
  */
-router.post("/register", registerUser);
+router.post("/register", (req, res, next) => {
+  console.log("User registration attempt:", req.body);
+  registerUser(req, res, next);
+});
 
 /**
  * @openapi
@@ -107,9 +110,13 @@ router.post("/register", registerUser);
  *                   type: string
  *                   example: Invalid email or password
  */
-router.post("/login", loginUser);
+router.post("/login", (req, res, next) => {
+  console.log("User login attempt:", req.body);
+  loginUser(req, res, next);
+});
 
 router.get("/profile", protect, (req, res) => {
+  console.log("Fetching user profile for user:", req.user.id);
   res.status(200).json({ success: true, user: req.user });
 });
 

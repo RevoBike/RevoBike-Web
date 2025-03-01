@@ -2,44 +2,31 @@ const User = require('../models/User');
 const catchAsync = require('../utils/catchAsync');
 const AppError = require('../utils/AppError');
 
-// Get all users (Admin Only)
-exports.getAllUsers = catchAsync(async (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return next(new AppError('Not authorized', 403));
-    }
-    const users = await User.find({ role: 'user' });
-    res.status(200).json({ success: true, data: users });
-});
+// Existing functions...
 
-// Get user by ID
-exports.getUserById = catchAsync(async (req, res, next) => {
-    const user = await User.findById(req.params.id);
-    if (!user) return next(new AppError('User not found', 404));
-    res.status(200).json({ success: true, data: user });
-});
+// Add new admin user (SuperAdmin only)
+exports.addAdmin = catchAsync(async (req, res, next) => {
+    const { name, email, password } = req.body;
 
-// Update user profile (Only user themselves)
-exports.updateUser = catchAsync(async (req, res, next) => {
-    if (req.user.id !== req.params.id && req.user.role !== 'admin') {
-        return next(new AppError('Not authorized', 403));
+    if (!name || !email || !password) {
+        return next(new AppError('Missing required fields', 400));
     }
 
-    const updatedUser = await User.findByIdAndUpdate(req.params.id, req.body, {
-        new: true, runValidators: true
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        return next(new AppError('Email already in use', 400));
+    }
+
+    if (!name || !email || !password || role !== 'admin') {
+        return next(new AppError('Missing required fields or invalid role', 400));
+    }
+
+    const newAdmin = await User.create({
+        name,
+        email,
+        password,
+        role: 'admin', // Role is set to 'admin' by default
     });
 
-    if (!updatedUser) return next(new AppError('User not found', 404));
-    res.status(200).json({ success: true, data: updatedUser });
-});
-
-// Delete user (Admin only)
-exports.deleteUser = catchAsync(async (req, res, next) => {
-    if (req.user.role !== 'admin') {
-        return next(new AppError('Not authorized', 403));
-    }
-    
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return next(new AppError('User not found', 404));
-
-    res.status(200).json({ success: true, message: 'User deleted' });
+    res.status(201).json({ success: true, data: newAdmin });
 });
