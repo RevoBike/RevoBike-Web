@@ -40,7 +40,6 @@ exports.loginUser = catchAsync(async (req, res, next) => {
     // Send the token in the response
     res.status(200).json({ success: true, token });
   } catch (e) {
-    console.error("Login error:", error);
     res.status(500).json({ success: false, message: e.message });
   }
 });
