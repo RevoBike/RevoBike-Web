@@ -13,7 +13,7 @@ connectDB();
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:3000", // REACT APP URL
+    origin: "*", // REACT APP URL
   })
 );
 
