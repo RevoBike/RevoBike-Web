@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { protect, authorizeRoles } = require('../middleware/authMiddleware');
+const { protect, authorizeRoles } = require('../middlewares/middleware');
 const {
     getAllStations,
     getStationById,
@@ -21,7 +21,7 @@ const {
  * /stations:
  *   get:
  *     summary: Get all stations
- *     description: Fetch all stations with available bikes (accessible by all user, admin and supperadmin)
+ *     description: Fetch all stations with available bikes (accessible by all users, admins, and superadmins)
  *     tags: [Stations]
  *     security:
  *       - bearerAuth: []
@@ -39,8 +39,6 @@ const {
  *                   type: array
  *                   items:
  *                     $ref: '#/components/schemas/Station'
- *       401:
- *         description: Unauthorized, no token provided
  *       500:
  *         description: Internal Server Error
  */
@@ -76,8 +74,6 @@ router.get('/stations', protect, getAllStations);
  *                   $ref: '#/components/schemas/Station'
  *       404:
  *         description: Station not found
- *       401:
- *         description: Unauthorized, no token provided
  *       500:
  *         description: Internal Server Error
  */
@@ -129,8 +125,6 @@ router.get('/stations/:id', protect, getStationById);
  *         description: Invalid input
  *       403:
  *         description: Forbidden - Only SuperAdmin can create stations
- *       401:
- *         description: Unauthorized - No token provided
  *       500:
  *         description: Internal Server Error
  */
@@ -141,7 +135,7 @@ router.post("/stations", protect, authorizeRoles("SuperAdmin"), addStation);
  * /stations/{id}/location:
  *   put:
  *     summary: Update station location
- *     description: Update the location of a station (Admin or SuperAdmin only)
+ *     description: Update the location of a station (SuperAdmin only)
  *     tags: [Stations]
  *     security:
  *       - bearerAuth: []
@@ -179,15 +173,13 @@ router.post("/stations", protect, authorizeRoles("SuperAdmin"), addStation);
  *       400:
  *         description: Invalid location input
  *       403:
- *         description: Forbidden - Only Admin or SuperAdmin can update
+ *         description: Forbidden - Only SuperAdmin can update
  *       404:
  *         description: Station not found
- *       401:
- *         description: Unauthorized - No token provided
  *       500:
  *         description: Internal Server Error
  */
-router.put("/stations/:id/location", protect, authorizeRoles("Admin", "SuperAdmin"), updateStationLocation);
+router.put("/stations/:id/location", protect, authorizeRoles("SuperAdmin"), updateStationLocation);
 
 /**
  * @swagger
@@ -212,9 +204,9 @@ router.put("/stations/:id/location", protect, authorizeRoles("Admin", "SuperAdmi
  *         description: Forbidden - Only SuperAdmin can delete stations
  *       404:
  *         description: Station not found
- *       401:
- *         description: Unauthorized - No token provided
  *       500:
  *         description: Internal Server Error
  */
 router.delete("/stations/:id", protect, authorizeRoles("SuperAdmin"), deleteStation);
+
+module.exports = router;

@@ -51,6 +51,7 @@ exports.addStation = catchAsync(async (req, res) => {
         totalSlots 
     });
 
+  
     res.status(201).json({ 
         success: true, 
         data: station 

@@ -19,14 +19,14 @@ app.use(
 );
 
 const userRoutes = require("./src/routes/authRoutes");
-//const stationRoutes = require("./src/routes/stationRoutes");
+const stationRoutes = require("./src/routes/stationRoutes");
 
 const swaggerSpec = require("./src/config/swaggerConfig");
 
 
 app.use(express.json()); // Middleware to parse JSON bodies
 app.use("/api/users", userRoutes); // User routes
-//app.use("/api/stations", stationRoutes); //Station routes
+app.use("/api/stations", stationRoutes); //Station routes
 
 // Swagger UI route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
