@@ -13,7 +13,6 @@ const options = {
         url: `http://localhost:${process.env.PORT || 5000}`,
       },
     ],
-       
   },
   apis: ["./src/routes/*.js"],
 };

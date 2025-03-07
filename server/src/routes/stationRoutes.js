@@ -18,6 +18,46 @@ const {
 
 /**
  * @swagger
+ * components:
+ *   schemas:
+ *     Station:
+ *       type: object
+ *       properties:
+ *         _id:
+ *           type: string
+ *           description: The unique identifier for the station
+ *         name:
+ *           type: string
+ *           description: The name of the station
+ *         location:
+ *           type: object
+ *           properties:
+ *             type:
+ *               type: string
+ *               description: The type of location (Point)
+ *               example: Point
+ *             coordinates:
+ *               type: array
+ *               items:
+ *                 type: number
+ *               example: [37.7749, -122.4194]
+ *         totalSlots:
+ *           type: integer
+ *           description: Total number of available slots at the station
+ *         available_bikes:
+ *           type: array
+ *           items:
+ *             $ref: '#/components/schemas/Bike'
+ *           description: List of available bikes at the station
+ *       required:
+ *         - name
+ *         - location
+ *         - totalSlots
+ */
+
+
+/**
+ * @swagger
  * /stations:
  *   get:
  *     summary: Get all stations
@@ -42,7 +82,10 @@ const {
  *       500:
  *         description: Internal Server Error
  */
-router.get('/stations', protect, getAllStations);
+router.get('/', 
+    protect,
+    getAllStations
+);
 
 /**
  * @swagger
@@ -77,7 +120,10 @@ router.get('/stations', protect, getAllStations);
  *       500:
  *         description: Internal Server Error
  */
-router.get('/stations/:id', protect, getStationById);
+router.get('/:id',
+     protect, 
+     getStationById
+    );
 
 /**
  * @swagger
@@ -128,7 +174,11 @@ router.get('/stations/:id', protect, getStationById);
  *       500:
  *         description: Internal Server Error
  */
-router.post("/stations", protect, authorizeRoles("SuperAdmin"), addStation);
+router.post("/", 
+    protect, 
+    authorizeRoles("SuperAdmin"), 
+    addStation
+);
 
 /**
  * @swagger
@@ -179,7 +229,11 @@ router.post("/stations", protect, authorizeRoles("SuperAdmin"), addStation);
  *       500:
  *         description: Internal Server Error
  */
-router.put("/stations/:id/location", protect, authorizeRoles("SuperAdmin"), updateStationLocation);
+router.put("/:id/location",
+    protect, 
+    authorizeRoles("SuperAdmin"), 
+    updateStationLocation
+    );
 
 /**
  * @swagger
@@ -207,6 +261,10 @@ router.put("/stations/:id/location", protect, authorizeRoles("SuperAdmin"), upda
  *       500:
  *         description: Internal Server Error
  */
-router.delete("/stations/:id", protect, authorizeRoles("SuperAdmin"), deleteStation);
+router.delete("/:id", 
+    protect, 
+    authorizeRoles("SuperAdmin"), 
+    deleteStation
+);
 
 module.exports = router;
