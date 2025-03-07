@@ -1,30 +1,46 @@
 const Bike = require('../models/Bike');
 const catchAsync = require('../utils/catchAsync');
-const AppError = require('../utils/AppError');
 
 // Get all bikes (Admins & SuperAdmins only)
-exports.getAllBikes = catchAsync(async (req, res, next) => {
+exports.getAllBikes = catchAsync(async (req, res) => {
     if (req.user.role === "User") {
-        return next(new AppError("Unauthorized access", 403));
+        return res.status(403).json({ 
+            success: false, 
+            message: "Unauthorized access" 
+        });
     }
 
     const bikes = await Bike.find();
-    res.status(200).json({ success: true, data: bikes });
+    res.status(200).json({ 
+        success: true, 
+        data: bikes 
+    });
 });
 
 // Get bike by ID (All users can access)
-exports.getBikeById = catchAsync(async (req, res, next) => {
+exports.getBikeById = catchAsync(async (req, res) => {
     const bike = await Bike.findById(req.params.id);
+    
     if (!bike) {
-        return next(new AppError("Bike not found", 404));
+        return res.status(404).json({ 
+            success: false, 
+            message: "Bike not found" 
+        });
     }
-    res.status(200).json({ success: true, data: bike });
+
+    res.status(200).json({ 
+        success: true, 
+        data: bike 
+    });
 });
 
 // Add new bike (Admins & SuperAdmins only)
-exports.addBike = catchAsync(async (req, res, next) => {
+exports.addBike = catchAsync(async (req, res) => {
     if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
-        return next(new AppError("Unauthorized", 403));
+        return res.status(403).json({ 
+            success: false, 
+            message: "Unauthorized" 
+        });
     }
 
     const { bikeId, latitude, longitude } = req.body;
@@ -34,20 +50,66 @@ exports.addBike = catchAsync(async (req, res, next) => {
         currentLocation: { type: "Point", coordinates: [longitude, latitude] },
     });
 
-    res.status(201).json({ success: true, data: newBike });
+    res.status(201).json({ 
+        success: true, 
+        data: newBike 
+    });
 });
 
+// Update bike (Admins & SuperAdmins only)
+exports.updateBike = catchAsync(async (req, res) => {
+    if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+        return res.status(403).json({ 
+            success: false, 
+            message: "Unauthorized" 
+        });
+    }
+
+    const { status, latitude, longitude } = req.body;
+
+    const updatedBike = await Bike.findByIdAndUpdate(
+        req.params.id,
+        { 
+            ...(status && { status }),
+            ...(latitude !== undefined && longitude !== undefined && { 
+                currentLocation: { type: "Point", coordinates: [longitude, latitude] }
+            }),
+        },
+        { new: true, runValidators: true }
+    );
+
+    if (!updatedBike) {
+        return res.status(404).json({ 
+            success: false, 
+            message: "Bike not found" 
+        });
+    }
+
+    res.status(200).json({ 
+        success: true, 
+        data: updatedBike 
+    });
+});
 
 // Delete bike (SuperAdmin only)
-exports.deleteBike = catchAsync(async (req, res, next) => {
+exports.deleteBike = catchAsync(async (req, res) => {
     if (req.user.role !== "SuperAdmin") {
-        return next(new AppError("Unauthorized", 403));
+        return res.status(403).json({ 
+            success: false, 
+            message: "Unauthorized" 
+        });
     }
 
     const bike = await Bike.findByIdAndDelete(req.params.id);
     if (!bike) {
-        return next(new AppError("Bike not found", 404));
+        return res.status(404).json({ 
+            success: false, 
+            message: "Bike not found" 
+        });
     }
 
-    res.status(200).json({ success: true, message: "Bike deleted" });
+    res.status(200).json({ 
+        success: true, 
+        message: "Bike deleted successfully" 
+    });
 });
