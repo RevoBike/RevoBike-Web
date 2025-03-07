@@ -44,7 +44,6 @@ exports.addBike = catchAsync(async (req, res) => {
     }
 
     const { bikeId, latitude, longitude } = req.body;
-
     const newBike = await Bike.create({
         bikeId,
         status: "available",

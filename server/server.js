@@ -5,6 +5,8 @@ const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
 
 dotenv.config(); //load env
+console.log("Environment Variables:", process.env); // Log all environment variables
+console.log(`MongoDB URI: ${process.env.MONGO_URI}`); // Log the MongoDB URI
 const app = express();
 
 // Connect to MongoDB

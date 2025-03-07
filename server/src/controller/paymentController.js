@@ -43,10 +43,7 @@ exports.getAllPayments = catchAsync(async (req, res) => {
         });
     }
 
-    const payments = await Payment.find()
-        .populate("user", "name email")
-        .populate("ride");
-
+    const payments = await Payment.find().populate("user", "name email").populate("ride");
     res.status(200).json({ 
         success: true, 
         data: payments 
@@ -71,7 +68,6 @@ exports.updatePaymentStatus = catchAsync(async (req, res) => {
     }
 
     const payment = await Payment.findByIdAndUpdate(req.params.id, { status }, { new: true });
-
     if (!payment) {
         return res.status(404).json({ 
             success: false, 
@@ -87,10 +83,7 @@ exports.updatePaymentStatus = catchAsync(async (req, res) => {
 
 // Get a payment by ID
 exports.getPaymentById = catchAsync(async (req, res) => {
-    const payment = await Payment.findById(req.params.id)
-        .populate('user', 'name email')
-        .populate('ride');
-
+    const payment = await Payment.findById(req.params.id).populate('user', 'name email').populate('ride');
     if (!payment) {
         return res.status(404).json({ 
             success: false, 
@@ -101,7 +94,6 @@ exports.getPaymentById = catchAsync(async (req, res) => {
     res.status(200).json({ 
         success: true, 
         data: payment 
-    
     });
 });
 

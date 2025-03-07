@@ -8,8 +8,8 @@ exports.startRide = catchAsync(async (req, res) => {
     if (req.user.role !== "User") {
         return res.status(403).json({ 
             success: false, 
-            message: "Only users can start a ride"
-         });
+            message: "Only users can start a ride" 
+        });
     }
 
     const { bikeId } = req.params;

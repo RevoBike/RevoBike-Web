@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const { signToken } = require("../utils/JWTUtils");
-const catchAsync = require("../utils/catchAsync");
+const catchAsync = require("../utils/CatchAsync");
 const jwt = require("jsonwebtoken");
 
 // Register user
@@ -40,7 +40,6 @@ exports.loginUser = catchAsync(async (req, res, next) => {
     // Send the token in the response
     res.status(200).json({ success: true, token });
   } catch (e) {
-    console.error("Login error:", error);
     res.status(500).json({ success: false, message: e.message });
   }
 });
