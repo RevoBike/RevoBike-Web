@@ -58,7 +58,7 @@ const {
 
 /**
  * @swagger
- * /stations:
+ * /api/stations:
  *   get:
  *     summary: Get all stations
  *     description: Fetch all stations with available bikes (accessible by all users, admins, and superadmins)
@@ -89,7 +89,7 @@ router.get('/',
 
 /**
  * @swagger
- * /stations/{id}:
+ * /api/stations/{id}:
  *   get:
  *     summary: Get a station by ID
  *     description: Fetch a single station by its ID (accessible by all authenticated users)
@@ -127,7 +127,7 @@ router.get('/:id',
 
 /**
  * @swagger
- * /stations:
+ * /api/stations:
  *   post:
  *     summary: Add a new station
  *     description: Creates a new station (SuperAdmin only)
@@ -182,7 +182,7 @@ router.post("/",
 
 /**
  * @swagger
- * /stations/{id}/location:
+ * /api/stations/{id}/location:
  *   put:
  *     summary: Update station location
  *     description: Update the location of a station (SuperAdmin only)
@@ -237,7 +237,7 @@ router.put("/:id/location",
 
 /**
  * @swagger
- * /stations/{id}:
+ * /api/stations/{id}:
  *   delete:
  *     summary: Delete a station
  *     description: Delete a station by its ID (SuperAdmin only)
