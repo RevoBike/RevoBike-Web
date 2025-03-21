@@ -1,6 +1,30 @@
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
 
+// Admin verifies a user
+exports.verifyUser = catchAsync(async (req, res) => {
+  const { universityId } = req.body; // Get university ID from request body
+
+  const user = await User.findOne({ universityId });
+  if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  if (user.role !== "User") {
+      return res.status(400).json({ success: false, message: "Only users need verification" });
+  }
+
+  if (user.isVerified) {
+      return res.status(400).json({ success: false, message: "User is already verified" });
+  }
+
+  user.isVerified = true; // Set verification to true
+  await user.save();
+
+  res.status(200).json({ success: true, message: "User verified successfully" });
+});
+
+
 // Get all users (Only Admin & SuperAdmin)
 exports.getAllUsers = catchAsync(async (req, res) => {
   if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {

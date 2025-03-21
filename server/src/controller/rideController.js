@@ -4,76 +4,69 @@ const Station = require('../models/Station');
 const catchAsync = require('../utils/catchAsync');
 const { calculateDistance, calculateRideCost } = require('../utils/rideUtils');
 
-// Start Ride (Only Users)
+
+// Start Ride
 exports.startRide = catchAsync(async (req, res) => {
     if (req.user.role !== "User") {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Only users can start a ride" 
-        });
+        return res.status(403).json({ success: false, message: "Only users can start a ride" });
     }
 
-    const { bikeId } = req.params;
-    const bike = await Bike.findById(bikeId);
+    const { qrCode } = req.body;
+    const bike = await Bike.findOne({ qrCode });
 
     if (!bike || bike.status !== "available") {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Bike not available" 
-        });
+        return res.status(400).json({ success: false, message: "Bike not available" });
     }
 
-    const station = await Station.findOne({ available_bikes: bikeId });
+    // Ensure user is verified before starting a ride
+    if (!req.user.isVerified) {
+        return res.status(403).json({ success: false, message: "User not verified. Please visit a station." });
+    }
 
+    const station = await Station.findOne({ available_bikes: bike._id });
     if (station) {
-        // Remove the bike from the station
-        station.available_bikes = station.available_bikes.filter(id => id.toString() !== bikeId);
+        station.available_bikes = station.available_bikes.filter(id => id.toString() !== bike._id.toString());
         await station.save();
     }
 
-    // Create the ride
+    // Create ride entry
     const ride = await Ride.create({
         user: req.user._id,
-        bike: bikeId,
+        bike: bike._id,
         startLocation: bike.currentLocation,
         status: "active",
     });
 
-   
+
     bike.status = "in-use";
     bike.currentStation = null; 
     await bike.save();
 
-    res.status(201).json({ 
-        success: true, 
-        data: ride 
-    });
+    // Emit real-time event
+    const io = req.app.get("io");
+    io.emit("rideStarted", { bikeId: bike._id, status: "in-use" });
+
+    res.status(201).json({ success: true, data: ride });
 });
 
-// End Ride (Only Users)
+// End Ride
 exports.endRide = catchAsync(async (req, res) => {
     if (req.user.role !== "User") {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Only users can end a ride" 
-        });
+        return res.status(403).json({ success: false, message: "Only users can end a ride" });
     }
 
     const { rideId } = req.params;
     const ride = await Ride.findById(rideId).populate("bike");
 
     if (!ride || ride.status !== "active") {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Ride not found or already ended" 
-        });
+        return res.status(400).json({ success: false, message: "Ride not found or already ended" });
     }
 
     const endLocation = ride.bike.currentLocation;
     const distance = calculateDistance(ride.startLocation.coordinates, endLocation.coordinates);
     const cost = calculateRideCost(distance);
 
-    // Update ride details
+
     ride.endTime = Date.now();
     ride.endLocation = endLocation;
     ride.distance = distance;
@@ -84,38 +77,32 @@ exports.endRide = catchAsync(async (req, res) => {
     // Mark bike as available
     ride.bike.status = "available";
 
+    // Assign the bike to the nearest station
     const nearestStation = await Station.aggregate([
         {
             $geoNear: {
-                near: {
-                    type: "Point",
-                    coordinates: endLocation.coordinates
-                },
+                near: { type: "Point", coordinates: endLocation.coordinates },
                 distanceField: "distance",
                 spherical: true
             }
         }
-    ]).limit(1); // Get only the nearest station
-    
+    ]).limit(1); 
+
     if (nearestStation.length > 0) {
-        const station = await Station.findById(nearestStation[0]._id); // Get the actual station
-    
+        const station = await Station.findById(nearestStation[0]._id);
         if (station) {
-            // Add the bike back to the station
             station.available_bikes.push(ride.bike._id);
             await station.save();
-    
-            // Update the bike's station
             ride.bike.currentStation = station._id;
             await ride.bike.save();
         }
     }
-    
 
-   res.status(200).json({ 
-        success: true, 
-        data: ride 
-    });
+    // Emit real-time event
+    const io = req.app.get("io");
+    io.emit("rideEnded", { bikeId: ride.bike._id, status: "available", station: ride.bike.currentStation });
+
+    res.status(200).json({ success: true, data: ride });
 });
 
 
