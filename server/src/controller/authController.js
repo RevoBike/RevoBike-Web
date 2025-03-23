@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const { signToken } = require("../utils/JWTUtils");
-const catchAsync = require("../utils/CatchAsync");
+const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 
 // Register user
