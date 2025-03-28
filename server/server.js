@@ -5,6 +5,7 @@ const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
 const http = require("http"); // For WebSocket server
 const { Server } = require("socket.io"); // Import socket.io
+const { loggingHandler } = require("./src/middlewares/loggingHandler");
 
 
 dotenv.config(); //load env
@@ -24,7 +25,7 @@ app.use(
   })
 );
 
-app.use(express.json()); 
+
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
