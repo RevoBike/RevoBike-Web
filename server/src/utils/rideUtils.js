@@ -1,32 +1,40 @@
-const EARTH_RADIUS_KM = 6371;
+const EARTH_RADIUS_KM = 6371; // Earth's radius in KM
 
-// Haversine formula to calculate distance
-exports.calculateDistance = (startCoords, endCoords) => {
-    const [lng1, lat1] = startCoords;
-    const [lng2, lat2] = endCoords;
+//Haversine formula to calculate distance between two GPS points
+exports.calculateDistance = (coord1, coord2) => {
+    const toRad = (value) => (value * Math.PI) / 180;
 
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLng = (lng2 - lng1) * (Math.PI / 180);
+    const [lon1, lat1] = coord1;
+    const [lon2, lat2] = coord2;
 
-    const a = 
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.cos(lat1 * (Math.PI / 180)) * 
-        Math.cos(lat2 * (Math.PI / 180)) * 
-        Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    const φ1 = toRad(lat1);
+    const φ2 = toRad(lat2);
+    const Δφ = toRad(lat2 - lat1);
+    const Δλ = toRad(lon2 - lon1);
+
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    return EARTH_RADIUS_KM * c; // Distance in km
+    return EARTH_RADIUS_KM * c; //Distance in KM
 };
 
+//Define Geofence Area (Example: University Campus)
+const GEOFENCE_CENTER = [38.7635, 9.0373]; // (Longitude, Latitude)
+const GEOFENCE_RADIUS_KM = 5; // 5 km radius
 
-// Cost calculation based on distance (per km) and time
-exports.calculateRideCost = (distance) => {
-    const baseFare = 10; // Base fare in currency
-    const perKmRate = 5; // Charge per km
-    // const perMinuteRate = 5; // Charge per minute
+// Function to check if a bike is inside the geofence
+exports.isBikeInsideGeofence = (bikeLocation) => {
+    const distance = exports.calculateDistance(bikeLocation, GEOFENCE_CENTER);
+    return distance <= GEOFENCE_RADIUS_KM; // Inside = true, Outside = false
+};
 
-    // const rideDurationMinutes = (Date.now() - new Date(startTime)) / 60000;
-    //return baseFare + (distance * perKmRate) + (rideDurationMinutes * perMinuteRate);
-    return baseFare + (distance * perKmRate);
+//Cost calculation based on distance (KM)
+exports.calculateRideCost = (distanceKM) => {
+    const BASE_FARE = 10; // Base fare in currency
+    const PER_KM_RATE = 5; // Charge per KM
+
+    return BASE_FARE + (distanceKM * PER_KM_RATE);
 };

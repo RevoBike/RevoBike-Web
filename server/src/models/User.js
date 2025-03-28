@@ -6,6 +6,15 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true, select: false },
+    universityId: { 
+      type: String, 
+      required: function() { return this.role === "User"; }, 
+      unique: function() { return this.role === "User"; } 
+    }, 
+    isVerified: { 
+      type: Boolean, 
+      default: false 
+    }, 
     role: {
       type: String,
       enum: ["User", "Admin", "SuperAdmin"],
@@ -20,6 +29,11 @@ const userSchema = new mongoose.Schema(
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
+
+  //verify Admins & SuperAdmins
+  if (this.role !== "User") {
+    this.isVerified = true;
+  }
   next();
 });
 

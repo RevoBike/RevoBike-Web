@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const { signToken } = require("../utils/JWTUtils");
-const catchAsync = require("../utils/CatchAsync");
+const catchAsync = require("../utils/catchAsync");
 const jwt = require("jsonwebtoken");
 
 // Register user
@@ -13,12 +13,28 @@ exports.registerUser = catchAsync(async (req, res, next) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const user = new User({ name, email, password, role });
+    // Only "User" role can register directly
+    if (role && role !== "User") {
+      return res.status(403).json({
+        success: false,
+        message: "You cannot register as an Admin or SuperAdmin.",
+      });
+    }
+    const user = new User({ 
+      name, 
+      email, 
+      password, 
+      universityId, 
+      role: "User",  // Force role to "User"
+      isVerified: false // User needs admin verification
+    });
     await user.save();
 
-    const token = signToken(user._id, user.role);
-    // Send the token in the response
-    res.status(201).json({ success: true, token });
+    res.status(201).json({
+      success: true,
+      message: "Registration successful! Please visit the station for verification.",
+    });
+
   } catch (e) {
     res.status(500).json({ success: false, message: e.message });
   }
@@ -34,6 +50,14 @@ exports.loginUser = catchAsync(async (req, res, next) => {
       return res
         .status(401)
         .json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Prevent unverified users from logging in
+    if (user.role === "User" && !user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not verified. Please visit the station for verification.",
+      });
     }
 
     const token = signToken(user._id, user.role);

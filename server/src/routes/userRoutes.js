@@ -4,18 +4,22 @@ const {
     getUserById, 
     updateUser, 
     deleteUser,
-    addAdmin // Importing the new function
+    createAdmin, 
+    verifyUser
 } = require('../controllers/userController');
-const { protect, authorize } = require('../middlewares/middleware');
+const { protect, authorizeRoles } = require('../middlewares/middleware');
 
 const router = express.Router();
 
-router.get('/', protect, authorize('admin'), getAllUsers);
+router.get('/', protect, authorizeRoles('admin'), getAllUsers);
 router.get('/:id', protect, getUserById);
 router.put('/:id', protect, updateUser);
-router.delete('/:id', protect, authorize('admin'), deleteUser);
+router.delete('/:id', protect, authorizeRoles('admin'), deleteUser);
 
-// New route for adding admin
-router.post('/admin', protect, authorize('superAdmin'), addAdmin);
+// to verify user (Only Admins & SuperAdmins can do this)
+router.put("/verify/:userId", protect, authorizeRoles("Admin", "SuperAdmin"), verifyUser);
+
+//for adding admin
+router.post("/admin", protect, authorizeRoles("SuperAdmin"), createAdmin);
 
 module.exports = router;
