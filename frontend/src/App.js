@@ -7,7 +7,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route exact path="/" element={<Login />} />
+        <Route exact path="/" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin/*" element={<Dashboard />} />
         <Route component={NotFound} /> {}

@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { FaTachometerAlt, FaBicycle, FaUsers, FaCog, FaChargingStation } from "react-icons/fa";
+import {
+  FaTachometerAlt,
+  FaBicycle,
+  FaUsers,
+  FaCog,
+  FaChargingStation,
+} from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const Sidebar = () => {
@@ -7,10 +13,14 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-gray-900 text-white h-screen p-4 ${collapsed ? "w-20" : "w-64"} transition-all duration-300`}
+      className={`bg-gray-900 text-white h-screen p-4 ${
+        collapsed ? "w-20" : "w-64"
+      } transition-all duration-300`}
     >
       <div className="flex justify-between items-center">
-        <h2 className={`text-xl font-bold mb-4 ${collapsed ? "hidden" : "block"}`}>
+        <h2
+          className={`text-xl font-bold mb-4 ${collapsed ? "hidden" : "block"}`}
+        >
           RevoBike Admin
         </h2>
         <button onClick={() => setCollapsed(!collapsed)} className="text-white">
@@ -27,7 +37,9 @@ const Sidebar = () => {
               activeClassName="bg-gray-700"
             >
               <FaTachometerAlt className="mr-2" />
-              <span className={`${collapsed ? "hidden" : "block"}`}>Dashboard</span>
+              <span className={`${collapsed ? "hidden" : "block"}`}>
+                Dashboard
+              </span>
             </NavLink>
           </li>
           <li className="mb-2">
@@ -37,7 +49,9 @@ const Sidebar = () => {
               activeClassName="bg-gray-700"
             >
               <FaChargingStation className="mr-2" />
-              <span className={`${collapsed ? "hidden" : "block"}`}>Stations</span>
+              <span className={`${collapsed ? "hidden" : "block"}`}>
+                Stations
+              </span>
             </NavLink>
           </li>
           <li className="mb-2">
@@ -67,7 +81,9 @@ const Sidebar = () => {
               activeClassName="bg-gray-700"
             >
               <FaCog className="mr-2" />
-              <span className={`${collapsed ? "hidden" : "block"}`}>Settings</span>
+              <span className={`${collapsed ? "hidden" : "block"}`}>
+                Settings
+              </span>
             </NavLink>
           </li>
         </ul>

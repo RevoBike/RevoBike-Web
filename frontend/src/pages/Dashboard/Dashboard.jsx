@@ -5,24 +5,24 @@ import BikesPage from "../../components/BikesPage";
 import DashboardPage from "../../components/DashboardPage";
 import UsersPage from "../../components/UsersPage";
 import SettingsPage from "../../components/SettingsPage";
-import NotFound from "../../components/NotFound";
 import StationsPage from "../../components/StationsPage";
 
 function Dashboard() {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
-            <div className="flex-1 flex flex-col">
-        <NavBar />
-        
+      <div className="flex-1 flex flex-col my-4">
+        {/* <NavBar /> */}
+
         <div className="flex-1 overflow-y-auto p-4">
+          {/* <DashboardPage /> */}
           <Routes>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/stations" element={<StationsPage />}/>
+            <Route path="/stations" element={<StationsPage />} />
             <Route path="/bikes" element={<BikesPage />} />
             <Route path="/users" element={<UsersPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="*" element={<NotFound />} />
+            {/* <Route path="*" element={<NotFound />} /> */}
           </Routes>
         </div>
       </div>

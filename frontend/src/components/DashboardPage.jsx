@@ -1,37 +1,37 @@
+import BookingsOverview from "./Dashboard/booking-stats";
+import BikeBookings from "./Dashboard/bike-booking";
+import DashboardMetrics from "./Dashboard/dashboard-metrics";
+import Footer from "./Dashboard/footer";
+import DashboardHeader from "./Dashboard/header";
+import CarAvailability from "./Dashboard/left-section";
+import RentStatusDashboard from "./Dashboard/rent-status-dashboard";
+import Remainder from "./Dashboard/reminder";
+
 const DashboardPage = () => {
-    return (
-      <div className="space-y-6">
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-800">Overview</h2>
-          <p className="text-gray-600 mt-2">A summary of your bike rental statistics and usage.</p>
-          <div className="mt-4 flex space-x-4">
-            <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md">
-              <h3 className="text-lg">Active Rentals</h3>
-              <p className="font-bold text-3xl">56</p>
+  return (
+    <>
+      <div className="flex flex-row w-full">
+        <div className="w-4/5">
+          <DashboardHeader />
+          <div className="flex flex-row gap-4 p-4">
+            <div className="w-2/3 flex flex-col gap-4">
+              <DashboardMetrics />
+              <BookingsOverview />
             </div>
-            <div className="bg-green-500 text-white p-4 rounded-lg shadow-md">
-              <h3 className="text-lg">Available Bikes</h3>
-              <p className="font-bold text-3xl">123</p>
+            <div className="w-1/3">
+              <RentStatusDashboard />
+              <Remainder />
             </div>
           </div>
+          <BikeBookings />
         </div>
-  
-        <div className="bg-white p-6 rounded-lg shadow-lg">
-          <h2 className="text-2xl font-semibold text-gray-800">Recent Activity</h2>
-          <ul className="mt-4 space-y-3">
-            <li className="flex items-center space-x-4">
-              <span className="text-gray-600">User 1 rented a bike</span>
-              <span className="text-gray-500">2 minutes ago</span>
-            </li>
-            <li className="flex items-center space-x-4">
-              <span className="text-gray-600">User 2 rented a bike</span>
-              <span className="text-gray-500">5 minutes ago</span>
-            </li>
-          </ul>
+        <div className="bg-white shadow-lg p-2 rounded-lg h-fit ml-2">
+          <CarAvailability />
         </div>
       </div>
-    );
-  };
-  
-  export default DashboardPage;
-  
+      <Footer />
+    </>
+  );
+};
+
+export default DashboardPage;

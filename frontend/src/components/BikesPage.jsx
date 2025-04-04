@@ -1,53 +1,299 @@
-import React from "react";
-import { MdEdit, MdDelete, MdAdd } from "react-icons/md";
+import { useState } from "react";
+import {
+  Badge,
+  Button,
+  Card,
+  Group,
+  Modal,
+  Select,
+  Stack,
+  Table,
+  Text,
+  Title,
+  TextInput,
+} from "@mantine/core";
+import { useForm } from "@mantine/form";
+import {
+  IconBicycle,
+  IconEdit,
+  IconTrash,
+  IconFilter,
+  IconTool,
+  IconTransfer,
+  IconHistory,
+} from "@tabler/icons-react";
+import BikeMetrics from "./Bikes/bike-metrics";
 
-const StationsPage = () => {
+export default function BikesManagement() {
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [stationFilter, setStationFilter] = useState("all");
+  const [detailsModalOpened, setDetailsModalOpened] = useState(false);
+  const [selectedBike, setSelectedBike] = useState(null);
+
   const bikes = [
-    { id: 1, model: "Mountain Bike", status: "Available" },
-    { id: 2, model: "Road Bike", status: "Out of Service" },
+    {
+      id: "BK001",
+      type: "City Bike",
+      station: "Central Park",
+      status: "Available",
+      lastMaintained: "2025-03-15",
+      lastRented: "2025-03-15",
+    },
+    {
+      id: "BK002",
+      type: "E-Bike",
+      station: "Downtown Hub",
+      status: "Rented",
+      lastMaintained: "2025-02-28",
+      lastRented: "2025-03-15",
+    },
+    {
+      id: "BK003",
+      type: "Mountain Bike",
+      station: "Riverside Stop",
+      status: "Maintenance",
+      lastMaintained: "2025-03-10",
+      lastRented: "2025-03-15",
+    },
+    {
+      id: "BK004",
+      type: "City Bike",
+      station: "Uptown Plaza",
+      status: "Available",
+      lastMaintained: "2025-03-20",
+      lastRented: "2025-03-15",
+    },
+  ];
+
+  const stations = [
+    "Central Park",
+    "Downtown Hub",
+    "Riverside Stop",
+    "Uptown Plaza",
+  ];
+
+  const filteredBikes = bikes.filter((bike) => {
+    const matchesStatus =
+      statusFilter === "all" || bike.status.toLowerCase() === statusFilter;
+    const matchesStation =
+      stationFilter === "all" || bike.station === stationFilter;
+    return matchesStatus && matchesStation;
+  });
+
+  const handleRowClick = (bike) => {
+    setSelectedBike(bike);
+    setDetailsModalOpened(true);
+  };
+
+  const handleMaintenance = (bike) => {
+    console.log("Schedule maintenance for:", bike.id);
+  };
+
+  const handleChangeStation = (bike) => {
+    console.log("Change station for:", bike.id);
+  };
+
+  return (
+    <Card padding="lg" withBorder radius="md" shadow="sm">
+      <Group justify="space-between" mb="md">
+        <Title order={2}>Bikes Management</Title>
+      </Group>
+      <BikeMetrics />
+
+      <Group mb="md" gap="md">
+        <Select
+          label="Filter by Status"
+          placeholder="Select status"
+          data={[
+            { value: "all", label: "All" },
+            { value: "available", label: "Available" },
+            { value: "rented", label: "Rented" },
+            { value: "maintenance", label: "Maintenance" },
+          ]}
+          value={statusFilter}
+          onChange={setStatusFilter}
+          leftSection={<IconFilter size={16} />}
+          style={{ width: "200px" }}
+        />
+        <Select
+          label="Filter by Station"
+          placeholder="Select station"
+          data={[
+            { value: "all", label: "All" },
+            ...stations.map((station) => ({ value: station, label: station })),
+          ]}
+          value={stationFilter}
+          onChange={setStationFilter}
+          leftSection={<IconFilter size={16} />}
+          style={{ width: "200px" }}
+        />
+      </Group>
+
+      <Table highlightOnHover>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Bike ID</Table.Th>
+            <Table.Th>Type</Table.Th>
+            <Table.Th>Station</Table.Th>
+            <Table.Th>Status</Table.Th>
+            <Table.Th>Last Maintained</Table.Th>
+            <Table.Th>Last Rented</Table.Th>
+            <Table.Th>Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {filteredBikes.map((bike) => (
+            <Table.Tr
+              key={bike.id}
+              onClick={() => handleRowClick(bike)}
+              style={{ cursor: "pointer" }}
+            >
+              <Table.Td>{bike.id}</Table.Td>
+              <Table.Td>{bike.type}</Table.Td>
+              <Table.Td>{bike.station}</Table.Td>
+              <Table.Td>
+                <Badge
+                  color={
+                    bike.status === "Available"
+                      ? "green"
+                      : bike.status === "Rented"
+                      ? "blue"
+                      : "yellow"
+                  }
+                  variant="light"
+                >
+                  {bike.status}
+                </Badge>
+              </Table.Td>
+              <Table.Td>{bike.lastMaintained}</Table.Td>
+              <Table.Td>{bike.lastRented}</Table.Td>
+
+              <Table.Td>
+                <Group>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMaintenance(bike);
+                    }}
+                  >
+                    <IconTool size={14} />
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMaintenance(bike);
+                    }}
+                  >
+                    <IconEdit size={14} color="green" />
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleMaintenance(bike);
+                    }}
+                  >
+                    <IconTrash size={14} color="red" />
+                  </Button>
+                </Group>
+              </Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+
+      {/* Bike Details Modal */}
+      {selectedBike && (
+        <BikeDetailsModal
+          opened={detailsModalOpened}
+          onClose={() => setDetailsModalOpened(false)}
+          bike={selectedBike}
+        />
+      )}
+    </Card>
+  );
+}
+
+// Bike Details Modal Component
+function BikeDetailsModal({ opened, onClose, bike }) {
+  // Mock history data
+  const history = [
+    { date: "2025-03-15", event: "Maintenance", details: "Brake repair" },
+    { date: "2025-03-10", event: "Rental", details: "Rented by John Doe" },
+    { date: "2025-03-05", event: "Battery", details: "Battery replaced, 100%" },
   ];
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-semibold text-gray-800">Manage Bikes</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-700 transition-all">
-          <MdAdd className="mr-2" />
-          Add Bike
-        </button>
-      </div>
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={<Text fw={700}>Bike Details: {bike.id}</Text>}
+      centered
+      size="lg"
+    >
+      <Stack gap="md">
+        <Group justify="space-between">
+          <Text size="sm">
+            Type:{" "}
+            <Text span fw={500}>
+              {bike.type}
+            </Text>
+          </Text>
+          <Text size="sm">
+            Station:{" "}
+            <Text span fw={500}>
+              {bike.station}
+            </Text>
+          </Text>
+          <Text size="sm">
+            Status:{" "}
+            <Badge
+              color={
+                bike.status === "Available"
+                  ? "green"
+                  : bike.status === "Rented"
+                  ? "blue"
+                  : "yellow"
+              }
+            >
+              {bike.status}
+            </Badge>
+          </Text>
+        </Group>
+        <Text size="sm">
+          Last Maintained:{" "}
+          <Text span fw={500}>
+            {bike.lastMaintained}
+          </Text>
+        </Text>
 
-      <div className="overflow-x-auto bg-white shadow-md rounded-lg">
-        <table className="min-w-full text-sm text-left text-gray-500">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-6 py-3">Bike Id</th>
-              <th className="px-6 py-3">Model</th>
-              <th className="px-6 py-3">Status</th>
-              <th className="px-6 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {bikes.map((bike) => (
-              <tr key={bike.id} className="border-b hover:bg-gray-50">
-                <td className="px-6 py-4">{bike.id}</td>
-                <td className="px-6 py-4">{bike.model}</td>
-                <td className="px-6 py-4">{bike.status}</td>
-                <td className="px-6 py-4 flex space-x-4">
-                  <button className="text-blue-600 hover:text-blue-800">
-                    <MdEdit />
-                  </button>
-                  <button className="text-red-600 hover:text-red-800">
-                    <MdDelete />
-                  </button>
-                </td>
-              </tr>
+        <Title order={4} mt="md">
+          History
+        </Title>
+        <Table>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Date</Table.Th>
+              <Table.Th>Event</Table.Th>
+              <Table.Th>Details</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {history.map((entry, index) => (
+              <Table.Tr key={index}>
+                <Table.Td>{entry.date}</Table.Td>
+                <Table.Td>{entry.event}</Table.Td>
+                <Table.Td>{entry.details}</Table.Td>
+              </Table.Tr>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </Table.Tbody>
+        </Table>
+      </Stack>
+    </Modal>
   );
-};
-
-export default StationsPage;
+}
