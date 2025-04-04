@@ -4,21 +4,33 @@ import {
   Button,
   Card,
   Group,
-  Modal,
   Select,
-  Stack,
   Table,
-  Text,
   Title,
 } from "@mantine/core";
-import { IconEdit, IconTrash, IconFilter, IconTool } from "@tabler/icons-react";
+import {
+  IconEdit,
+  IconTrash,
+  IconFilter,
+  IconTool,
+  IconPlus,
+} from "@tabler/icons-react";
 import BikeMetrics from "./bikes/bike-metrics";
+import EditBikeModal from "./bikes/update-modal";
+import DeleteBikeModal from "./bikes/delete-modal";
+import MaintenanceBikeModal from "./bikes/maintenance-modal";
+import AddBikeModal from "./bikes/add-modal";
+import BikeDetailsModal from "./bikes/details-modal";
 
 export default function BikesManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [stationFilter, setStationFilter] = useState("all");
+  const [addModalOpened, setAddModalOpened] = useState(false);
   const [detailsModalOpened, setDetailsModalOpened] = useState(false);
   const [selectedBike, setSelectedBike] = useState(null);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [maintenanceModalOpened, setMaintenanceModalOpened] = useState(false);
 
   const bikes = [
     {
@@ -70,23 +82,45 @@ export default function BikesManagement() {
     return matchesStatus && matchesStation;
   });
 
+  const handleEditClick = (bike, e) => {
+    e.stopPropagation();
+    setSelectedBike(bike);
+    setEditModalOpened(true);
+  };
+
+  const handleDeleteClick = (station, e) => {
+    e.stopPropagation();
+    setSelectedBike(station);
+    setDeleteModalOpened(true);
+  };
+
+  const handleMaintenanceClick = (bike, e) => {
+    e.stopPropagation();
+    setSelectedBike(bike);
+    setMaintenanceModalOpened(true);
+  };
+
   const handleRowClick = (bike) => {
     setSelectedBike(bike);
     setDetailsModalOpened(true);
-  };
-
-  const handleMaintenance = (bike) => {
-    console.log("Schedule maintenance for:", bike.id);
-  };
-
-  const handleChangeStation = (bike) => {
-    console.log("Change station for:", bike.id);
   };
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <Group justify="space-between" mb="md">
         <Title order={3}>Bikes Management</Title>
+        <Button
+          leftSection={<IconPlus size={16} />}
+          onClick={() => setAddModalOpened(true)}
+          styles={{
+            root: {
+              backgroundColor: "#212529",
+              "&:hover": { backgroundColor: "#343a40" },
+            },
+          }}
+        >
+          Add Bike
+        </Button>
       </Group>
       <BikeMetrics />
 
@@ -163,30 +197,21 @@ export default function BikesManagement() {
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMaintenance(bike);
-                    }}
+                    onClick={(e) => handleMaintenanceClick(bike, e)}
                   >
                     <IconTool size={14} />
                   </Button>
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMaintenance(bike);
-                    }}
+                    onClick={(e) => handleEditClick(bike, e)}
                   >
                     <IconEdit size={14} color="green" />
                   </Button>
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleMaintenance(bike);
-                    }}
+                    onClick={(e) => handleDeleteClick(bike, e)}
                   >
                     <IconTrash size={14} color="red" />
                   </Button>
@@ -197,7 +222,6 @@ export default function BikesManagement() {
         </Table.Tbody>
       </Table>
 
-      {/* Bike Details Modal */}
       {selectedBike && (
         <BikeDetailsModal
           opened={detailsModalOpened}
@@ -205,85 +229,44 @@ export default function BikesManagement() {
           bike={selectedBike}
         />
       )}
+      <EditBikeModal
+        opened={editModalOpened}
+        onClose={() => setEditModalOpened(false)}
+        bike={selectedBike}
+        onUpdate={(updatedStation) =>
+          setSelectedBike(
+            stations.map((s) =>
+              s.id === updatedStation.id ? updatedStation : s
+            )
+          )
+        }
+      />
+      <DeleteBikeModal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        bike={selectedBike}
+        onDelete={() =>
+          setSelectedBike(stations.filter((s) => s.id !== selectedBike?.id))
+        }
+      />
+
+      <MaintenanceBikeModal
+        opened={maintenanceModalOpened}
+        onClose={() => setMaintenanceModalOpened(false)}
+        bike={selectedBike}
+        onDelete={() =>
+          setSelectedBike(stations.filter((s) => s.id !== selectedBike?.id))
+        }
+        onSchedule={(data) => console.log("Maintenance Scheduled:", data)}
+      />
+
+      <AddBikeModal
+        opened={addModalOpened}
+        onClose={() => setAddModalOpened(false)}
+        // onAdd={(newStation) =>
+        //   ([...stations, { id: stations.length + 1, ...newStation }])
+        // }
+      />
     </Card>
-  );
-}
-
-// Bike Details Modal Component
-function BikeDetailsModal({ opened, onClose, bike }) {
-  // Mock history data
-  const history = [
-    { date: "2025-03-15", event: "Maintenance", details: "Brake repair" },
-    { date: "2025-03-10", event: "Rental", details: "Rented by John Doe" },
-    { date: "2025-03-05", event: "Battery", details: "Battery replaced, 100%" },
-  ];
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={<Text fw={700}>Bike Details: {bike.id}</Text>}
-      centered
-      size="lg"
-    >
-      <Stack gap="md">
-        <Group justify="space-between">
-          <Text size="sm">
-            Type:{" "}
-            <Text span fw={500}>
-              {bike.type}
-            </Text>
-          </Text>
-          <Text size="sm">
-            Station:{" "}
-            <Text span fw={500}>
-              {bike.station}
-            </Text>
-          </Text>
-          <Text size="sm">
-            Status:{" "}
-            <Badge
-              color={
-                bike.status === "Available"
-                  ? "green"
-                  : bike.status === "Rented"
-                  ? "blue"
-                  : "yellow"
-              }
-            >
-              {bike.status}
-            </Badge>
-          </Text>
-        </Group>
-        <Text size="sm">
-          Last Maintained:{" "}
-          <Text span fw={500}>
-            {bike.lastMaintained}
-          </Text>
-        </Text>
-
-        <Title order={4} mt="md">
-          History
-        </Title>
-        <Table>
-          <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Date</Table.Th>
-              <Table.Th>Event</Table.Th>
-              <Table.Th>Details</Table.Th>
-            </Table.Tr>
-          </Table.Thead>
-          <Table.Tbody>
-            {history.map((entry, index) => (
-              <Table.Tr key={index}>
-                <Table.Td>{entry.date}</Table.Td>
-                <Table.Td>{entry.event}</Table.Td>
-                <Table.Td>{entry.details}</Table.Td>
-              </Table.Tr>
-            ))}
-          </Table.Tbody>
-        </Table>
-      </Stack>
-    </Modal>
   );
 }

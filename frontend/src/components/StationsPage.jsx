@@ -82,7 +82,7 @@ export default function StationsManagement() {
   });
 
   const handleEditClick = (station, e) => {
-    e.stopPropagation(); // Prevent row click
+    e.stopPropagation();
     setSelectedStation(station);
     setEditModalOpened(true);
   };

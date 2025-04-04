@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@mantine/form";
 import {
   Button,
   Group,
@@ -10,21 +9,22 @@ import {
   TextInput,
   Select,
 } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import { useForm } from "@mantine/form";
+import { IconBike } from "@tabler/icons-react";
 
-const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
+const AddBikeModal = ({ opened, onClose, onAdd }) => {
   const form = useForm({
-    initialValues: bike || { station: "", type: "" },
+    initialValues: { type: "", station: "" },
     validate: {
-      station: (value) => (!value ? "Status is required" : null),
-
       type: (value) =>
         value.length < 3 ? "Type must be at least 3 characters" : null,
+      station: (value) => (!value ? "Status is required" : null),
     },
   });
 
   const handleSubmit = (values) => {
-    onUpdate({ ...bike, ...values });
+    onAdd(values);
+    form.reset();
     onClose();
   };
 
@@ -34,7 +34,7 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          Edit Bike: {bike?.model}
+          Add New Bike
         </Text>
       }
       centered
@@ -52,31 +52,6 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
-          <Select
-            label="Station"
-            placeholder="Tuludimtu"
-            required
-            data={[
-              { value: "tuludimtu", label: "Tuludimtu" },
-              { value: "akaki", label: "Akaki" },
-              { value: "piasa", label: "Piyasa" },
-            ]}
-            {...form.getInputProps("station")}
-            radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
-            }}
-          />
-
           <TextInput
             label="Bike Type"
             placeholder="e.g., Road, Mountain, Hybrid"
@@ -96,7 +71,30 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
               error: { color: "#f03e3e" },
             }}
           />
-
+          <Select
+            label="Bike Status"
+            placeholder="Select status"
+            required
+            data={[
+              { value: "tuludimtu", label: "Tuludimtu" },
+              { value: "akaki", label: "Akaki" },
+              { value: "piasa", label: "Piyasa" },
+            ]}
+            {...form.getInputProps("status")}
+            radius="md"
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
           <Group justify="flex-end" mt="lg" gap="xs">
             <Button
               variant="subtle"
@@ -118,7 +116,7 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
+              leftSection={<IconBike size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
@@ -126,7 +124,7 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
                 },
               }}
             >
-              Update Bike
+              Add Bike
             </Button>
           </Group>
         </Stack>
@@ -135,4 +133,4 @@ const EditBikeModal = ({ opened, onClose, bike, onUpdate }) => {
   );
 };
 
-export default EditBikeModal;
+export default AddBikeModal;
