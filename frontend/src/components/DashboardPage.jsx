@@ -1,11 +1,11 @@
-import BookingsOverview from "./Dashboard/booking-stats";
-import BikeBookings from "./Dashboard/bike-booking";
-import DashboardMetrics from "./Dashboard/dashboard-metrics";
-import Footer from "./Dashboard/footer";
-import DashboardHeader from "./Dashboard/header";
-import CarAvailability from "./Dashboard/left-section";
-import RentStatusDashboard from "./Dashboard/rent-status-dashboard";
-import Remainder from "./Dashboard/reminder";
+import BookingsOverview from "./dashboard/booking-stats";
+import BikeBookings from "./dashboard/bike-booking";
+import DashboardMetrics from "./dashboard/dashboard-metrics";
+import Footer from "./dashboard/footer";
+import DashboardHeader from "./dashboard/header";
+import CarAvailability from "./dashboard/left-section";
+import RentStatusDashboard from "./dashboard/rent-status-dashboard";
+import Remainder from "./dashboard/reminder";
 
 const DashboardPage = () => {
   return (

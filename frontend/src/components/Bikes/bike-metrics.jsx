@@ -4,7 +4,13 @@ import { IconBike } from "@tabler/icons-react";
 export default function BikeMetrics() {
   return (
     <div className="grid grid-rows-2 grid-cols-2 gap-4 mb-6">
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-300 ease-in-out"
+      >
         <Group align="flex-start" gap="md">
           <div className="bg-gray-900 text-white rounded-full p-1">
             <IconBike size={20} />
@@ -21,7 +27,13 @@ export default function BikeMetrics() {
           </div>
         </Group>
       </Card>
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-300 ease-in-out"
+      >
         <Group align="flex-start" gap="md">
           <div className="bg-gray-900 text-white rounded-full p-1">
             <IconBike size={20} />
@@ -39,7 +51,13 @@ export default function BikeMetrics() {
         </Group>
       </Card>
 
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-300 ease-in-out"
+      >
         <Group align="flex-start" gap="md">
           <div className="bg-gray-900 text-white rounded-full p-1">
             <IconBike size={20} />
@@ -57,7 +75,13 @@ export default function BikeMetrics() {
         </Group>
       </Card>
 
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-300 ease-in-out"
+      >
         <Group align="flex-start" gap="md">
           <div className="bg-gray-900 text-white rounded-full p-1">
             <IconBike size={20} />

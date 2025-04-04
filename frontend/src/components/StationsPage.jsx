@@ -1,18 +1,15 @@
+"use client";
+
 import { useState } from "react";
 import {
   Badge,
   Button,
   Card,
   Group,
-  Modal,
   Select,
-  Stack,
   Table,
-  Text,
-  TextInput,
   Title,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
 import {
   IconBike,
   IconFilter,
@@ -20,13 +17,18 @@ import {
   IconEdit,
   IconTrash,
 } from "@tabler/icons-react";
-import StationsMetrics from "./Stations/station-metrics";
+import StationsMetrics from "./stations/station-metrics";
+import EditStationModal from "./stations/update-modal";
+import DeleteConfirmationModal from "./stations/delete-modal";
+import AddStationModal from "./stations/add-modal";
 
 export default function StationsManagement() {
   const [filter, setFilter] = useState("all");
-  const [modalOpened, setModalOpened] = useState(false);
-
-  const stations = [
+  const [addModalOpened, setAddModalOpened] = useState(false);
+  const [editModalOpened, setEditModalOpened] = useState(false);
+  const [deleteModalOpened, setDeleteModalOpened] = useState(false);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [stations, setStations] = useState([
     {
       id: 1,
       name: "Central Park",
@@ -55,7 +57,21 @@ export default function StationsManagement() {
       capacity: 25,
       bikes: 24,
     },
-  ];
+    {
+      id: 5,
+      name: "Uptown Plaza 2",
+      address: "102 Plaza Dr",
+      capacity: 25,
+      bikes: 24,
+    },
+    {
+      id: 6,
+      name: "Uptown Plaza 3",
+      address: "103 Plaza Dr",
+      capacity: 25,
+      bikes: 24,
+    },
+  ]);
 
   const filteredStations = stations.filter((station) => {
     const occupancy = (station.bikes / station.capacity) * 100;
@@ -65,17 +81,31 @@ export default function StationsManagement() {
     return true;
   });
 
-  const handleRowClick = (station) => {
-    console.log("Edit station:", station);
+  const handleEditClick = (station, e) => {
+    e.stopPropagation(); // Prevent row click
+    setSelectedStation(station);
+    setEditModalOpened(true);
+  };
+
+  const handleDeleteClick = (station, e) => {
+    e.stopPropagation();
+    setSelectedStation(station);
+    setDeleteModalOpened(true);
   };
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <Group justify="space-between" mb="md">
-        <Title order={2}>Stations Management</Title>
+        <Title order={3}>Stations Management</Title>
         <Button
           leftSection={<IconPlus size={16} />}
-          onClick={() => setModalOpened(true)}
+          onClick={() => setAddModalOpened(true)}
+          styles={{
+            root: {
+              backgroundColor: "#212529",
+              "&:hover": { backgroundColor: "#343a40" },
+            },
+          }}
         >
           Add Station
         </Button>
@@ -96,17 +126,24 @@ export default function StationsManagement() {
           onChange={setFilter}
           leftSection={<IconFilter size={16} />}
           style={{ width: "200px" }}
+          classNames={{
+            input: "text-gray-800",
+            dropdown: "bg-white",
+            item: "hover:bg-gray-100",
+          }}
         />
       </Group>
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr>
+          <Table.Tr className="bg-red-100 text-gray-800">
+            <Table.Th>ID</Table.Th>
             <Table.Th>Name</Table.Th>
             <Table.Th>Address</Table.Th>
             <Table.Th>Capacity</Table.Th>
             <Table.Th>Bikes</Table.Th>
             <Table.Th>Status</Table.Th>
+            <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -122,11 +159,8 @@ export default function StationsManagement() {
               occupancy > 80 ? "red" : occupancy < 20 ? "yellow" : "green";
 
             return (
-              <Table.Tr
-                key={station.id}
-                onClick={() => handleRowClick(station)}
-                style={{ cursor: "pointer" }}
-              >
+              <Table.Tr key={station.id} style={{ cursor: "pointer" }}>
+                <Table.Td>{station.id}</Table.Td>
                 <Table.Td>{station.name}</Table.Td>
                 <Table.Td>{station.address}</Table.Td>
                 <Table.Td>{station.capacity}</Table.Td>
@@ -136,9 +170,24 @@ export default function StationsManagement() {
                     {status}
                   </Badge>
                 </Table.Td>
-                <Table.Td className="flex flex-row gap-2">
-                  <IconEdit color="green" /> |
-                  <IconTrash color="red" />
+                <Table.Td>
+                  <Group>
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={(e) => handleEditClick(station, e)}
+                    >
+                      <IconEdit size={14} color="green" />
+                    </Button>
+                    |
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={(e) => handleDeleteClick(station, e)}
+                    >
+                      <IconTrash size={14} color="red" />
+                    </Button>
+                  </Group>
                 </Table.Td>
               </Table.Tr>
             );
@@ -147,75 +196,32 @@ export default function StationsManagement() {
       </Table>
 
       <AddStationModal
-        opened={modalOpened}
-        onClose={() => setModalOpened(false)}
+        opened={addModalOpened}
+        onClose={() => setAddModalOpened(false)}
+        onAdd={(newStation) =>
+          setStations([...stations, { id: stations.length + 1, ...newStation }])
+        }
+      />
+      <EditStationModal
+        opened={editModalOpened}
+        onClose={() => setEditModalOpened(false)}
+        station={selectedStation}
+        onUpdate={(updatedStation) =>
+          setStations(
+            stations.map((s) =>
+              s.id === updatedStation.id ? updatedStation : s
+            )
+          )
+        }
+      />
+      <DeleteConfirmationModal
+        opened={deleteModalOpened}
+        onClose={() => setDeleteModalOpened(false)}
+        station={selectedStation}
+        onDelete={() =>
+          setStations(stations.filter((s) => s.id !== selectedStation?.id))
+        }
       />
     </Card>
-  );
-}
-
-function AddStationModal({ opened, onClose }) {
-  const form = useForm({
-    initialValues: {
-      name: "",
-      address: "",
-      capacity: "",
-    },
-    validate: {
-      name: (value) =>
-        value.length < 2 ? "Name must be at least 2 characters" : null,
-      address: (value) =>
-        value.length < 5 ? "Address must be at least 5 characters" : null,
-      capacity: (value) =>
-        !/^\d+$/.test(value) || value < 1
-          ? "Capacity must be a positive number"
-          : null,
-    },
-  });
-
-  const handleSubmit = (values) => {
-    console.log("New station:", values);
-    form.reset();
-    onClose();
-  };
-
-  return (
-    <Modal
-      opened={opened}
-      onClose={onClose}
-      title={<Text fw={700}>Add New Station</Text>}
-      centered
-    >
-      <form onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
-          <TextInput
-            label="Station Name"
-            placeholder="e.g., Central Park"
-            required
-            {...form.getInputProps("name")}
-          />
-          <TextInput
-            label="Address"
-            placeholder="e.g., 123 Park Ave"
-            required
-            {...form.getInputProps("address")}
-          />
-          <TextInput
-            label="Capacity"
-            placeholder="e.g., 20"
-            required
-            {...form.getInputProps("capacity")}
-          />
-          <Group justify="flex-end" mt="md">
-            <Button variant="subtle" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" leftSection={<IconBike size={16} />}>
-              Add Station
-            </Button>
-          </Group>
-        </Stack>
-      </form>
-    </Modal>
   );
 }

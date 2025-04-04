@@ -10,19 +10,9 @@ import {
   Table,
   Text,
   Title,
-  TextInput,
 } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import {
-  IconBicycle,
-  IconEdit,
-  IconTrash,
-  IconFilter,
-  IconTool,
-  IconTransfer,
-  IconHistory,
-} from "@tabler/icons-react";
-import BikeMetrics from "./Bikes/bike-metrics";
+import { IconEdit, IconTrash, IconFilter, IconTool } from "@tabler/icons-react";
+import BikeMetrics from "./bikes/bike-metrics";
 
 export default function BikesManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
@@ -33,7 +23,7 @@ export default function BikesManagement() {
   const bikes = [
     {
       id: "BK001",
-      type: "City Bike",
+      type: "Bike",
       station: "Central Park",
       status: "Available",
       lastMaintained: "2025-03-15",
@@ -41,7 +31,7 @@ export default function BikesManagement() {
     },
     {
       id: "BK002",
-      type: "E-Bike",
+      type: "Scooter",
       station: "Downtown Hub",
       status: "Rented",
       lastMaintained: "2025-02-28",
@@ -49,7 +39,7 @@ export default function BikesManagement() {
     },
     {
       id: "BK003",
-      type: "Mountain Bike",
+      type: "Bike",
       station: "Riverside Stop",
       status: "Maintenance",
       lastMaintained: "2025-03-10",
@@ -57,7 +47,7 @@ export default function BikesManagement() {
     },
     {
       id: "BK004",
-      type: "City Bike",
+      type: "Scooter",
       station: "Uptown Plaza",
       status: "Available",
       lastMaintained: "2025-03-20",
@@ -96,7 +86,7 @@ export default function BikesManagement() {
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <Group justify="space-between" mb="md">
-        <Title order={2}>Bikes Management</Title>
+        <Title order={3}>Bikes Management</Title>
       </Group>
       <BikeMetrics />
 
