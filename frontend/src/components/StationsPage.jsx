@@ -21,6 +21,7 @@ import StationsMetrics from "./stations/station-metrics";
 import EditStationModal from "./stations/update-modal";
 import DeleteConfirmationModal from "./stations/delete-modal";
 import AddStationModal from "./stations/add-modal";
+import StationDetailsModal from "./stations/details-modal";
 
 export default function StationsManagement() {
   const [filter, setFilter] = useState("all");
@@ -28,6 +29,8 @@ export default function StationsManagement() {
   const [editModalOpened, setEditModalOpened] = useState(false);
   const [deleteModalOpened, setDeleteModalOpened] = useState(false);
   const [selectedStation, setSelectedStation] = useState(null);
+  const [detailsModalOpened, setDetailsModalOpened] = useState(false);
+
   const [stations, setStations] = useState([
     {
       id: 1,
@@ -80,6 +83,11 @@ export default function StationsManagement() {
     if (filter === "normal") return occupancy >= 20 && occupancy <= 80;
     return true;
   });
+
+  const handleRowClick = (station) => {
+    setSelectedStation(station);
+    setDetailsModalOpened(true);
+  };
 
   const handleEditClick = (station, e) => {
     e.stopPropagation();
@@ -159,7 +167,11 @@ export default function StationsManagement() {
               occupancy > 80 ? "red" : occupancy < 20 ? "yellow" : "green";
 
             return (
-              <Table.Tr key={station.id} style={{ cursor: "pointer" }}>
+              <Table.Tr
+                key={station.id}
+                style={{ cursor: "pointer" }}
+                onClick={() => handleRowClick(station)}
+              >
                 <Table.Td>{station.id}</Table.Td>
                 <Table.Td>{station.name}</Table.Td>
                 <Table.Td>{station.address}</Table.Td>
@@ -220,6 +232,18 @@ export default function StationsManagement() {
         station={selectedStation}
         onDelete={() =>
           setStations(stations.filter((s) => s.id !== selectedStation?.id))
+        }
+      />
+      <StationDetailsModal
+        opened={detailsModalOpened}
+        onClose={() => setDetailsModalOpened(false)}
+        station={selectedStation}
+        onUpdate={(updatedStation) =>
+          setStations(
+            stations.map((s) =>
+              s.id === updatedStation.id ? updatedStation : s
+            )
+          )
         }
       />
     </Card>
