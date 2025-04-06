@@ -4,7 +4,17 @@ const bcrypt = require("bcryptjs");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { 
+      type: String, 
+      required: true, 
+      unique: true,
+      validate: {
+        validator: function(value) {
+          return value.endsWith("@aastustudent.edu.et"); 
+        },
+        message: "Only university emails are allowed."
+      } 
+    },
     password: { type: String, required: true, select: false },
     universityId: { 
       type: String, 
@@ -15,6 +25,12 @@ const userSchema = new mongoose.Schema(
       type: Boolean, 
       default: false 
     }, 
+    otpCode: { 
+      type: String 
+    },
+    otpExpires: { 
+      type: Date 
+    },
     role: {
       type: String,
       enum: ["User", "Admin", "SuperAdmin"],

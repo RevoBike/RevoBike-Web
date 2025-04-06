@@ -32,13 +32,13 @@ app.use(
 // Socket.IO setup
 const io = new Server(server, {
   cors: {
-    origin: "*", // Change to REACT APP URL in production
+    origin: "*", // all clients to connect no matter their origin(all REACT APP URL)
     methods: ["GET", "POST"],
   },
 });
 
-// Store socket.io instance globally in the app
-app.set("io", io);
+// Store socket.io instance globally 
+app.set("io", io); // to emit evetns everywhere
 
 // Handle WebSocket connections
 io.on("connection", (socket) => {

@@ -8,18 +8,32 @@ const PaymentSchema = new mongoose.Schema({
     },
     ride: { 
         type: mongoose.Schema.Types.ObjectId, 
-        ref: "Ride" 
+        ref: "Ride", 
+        required: true 
     },
     amount: { 
-        type: Number,  
+        type: Number, 
         required: true 
+    },
+    phoneNumber: { 
+        type: String, 
+        required: true 
+    },
+    transactionId: { 
+        type: String, 
+        unique: true 
     },
     status: { 
         type: String, 
-        enum: ["pending", "completed", "failed"], 
+        enum: ["pending", "successful", "failed"], 
         default: "pending" 
     },
-}, { timestamps: true });
+    createdAt: { 
+        type: Date, 
+        default: Date.now 
+    },
+});
+
 
 const Payment = mongoose.model("Payment", PaymentSchema);
 

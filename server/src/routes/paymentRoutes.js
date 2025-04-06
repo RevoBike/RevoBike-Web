@@ -1,18 +1,11 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const {
-    createPayment,
-    getAllPayments,
-    getPaymentById,
-    updatePaymentStatus,
-    getUserPayments,
-} = require('../controllers/paymentController');
-const { protect, authorize } = require('../middleware/authMiddleware');
+const { initiatePayment, paymentCallback } = require("../controller/paymentController");
 
-router.post('/', protect, createPayment);  
-router.get('/', protect, authorize('admin'), getAllPayments);  
-router.get('/history', protect, getUserPayments);  
-router.get('/:id', protect, getPaymentById);  
-router.put('/:id/status', protect, authorize('admin'), updatePaymentStatus);  
+router.post("/pay/:rideId", initiatePayment);
+router.post("/callback", paymentCallback);
+// router.get("/all", authMiddleware.protect, authMiddleware.authorizeRoles("Admin", "SuperAdmin"), paymentController.getAllPayments);
+// router.get("/", authMiddleware.protect, paymentController.getUserPayments);
+// router.get("/:id", authMiddleware.protect, paymentController.getPaymentById);
 
 module.exports = router;
