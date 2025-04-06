@@ -38,7 +38,12 @@ const RideSchema = new mongoose.Schema({
         type: String, 
         enum: ['active', 'completed'], 
         default: 'active' 
-    }
+    },
+    paymentStatus: { 
+        type: String, 
+        enum: ["pending", "paid", "failed"], 
+        default: "pending" 
+    }, 
 }, { timestamps: true });
 
 

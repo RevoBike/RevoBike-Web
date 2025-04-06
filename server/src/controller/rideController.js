@@ -11,6 +11,15 @@ exports.startRide = catchAsync(async (req, res) => {
         return res.status(403).json({ success: false, message: "Only users can start a ride" });
     }
 
+    const unpaidRide = await Ride.findOne({ user: req.user._id, paymentStatus: "pending" });
+
+    if (unpaidRide) {
+        return res.status(400).json({ 
+            success: false, 
+            message: "You have an unpaid ride. Please complete the payment first." });
+    }
+
+
     const { qrCode } = req.body;
     const bike = await Bike.findOne({ qrCode });
 
@@ -72,6 +81,7 @@ exports.endRide = catchAsync(async (req, res) => {
     ride.distance = distance;
     ride.cost = cost;
     ride.status = "completed";
+    ride.paymentStatus = "pending";
     await ride.save();
 
     // Mark bike as available
