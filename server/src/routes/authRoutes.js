@@ -3,6 +3,12 @@ const router = express.Router();
 const { protect, authorizeRoles } = require("../middlewares/middleware");
 const { registerUser, loginUser } = require("../controller/authController");
 
+
+router.post("/register", registerUser);
+router.post("/verify-otp", verifyOTP);
+router.post("/login", loginUser);
+
+
 router.post("/register", async (req, res, next) => {
   try {
     await registerUser(req, res, next);
@@ -26,5 +32,6 @@ router.get("/profile", protect, (req, res) => {
 router.get("/admin", protect, authorizeRoles("Admin"), (req, res) => {
   res.status(200).json({ message: "Welcome Admin!" });
 });
+
 
 module.exports = router;

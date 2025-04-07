@@ -1,108 +1,78 @@
-const Payment = require('../models/Payment');
-const Ride = require('../models/Ride');
-const catchAsync = require('../utils/catchAsync');
+const Payment = require("../models/Payment");
+const Ride = require("../models/Ride");
+const { initiateChapaPayment, verifyChapaPayment } = require("../utils/chapa");
+const catchAsync = require("../utils/catchAsync");
+const { v4: uuidv4 } = require("uuid");
 
-// Create Payment (Only Users)
-exports.createPayment = catchAsync(async (req, res) => {
-    if (req.user.role !== "User") {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Only users can make a payment" 
-        });
-    }
+// Initiate Chapa payment for a completed ride
+exports.initiatePayment = catchAsync(async (req, res) => {
+  const { rideId } = req.params;
+  const ride = await Ride.findById(rideId).populate("user");
 
-    const { rideId } = req.body;
-    const ride = await Ride.findById(rideId);
+  if (!ride || ride.paymentStatus !== "pending") {
+    return res.status(400).json({ message: "Invalid or already paid ride" });
+  }
 
-    if (!ride || ride.user.toString() !== req.user._id.toString()) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Invalid ride or unauthorized" 
-        });
-    }
+  const tx_ref = uuidv4(); // Now inside the controller
 
-    const payment = await Payment.create({
-        user: req.user._id,
-        ride: rideId,
-        amount: ride.cost,
-        status: "pending",
-    });
+  const Payload = {
+    amount: ride.cost,
+    currency: "ETB",
+    email: user.email,
+    first_name: ride.user.name,
+    phone_number: ride.user.phone_number,
+    tx_ref,
+    callback_url: `${process.env.BASE_URL}/api/payments/callback/${tx_ref}`,
+    return_url: `${process.env.FRONTEND_URL}/payment-success/${tx_ref}`,
+    customizations: {
+        title: "Bike Sharing Payment",
+        description: `Payment for ride ${rideId}`,
+    },
+};
 
-    res.status(201).json({ 
-        success: true, 
-        data: payment 
-    });
+  const chapaRes = await initiateChapaPayment(Payload);
+
+  const payment = await Payment.create({
+    user: user._id,
+    ride: ride._id,
+    amount: ride.cost,
+    tx_ref,
+    checkout_url: chapaRes.data.checkout_url,
+  });
+
+  await payment.save();
+
+  res.status(200).json({ success: true, checkout_url: chapaRes.data.checkout_url });
 });
 
-// Get all payments (Admins & SuperAdmins)
-exports.getAllPayments = catchAsync(async (req, res) => {
-    if (req.user.role === "User") {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Unauthorized access" 
-        });
+// verify payemet 
+exports.handleChapaCallback = catchAsync(async (req, res) => {
+    const { tx_ref } = req.params;
+
+    const existingPayment = await Payment.findOne({ tx_ref }).populate("ride");
+    if (!existingPayment) {
+        return res.status(404).json({ success: false, message: "Payment not found" });
     }
 
-    const payments = await Payment.find().populate("user", "name email").populate("ride");
-    res.status(200).json({ 
-        success: true, 
-        data: payments 
-    });
-});
-
-// Update payment status (Only Admins & SuperAdmins)
-exports.updatePaymentStatus = catchAsync(async (req, res) => {
-    if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
-        return res.status(403).json({ 
-            success: false, 
-            message: "Unauthorized" 
-        });
+    if (existingPayment.status === "successful") {
+        return res.status(200).send("Payment already verified.");
     }
 
-    const { status } = req.body;
-    if (!["pending", "completed", "failed"].includes(status)) {
-        return res.status(400).json({ 
-            success: false, 
-            message: "Invalid payment status" 
-        });
+    const chapaData = await verifyChapaPayment(tx_ref);
+
+    if (chapaData.status === "success") {
+        existingPayment.status = "successful";
+        existingPayment.verifiedAt = new Date();
+        existingPayment.chapa_tx_id = chapaData.data.id;
+        await existingPayment.save();
+
+        existingPayment.ride.paymentStatus = "paid";
+        await existingPayment.ride.save();
+
+        return res.status(200).send("Payment verified and ride updated.");
+    } else {
+        existingPayment.status = "failed";
+        await existingPayment.save();
+        return res.status(400).send("Payment failed or not completed.");
     }
-
-    const payment = await Payment.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!payment) {
-        return res.status(404).json({ 
-            success: false, 
-            message: "Payment not found" 
-        });
-    }
-
-    res.status(200).json({ 
-        success: true, 
-        data: payment 
-    });
-});
-
-// Get a payment by ID
-exports.getPaymentById = catchAsync(async (req, res) => {
-    const payment = await Payment.findById(req.params.id).populate('user', 'name email').populate('ride');
-    if (!payment) {
-        return res.status(404).json({ 
-            success: false, 
-            message: "Payment not found" 
-        });
-    }
-
-    res.status(200).json({ 
-        success: true, 
-        data: payment 
-    });
-});
-
-// Get user's payment history
-exports.getUserPayments = catchAsync(async (req, res) => {
-    const payments = await Payment.find({ user: req.user._id }).populate('ride');
-
-    res.status(200).json({ 
-        success: true, 
-        data: payments 
-    });
 });
