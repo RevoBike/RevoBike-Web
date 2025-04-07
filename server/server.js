@@ -53,6 +53,8 @@ io.on("connection", (socket) => {
 const userRoutes = require("./src/routes/authRoutes");
 const stationRoutes = require("./src/routes/stationRoutes");
 const rideRoutes = require("./src/routes/rideRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
+
 
 const swaggerSpec = require("./src/config/swaggerConfig");
 
@@ -60,7 +62,10 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use("/api/users", userRoutes); // User routes
 app.use("/api/stations", stationRoutes); //Station routes
+
+app.use("/api/payments", paymentRoutes);//Payment routes
 app.use("/api/rides", rideRoutes); //Ride routes
+
 
 // Swagger UI route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

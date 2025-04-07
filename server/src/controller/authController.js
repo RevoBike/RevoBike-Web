@@ -9,7 +9,7 @@ const UNIVERSITY_EMAIL_DOMAIN = "@aastustudent.edu.et";
 
 // Register user
 exports.registerUser = catchAsync(async (req, res, next) => {
-  const { name, email, password, universityId } = req.body;
+  const { name, email, password, phone_number, universityId } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -39,6 +39,7 @@ exports.registerUser = catchAsync(async (req, res, next) => {
     const user = new User({ 
       name, 
       email, 
+      phone_number,
       password, 
       universityId, 
       role: "User",  // Force role to "User"

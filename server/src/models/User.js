@@ -15,6 +15,17 @@ const userSchema = new mongoose.Schema(
         message: "Only university emails are allowed."
       } 
     },
+    phone_number: {
+      type: String,
+      required: true,
+      unique: true,
+      validate: {
+        validator: function (value) {
+          return /^0[79]\d{8}$/.test(value); // RegEX-09. or 07., total 10 digits
+        },
+        message: "Phone number must start with 09 or 07 and be 10 digits long."
+      }
+    },
     password: { type: String, required: true, select: false },
     universityId: { 
       type: String, 

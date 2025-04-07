@@ -15,25 +15,31 @@ const PaymentSchema = new mongoose.Schema({
         type: Number, 
         required: true 
     },
-    phoneNumber: { 
-        type: String, 
-        required: true 
+    currency: {
+        type: String,
+        default: "ETB"
     },
-    transactionId: { 
-        type: String, 
-        unique: true 
+    tx_ref: { // YOUR reference to match against Chapa's verification
+        type: String,
+        required: true,
+        unique: true
+    },
+    checkout_url: { // For tracking/record/debugging
+        type: String
     },
     status: { 
         type: String, 
         enum: ["pending", "successful", "failed"], 
         default: "pending" 
     },
+    verifiedAt: {
+        type: Date
+    },
     createdAt: { 
         type: Date, 
         default: Date.now 
     },
 });
-
 
 const Payment = mongoose.model("Payment", PaymentSchema);
 
