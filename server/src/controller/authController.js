@@ -17,34 +17,27 @@ exports.registerUser = catchAsync(async (req, res, next) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    if (!email.endsWith(UNIVERSITY_EMAIL_DOMAIN)) {
+    // Temporarily allow personal email for testing
+    if (!email.endsWith(UNIVERSITY_EMAIL_DOMAIN) && !email.endsWith("@gmail.com")) {
       return res.status(400).json({ 
         success: false, 
-        message: `Only university emails (${UNIVERSITY_EMAIL_DOMAIN}) are allowed.` 
+        message: "Only university emails (@aastustudent.edu.et) or Gmail accounts are allowed for testing." 
       });
     }
 
     // Generate OTP and set expiration
-  const otp = generateOTP();
-  const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes validity
-
-    // // Only "User" role can register directly
-    // if (role && role !== "User") {
-    //   return res.status(403).json({
-    //     success: false,
-    //     message: "You cannot register as an Admin or SuperAdmin.",
-    //   });
-    // }
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes validity
 
     const user = new User({ 
       name, 
       email, 
       password, 
       universityId, 
-      role: "User",  // Force role to "User"
-      isVerified: false, // User needs admin verification
+      role: "User",
+      isVerified: false, // User needs OTP verification
       otpCode: otp,
-      otpExpires,
+      otpExpires
     });
     
     await user.save();
@@ -52,7 +45,12 @@ exports.registerUser = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please visit the station for verification.",
+      message: "Registration successful! Please check your email for OTP verification.",
+      user: {
+        email: user.email,
+        name: user.name,
+        isVerified: user.isVerified
+      }
     });
 
   } catch (e) {
@@ -79,30 +77,177 @@ exports.verifyOTP = catchAsync(async (req, res, next) => {
   user.otpExpires = undefined;
   await user.save();
 
-  res.status(200).json({ success: true, message: "Account verified successfully" });
+  // Generate token for automatic login after verification
+  const token = signToken(user._id, user.role);
+
+  res.status(200).json({ 
+    success: true, 
+    message: "Account verified successfully",
+    token,
+    user: {
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      isVerified: user.isVerified
+    }
+  });
 });
 
 // Login user
 exports.loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email }).select("+password");
-  if (!user || !(await user.comparePassword(password))) {
-    return res
-      .status(401)
-      .json({ success: false, message: "Invalid credentials" });
-  }
+  try {
+    const user = await User.findOne({ email }).select("+password");
 
-  // Prevent unverified users from logging in
-  if (user.role === "User" && !user.isVerified) {
-    return res.status(403).json({
-      success: false,
-      message: "You are not verified. Please check your email for OTP verification.",
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    // Check password
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid credentials" });
+    }
+
+    const token = signToken(user._id, user.role);
+    res.status(200).json({ 
+      success: true, 
+      token_type: "Bearer",
+      token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified,
+        name: user.name
+      }
     });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
+});
 
-  const token = signToken(user._id, user.role);
-  // Send the token in the response
-  res.status(200).json({ success: true, token });
-  
+// Delete user account
+exports.deleteAccount = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const result = await User.findOneAndDelete({ email });
+    if (!result) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Check if user exists
+exports.checkUser = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found",
+        exists: false
+      });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "User exists",
+      exists: true,
+      isVerified: user.isVerified
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Resend OTP
+exports.resendOTP = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Generate new OTP and set expiration
+    const otp = generateOTP();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes validity
+
+    // Update user with new OTP
+    user.otpCode = otp;
+    user.otpExpires = otpExpires;
+    await user.save();
+
+    // Send new OTP
+    await sendOTPEmail(email, otp);
+
+    res.status(200).json({ 
+      success: true, 
+      message: "New OTP sent successfully. Please check your email." 
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Force verify a user
+exports.forceVerify = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    // Find and update the user
+    const user = await User.findOneAndUpdate(
+      { email },
+      { 
+        $set: { 
+          isVerified: true,
+          otpCode: null,
+          otpExpires: null
+        }
+      },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      message: "User force verified successfully",
+      user: {
+        email: user.email,
+        isVerified: user.isVerified,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
+// Direct delete user by email
+exports.directDelete = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const result = await User.findOneAndDelete({ email });
+    if (!result) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
