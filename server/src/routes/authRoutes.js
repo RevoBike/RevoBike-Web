@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { protect, authorizeRoles } = require("../middlewares/middleware");
-const { registerUser, loginUser, verifyOTP } = require("../controller/authController");
+const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP, forceVerify, directDelete } = require("../controller/authController");
 
 /**
  * @swagger
@@ -147,6 +147,167 @@ router.get("/profile", protect, (req, res) => {
  */
 router.get("/admin", protect, authorizeRoles("Admin"), (req, res) => {
   res.status(200).json({ message: "Welcome Admin!" });
+});
+
+/**
+ * @swagger
+ * /api/users/delete-account:
+ *   post:
+ *     summary: Delete user account by email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/delete-account", deleteAccount);
+
+/**
+ * @swagger
+ * /api/users/check:
+ *   post:
+ *     summary: Check if user exists
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: User exists
+ *       404:
+ *         description: User not found
+ */
+router.post("/check", checkUser);
+
+/**
+ * @swagger
+ * /api/users/resend-otp:
+ *   post:
+ *     summary: Resend OTP for verification
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: New OTP sent successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/resend-otp", resendOTP);
+
+/**
+ * @swagger
+ * /api/users/force-verify:
+ *   post:
+ *     summary: Force verify a user account
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: User force verified successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/force-verify", forceVerify);
+
+/**
+ * @swagger
+ * /api/users/direct-delete:
+ *   post:
+ *     summary: Delete user account directly by email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Account deleted successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/direct-delete", directDelete);
+
+/**
+ * @swagger
+ * /api/users/remove-account:
+ *   post:
+ *     summary: Remove user account by email
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Account removed successfully
+ *       404:
+ *         description: User not found
+ */
+router.post("/remove-account", directDelete);
+
+// Test route
+router.get("/test", (req, res) => {
+  res.json({ message: "Test route is working" });
 });
 
 module.exports = router;
