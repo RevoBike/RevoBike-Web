@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
-
+const PORT = process.env.PORT || 5000;
 const http = require("http"); // For WebSocket server
 const { Server } = require("socket.io"); // Import socket.io
 
@@ -74,7 +74,6 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
