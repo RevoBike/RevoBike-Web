@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"],
+      "@/public/*": ["./public/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "src/app/page.tsx",
+    "src/app/loading.tsx",
+    "src/app/login/page.jsx",
+    "src/app/_utils/format-date.jsx",
+    "src/app/_utils/check-role.jsx",
+    "src/app/_utils/check-admin.jsx",
+    "src/app/api/api.jsx",
+    "src/app/client/provider.jsx",
+    "src/app/dashboard/layout.jsx",
+    "src/app/dashboard/page.jsx",
+    "src/app/login/page.jsx",
+    "src/app/layout.jsx",
+    "src/app/loading.tsx",
+    "src/app/page.tsx"
+  ],
+  "exclude": ["node_modules"]
+}
