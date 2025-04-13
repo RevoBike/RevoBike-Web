@@ -1,7 +1,16 @@
 const express = require("express");
 const router = express.Router();
 const { protect, authorizeRoles } = require("../middlewares/middleware");
+
+// const { registerUser, loginUser, verifyOTP } = require("../controller/authController");
+
+
+//router.post("/register", registerUser);
+//router.post("/verify-otp", verifyOTP);
+//router.post("/login", loginUser);
+
 const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP, forceVerify, directDelete } = require("../controller/authController");
+
 
 /**
  * @swagger
@@ -9,6 +18,7 @@ const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP,
  *   name: Authentication
  *   description: User authentication and authorization
  */
+
 
 /**
  * @swagger

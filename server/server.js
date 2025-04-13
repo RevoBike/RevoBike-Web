@@ -6,7 +6,6 @@ const cors = require("cors");
 const PORT = process.env.PORT || 5000;
 const http = require("http"); // For WebSocket server
 const { Server } = require("socket.io"); // Import socket.io
-
 const { loggingHandler } = require("./src/middlewares/loggingHandler");
 
 
@@ -16,6 +15,7 @@ console.log(`MongoDB URI: ${process.env.MONGO_URI}`); // Log the MongoDB URI
 const app = express();
 const server = http.createServer(app); // Create an HTTP server for WebSockets
 
+app.use(express.json());
 
 // Connect to MongoDB
 connectDB();
@@ -54,6 +54,7 @@ const userRoutes = require("./src/routes/authRoutes");
 const stationRoutes = require("./src/routes/stationRoutes");
 const rideRoutes = require("./src/routes/rideRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
+
 
 
 const swaggerSpec = require("./src/config/swaggerConfig");
