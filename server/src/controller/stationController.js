@@ -59,24 +59,17 @@ exports.addStation = catchAsync(async (req, res) => {
     });
   }
 
-  try {
-    const station = await Station.create({
-      name,
-      location: { type: "Point", coordinates: location.coordinates },
-      totalSlots,
-      address,
-    });
+  const station = await Station.create({
+    name,
+    location: { type: "Point", coordinates: location.coordinates },
+    totalSlots,
+    address,
+  });
 
-    res.status(201).json({
-      success: true,
-      data: station,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Error creating station",
-    });
-  }
+  res.status(201).json({
+    success: true,
+    data: station,
+  });
 });
 
 // Update Station Location (Only SuperAdmins)
@@ -139,5 +132,20 @@ exports.deleteStation = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Station deleted",
+  });
+});
+
+// Get station metrics (All users)
+
+exports.getStationMetrics = catchAsync(async (req, res) => {
+  const totalStations = await Station.countDocuments();
+  const maxBikes = await Station.find().sort({ totalSlots: -1 }).limit(1);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      totalStations,
+      maxBikes: maxBikes[0].totalSlots,
+    },
   });
 });
