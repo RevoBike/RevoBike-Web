@@ -8,7 +8,6 @@ import { Card, TextInput, Button, Title, Stack, Loader } from "@mantine/core";
 import { IconUser, IconKey, IconEye, IconEyeOff } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
-import adminApi from "../api/api";
 import { notifications } from "@mantine/notifications";
 import checkAdmin from "../_utils/check-admin";
 
@@ -42,33 +41,33 @@ export default function AdminLogin() {
     },
   });
 
-  const login = useMutation({
-    mutationFn: adminApi.Login,
-    onSuccess: (data) => {
-      notifications.show({
-        title: "Login Successful",
-        message: "Welcome back!",
-        color: "green",
-        autoClose: 1000,
-        withCloseButton: true,
-        position: "top-right",
-      });
-      console.log(data);
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("role", data.user.role);
-      router.push("/dashboard");
-    },
-    onError: (error) => {
-      notifications.show({
-        title: "Failure",
-        message: error ? error.message : "An error occurred",
-        color: "red",
-        autoClose: 1000,
-        withCloseButton: true,
-        position: "top-right",
-      });
-    },
-  });
+  // const login = useMutation({
+  //   mutationFn: adminApi.Login,
+  //   onSuccess: (data) => {
+  //     notifications.show({
+  //       title: "Login Successful",
+  //       message: "Welcome back!",
+  //       color: "green",
+  //       autoClose: 1000,
+  //       withCloseButton: true,
+  //       position: "top-right",
+  //     });
+  //     console.log(data);
+  //     localStorage.setItem("accessToken", data.accessToken);
+  //     localStorage.setItem("role", data.user.role);
+  //     router.push("/dashboard");
+  //   },
+  //   onError: (error) => {
+  //     notifications.show({
+  //       title: "Failure",
+  //       message: error ? error.message : "An error occurred",
+  //       color: "red",
+  //       autoClose: 1000,
+  //       withCloseButton: true,
+  //       position: "top-right",
+  //     });
+  //   },
+  // });
 
   const onSubmit: SubmitHandler<LoginFormData> = (data) => {
     // login.mutate({
@@ -154,7 +153,7 @@ export default function AdminLogin() {
                 fullWidth
                 color="blue.6"
                 radius="lg"
-                disabled={login.isPending}
+                // disabled={login.isPending}
                 styles={{
                   root: {
                     backgroundColor: "#1c7ed6",
@@ -163,7 +162,7 @@ export default function AdminLogin() {
                   },
                 }}
               >
-                {login.isPending ? <Loader size="sm" color="white" /> : "Login"}
+                {/* {login.isPending ? <Loader size="sm" color="white" /> : "Login"} */}
               </Button>
             </Stack>
           </form>

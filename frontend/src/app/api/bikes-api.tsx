@@ -3,9 +3,11 @@ import axios from "axios";
 
 const URL = process.env.API_URL || "http://localhost:5000/api/v1";
 
-const GetStationStats = async (): Promise<{
-  totalStations: number;
-  maxCapacity: number;
+const GetBikeStats = async (): Promise<{
+  totalBikes: number;
+  bikeInMaintenance: number;
+  bikeInRental: number;
+  availableBikes: number;
 }> => {
   try {
     // const response = await axios.get(`${URL}/stations/stats`, {
@@ -19,9 +21,12 @@ const GetStationStats = async (): Promise<{
     // }
     // return response.data.data;
     const data = {
-      totalStations: 100,
-      maxCapacity: 50,
+      totalBikes: 1000,
+      bikeInMaintenance: 100,
+      bikeInRental: 30,
+      availableBikes: 67,
     };
+
     return data;
   } catch (error: Error | unknown) {
     if (axios.isAxiosError(error) && error.response) {
@@ -231,5 +236,5 @@ export {
   CreateStation,
   UpdateStation,
   DeleteStation,
-  GetStationStats,
+  GetBikeStats,
 };

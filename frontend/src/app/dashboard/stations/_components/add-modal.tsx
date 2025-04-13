@@ -2,39 +2,69 @@
 
 import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconHome } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateStation } from "@/app/api/station-api";
+import { notifications } from "@mantine/notifications";
 
 interface AddStationModalProps {
   opened: boolean;
   onClose: () => void;
-  onAdd: (values: { name: string; address: string; capacity: string }) => void;
 }
 
-const AddStationModal = ({ opened, onClose, onAdd }: AddStationModalProps) => {
+interface FormValues {
+  name: string;
+  address: string;
+  capacity: number;
+}
+
+const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
+  const queryClient = useQueryClient();
   const form = useForm({
-    initialValues: { name: "", address: "", capacity: "" },
+    initialValues: { name: "", address: "", capacity: 0 },
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must be at least 2 characters" : null,
       address: (value) =>
         value.length < 5 ? "Address must be at least 5 characters" : null,
       capacity: (value) =>
-        !/^\d+$/.test(value) || Number(value) < 1
+        !/^\d+$/.test(String(value)) || Number(value) < 1
           ? "Capacity must be a positive number"
           : null,
     },
   });
 
-  interface FormValues {
-    name: string;
-    address: string;
-    capacity: string;
-  }
+  const addMutation = useMutation({
+    mutationFn: CreateStation,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Station added successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+    },
+  });
 
   const handleSubmit = (values: FormValues): void => {
-    onAdd(values);
-    form.reset();
-    onClose();
+    addMutation.mutate(values);
   };
 
   return (
@@ -139,7 +169,6 @@ const AddStationModal = ({ opened, onClose, onAdd }: AddStationModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconHome size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
