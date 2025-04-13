@@ -3,13 +3,14 @@ const dotenv = require("dotenv");
 const connectDB = require("./src/config/db");
 const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
+
 const http = require("http"); // For WebSocket server
 const { Server } = require("socket.io"); // Import socket.io
-//const { loggingHandler } = require("./src/middlewares/loggingHandler");
+const { loggingHandler } = require("./src/middlewares/loggingHandler");
 
 
 dotenv.config(); //load env
-console.log("Environment Variables:", process.env); // Log all environment variables
+// console.log("Environment Variables:", process.env); // Log all environment variables
 console.log(`MongoDB URI: ${process.env.MONGO_URI}`); // Log the MongoDB URI
 const app = express();
 const server = http.createServer(app); // Create an HTTP server for WebSockets
@@ -19,6 +20,7 @@ app.use(express.json());
 // Connect to MongoDB
 connectDB();
 
+app.use(loggingHandler);
 app.use(
   cors({
     credentials: true,
@@ -57,11 +59,13 @@ const paymentRoutes = require("./src/routes/paymentRoutes");
 
 const swaggerSpec = require("./src/config/swaggerConfig");
 
+app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use("/api/users", userRoutes); // User routes
 app.use("/api/stations", stationRoutes); //Station routes
-app.use("/api/rides", rideRoutes);//Ride routes 
+
 app.use("/api/payments", paymentRoutes);//Payment routes
+app.use("/api/rides", rideRoutes); //Ride routes
 
 
 // Swagger UI route
