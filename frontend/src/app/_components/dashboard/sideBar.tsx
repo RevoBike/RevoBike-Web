@@ -8,6 +8,7 @@ import {
   FaUsers,
   FaCog,
   FaChargingStation,
+  FaKey,
 } from "react-icons/fa";
 import { Avatar } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
@@ -33,7 +34,7 @@ const data = [
   {
     link: "/dashboard/rentals",
     label: "Rentals",
-    icon: FaCog,
+    icon: FaKey,
   },
   {
     link: "/dashboard/settings",

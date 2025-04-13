@@ -7,7 +7,7 @@ import {
   Group,
   Select,
   Table,
-  Title,
+  TextInput,
 } from "@mantine/core";
 import {
   IconEdit,
@@ -15,6 +15,7 @@ import {
   IconFilter,
   IconTool,
   IconPlus,
+  IconSearch,
 } from "@tabler/icons-react";
 import BikeMetrics from "./_components/bike-metrics";
 import EditBikeModal from "./_components/update-modal";
@@ -24,8 +25,17 @@ import AddBikeModal from "./_components/add-modal";
 import BikeDetailsModal from "./_components/details-modal";
 
 export default function BikesManagement() {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [stationFilter, setStationFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "normal" | "overloaded" | "underloaded"
+  >("all");
+
+  const [stationFilter, setStationFilter] = useState<
+    "all" | "Central Park" | "Downtown Hub" | "Riverside Stop" | "Uptown Plaza"
+  >("all");
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [detailsModalOpened, setDetailsModalOpened] = useState(false);
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
@@ -125,17 +135,11 @@ export default function BikesManagement() {
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>Bikes Management</Title>
+      <Group justify="end" mb="md">
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={() => setAddModalOpened(true)}
-          styles={{
-            root: {
-              backgroundColor: "#212529",
-              "&:hover": { backgroundColor: "#343a40" },
-            },
-          }}
+          className="bg-customBlue text-white hover:bg-blue-950"
         >
           Add Bike
         </Button>
@@ -169,6 +173,18 @@ export default function BikesManagement() {
           leftSection={<IconFilter size={16} />}
           style={{ width: "200px" }}
         />
+
+        <div className="w-full sm:w-auto md:mt-4 ml-auto">
+          <TextInput
+            placeholder="Search by bike ID or type"
+            leftSection={<IconSearch color="#7E7E7E" size={20} />}
+            value={searchTerm}
+            // onChange={(event) => {
+            //   setSearchTerm(event.currentTarget.value);
+            //   setCurrentPage(1);
+            // }}
+          />
+        </div>
       </Group>
 
       <Table highlightOnHover>
