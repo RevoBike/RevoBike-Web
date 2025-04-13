@@ -115,14 +115,13 @@ export default function StationsManagement() {
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>Stations Management</Title>
+      <Group justify="end" mb="sm">
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={() => setAddModalOpened(true)}
           className="bg-customBlue text-white hover:bg-customBlue"
         >
-          Add Station
+          Add
         </Button>
       </Group>
       <StationsMetrics />

@@ -19,11 +19,7 @@ export default function StationsMetrics() {
         withBorder
         radius="md"
         shadow="sm"
-        className="hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
-        style={{
-          backgroundColor: "#ffffff",
-          transition: "box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out",
-        }}
+        className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group gap="md" align="flex-start">
           <ThemeIcon
@@ -39,7 +35,7 @@ export default function StationsMetrics() {
               Total Stations
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
-              10 Units
+              10 <span className="text-sm">Stations</span>
             </Text>
           </div>
         </Group>
@@ -50,11 +46,7 @@ export default function StationsMetrics() {
         withBorder
         radius="md"
         shadow="sm"
-        className="hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
-        style={{
-          backgroundColor: "#ffffff",
-          transition: "box-shadow 0.3s ease-in-out, transform 0.2s ease-in-out",
-        }}
+        className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group gap="md" align="flex-start">
           <ThemeIcon
@@ -70,7 +62,7 @@ export default function StationsMetrics() {
               Max Station Capacity
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
-              89 Units
+              89 <span className="text-sm">Bikes</span>
             </Text>
           </div>
         </Group>

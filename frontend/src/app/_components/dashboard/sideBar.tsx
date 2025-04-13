@@ -109,7 +109,7 @@ export default function Sidebar() {
       )}
 
       <nav
-        className={`md:static top-0 left-0 h-full bg-customBlue shadow-md flex flex-col justify-between z-50 transition-transform duration-300 w-64 ${
+        className={`md:static p-2 top-0 left-0 h-full bg-customBlue shadow-md flex flex-col justify-between z-50 transition-transform duration-300 w-64 ${
           opened ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
