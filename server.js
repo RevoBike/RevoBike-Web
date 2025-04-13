@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const userRoutes = require('./src/routes/users'); // Ensure this is correctly imported
+const userRoutes = require('./src/routes/users'); 
 const app = express();
 
 // Load environment variables
@@ -15,7 +15,7 @@ mongoose.connect(process.env.MONGODB_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
-.then(() => console.log('✅ MongoDB Connected'))
+.then(() => console.log(' MongoDB Connected'))
 .catch(err => console.error('MongoDB connection error:', err));
 
 // Routes

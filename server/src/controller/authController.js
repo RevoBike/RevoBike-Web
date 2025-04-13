@@ -53,7 +53,7 @@ exports.registerUser = catchAsync(async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Registration successful! Please visit the station for verification.",
+      message: "Registration successful!",
     });
 
   } catch (e) {
