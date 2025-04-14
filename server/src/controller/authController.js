@@ -3,6 +3,8 @@ const { signToken } = require("../utils/JWTUtils");
 const catchAsync = require("../utils/catchAsync");
 const { generateOTP, sendOTPEmail } = require("../utils/otpservice");
 const jwt = require("jsonwebtoken");
+const nodemailer = require("nodemailer");
+const crypto = require("crypto");
 
 // Define your university email domain
 const UNIVERSITY_EMAIL_DOMAIN = "@aastustudent.edu.et";
@@ -251,4 +253,72 @@ exports.directDelete = catchAsync(async (req, res, next) => {
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
+});
+
+// Forgot Password
+exports.forgotPassword = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  // Generate reset token
+  const resetToken = user.getResetPasswordToken();
+  await user.save();
+
+  // Create reset URL
+  const resetUrl = `${req.protocol}://${req.get('host')}/api/users/reset-password/${resetToken}`;
+
+  // Email message
+  const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+
+  try {
+    await sendOTPEmail(email, message);
+    res.status(200).json({ success: true, message: "Password reset email sent" });
+  } catch (error) {
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+    return res.status(500).json({ success: false, message: "Email could not be sent" });
+  }
+});
+
+// Reset Password
+exports.resetPassword = catchAsync(async (req, res, next) => {
+  // Get hashed token
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resetToken)
+    .digest('hex');
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    return res.status(400).json({ success: false, message: "Invalid or expired reset token" });
+  }
+
+  // Set new password
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+  await user.save();
+
+  // Generate new token for automatic login
+  const token = signToken(user._id, user.role);
+
+  res.status(200).json({
+    success: true,
+    message: "Password reset successful",
+    token,
+    user: {
+      email: user.email,
+      name: user.name,
+      role: user.role
+    }
+  });
 });

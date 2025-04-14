@@ -9,7 +9,7 @@ const { protect, authorizeRoles } = require("../middlewares/middleware");
 //router.post("/verify-otp", verifyOTP);
 //router.post("/login", loginUser);
 
-const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP, forceVerify, directDelete } = require("../controller/authController");
+const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP, forceVerify, directDelete, forgotPassword, resetPassword } = require("../controller/authController");
 
 
 /**
@@ -314,6 +314,65 @@ router.post("/direct-delete", directDelete);
  *         description: User not found
  */
 router.post("/remove-account", directDelete);
+
+/**
+ * @swagger
+ * /api/users/forgot-password:
+ *   post:
+ *     summary: Request password reset
+ *     tags: [Authentication]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *     responses:
+ *       200:
+ *         description: Password reset email sent
+ *       404:
+ *         description: User not found
+ */
+router.post("/forgot-password", forgotPassword);
+
+/**
+ * @swagger
+ * /api/users/reset-password/{resetToken}:
+ *   put:
+ *     summary: Reset password using token
+ *     tags: [Authentication]
+ *     parameters:
+ *       - in: path
+ *         name: resetToken
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - password
+ *             properties:
+ *               password:
+ *                 type: string
+ *                 format: password
+ *                 minLength: 6
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ *       400:
+ *         description: Invalid or expired token
+ */
+router.put("/reset-password/:resetToken", resetPassword);
 
 // Test route
 router.get("/test", (req, res) => {
