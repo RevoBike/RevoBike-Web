@@ -16,9 +16,50 @@ const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP,
  * @swagger
  * tags:
  *   name: Authentication
- *   description: User authentication and authorization
+ *   description: User authentication and authorization endpoints
  */
 
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *         - phone_number
+ *       properties:
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address (must be @aastustudent.edu.et)
+ *         password:
+ *           type: string
+ *           format: password
+ *           minLength: 6
+ *           description: User's password
+ *         phone_number:
+ *           type: string
+ *           pattern: "^0[79]\\d{8}$"
+ *           description: User's phone number (must start with 09 or 07 and be 10 digits)
+ *         universityId:
+ *           type: string
+ *           description: User's university ID
+ *     Error:
+ *       type: object
+ *       properties:
+ *         success:
+ *           type: boolean
+ *           default: false
+ *         message:
+ *           type: string
+ *           description: Error message
+ */
 
 /**
  * @swagger
@@ -33,9 +74,14 @@ const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP,
  *           schema:
  *             type: object
  *             required:
+ *               - name
  *               - email
  *               - password
+ *               - phone_number
+ *               - universityId
  *             properties:
+ *               name:
+ *                 type: string
  *               email:
  *                 type: string
  *                 format: email
@@ -43,11 +89,37 @@ const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP,
  *                 type: string
  *                 format: password
  *                 minLength: 6
+ *               phone_number:
+ *                 type: string
+ *               universityId:
+ *                 type: string
  *     responses:
  *       201:
  *         description: User registered successfully, OTP sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     isVerified:
+ *                       type: boolean
  *       400:
  *         description: Invalid input
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post("/register", async (req, res, next) => {
   try {
@@ -82,8 +154,30 @@ router.post("/register", async (req, res, next) => {
  *     responses:
  *       200:
  *         description: Successfully logged in
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
  *       401:
  *         description: Invalid credentials
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post("/login", async (req, res, next) => {
   try {
@@ -118,8 +212,34 @@ router.post("/login", async (req, res, next) => {
  *     responses:
  *       200:
  *         description: OTP verified successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
+ *                     isVerified:
+ *                       type: boolean
  *       400:
- *         description: Invalid OTP
+ *         description: Invalid or expired OTP
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post("/verify-otp", verifyOTP);
 
@@ -336,8 +456,21 @@ router.post("/remove-account", directDelete);
  *     responses:
  *       200:
  *         description: Password reset email sent
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
  *       404:
  *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.post("/forgot-password", forgotPassword);
 
@@ -353,6 +486,7 @@ router.post("/forgot-password", forgotPassword);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Password reset token received via email
  *     requestBody:
  *       required: true
  *       content:
@@ -369,8 +503,32 @@ router.post("/forgot-password", forgotPassword);
  *     responses:
  *       200:
  *         description: Password reset successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *                 token:
+ *                   type: string
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     name:
+ *                       type: string
+ *                     role:
+ *                       type: string
  *       400:
  *         description: Invalid or expired token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
  */
 router.put("/reset-password/:resetToken", resetPassword);
 
