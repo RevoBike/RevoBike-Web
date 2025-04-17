@@ -8,6 +8,7 @@ const {
   updateStationLocation,
   deleteStation,
   getStationMetrics,
+  getStationsList,
 } = require("../controller/stationController");
 
 /**
@@ -84,6 +85,79 @@ const {
  */
 router.get("/", protect, getAllStations);
 
+// add swagger for this route
+
+/**
+ * @swagger
+ * /api/stations/station-metrics:
+ *  get:
+ *    summary: Get station metrics
+ *   description: Fetch metrics for all stations (accessible by all authenticated users)
+ *  tags: [Stations]
+ *  security:
+ *    - bearerAuth: []
+ *   responses:
+ *     200:
+ *      description: Successfully retrieved station metrics
+ *     content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *        properties:
+ *         success:
+ *          type: boolean
+ *         data:
+ *         type: array
+ *        items:
+ *         type: object
+ *        properties:
+ *         stationId:
+ *         type: string
+ *        description: The ID of the station
+ *        totalBikes:
+ *        type: integer
+ *       description: Total number of bikes at the station
+ *       availableBikes:
+ *      type: integer
+ *     description: Total number of available bikes at the station
+ *      totalSlots:
+ *     type: integer
+ *    description: Total number of slots at the station
+ *     500:
+ *       description: Internal Server Error
+ * */
+
+router.get("/station-metrics", protect, getStationMetrics);
+
+/**
+ * @swagger
+ * /api/stations/stationList:
+ *  get:
+ *   summary: Get a list of stations
+ *  description: Fetch a list of stations (accessible by all authenticated users)
+ * tags: [Stations]
+ * security:
+ *  - bearerAuth: []
+ * responses:
+ *  200:
+ *   description: Successfully retrieved the list of stations
+ *  content:
+ *  application/json:
+ *   schema:
+ *    type: object
+ *   properties:
+ *   success:
+ *   type: boolean
+ *  data:
+ *  type: array
+ * items:
+ *  $ref: '#/components/schemas/Station'
+ *  500:
+ *  description: Internal Server Error
+ * */
+
+router.get("/stationList", protect, getStationsList);
+
 /**
  * @swagger
  * /api/stations/{id}:
@@ -117,6 +191,7 @@ router.get("/", protect, getAllStations);
  *       500:
  *         description: Internal Server Error
  */
+
 router.get("/:id", protect, getStationById);
 
 /**
@@ -168,12 +243,7 @@ router.get("/:id", protect, getStationById);
  *       500:
  *         description: Internal Server Error
  */
-router.post(
-  "/",
-  //   protect
-  // authorizeRoles("SuperAdmin"),
-  addStation
-);
+router.post("/", protect, authorizeRoles("SuperAdmin"), addStation);
 
 /**
  * @swagger
@@ -258,11 +328,5 @@ router.put(
  *         description: Internal Server Error
  */
 router.delete("/:id", protect, authorizeRoles("SuperAdmin"), deleteStation);
-
-router.get(
-  "/station-metrics",
-  //   protect,
-  getStationMetrics
-);
 
 module.exports = router;
