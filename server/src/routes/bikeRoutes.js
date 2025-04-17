@@ -7,7 +7,7 @@ const {
   updateBikeLocation,
 } = require("../controller/bikeController");
 const upload = require("../config/multerConfig");
-const { protect, authorize } = require("../middlewares/middleware");
+const { protect, authorizeRoles } = require("../middlewares/middleware");
 
 const router = express.Router();
 
@@ -122,7 +122,13 @@ router.get("/:id", getBikeById);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post("/", protect, authorize("admin"), upload.single("file"), addBike);
+router.post(
+  "/",
+  protect,
+  authorizeRoles("admin"),
+  upload.single("file"),
+  addBike
+);
 
 /**
  * @openapi
@@ -164,7 +170,7 @@ router.post("/", protect, authorize("admin"), upload.single("file"), addBike);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.delete("/:id", protect, authorize("admin"), deleteBike);
+router.delete("/:id", protect, authorizeRoles("admin"), deleteBike);
 
 /**
  * @openapi
