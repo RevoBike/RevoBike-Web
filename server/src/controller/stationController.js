@@ -3,7 +3,46 @@ const catchAsync = require("../utils/catchAsync");
 
 // Get all stations (All users)
 exports.getAllStations = catchAsync(async (req, res) => {
-  const stations = await Station.find().populate("available_bikes");
+  const filter = req.query.filter;
+  const search = req.query.search;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  let query = {};
+  if (search) {
+    query.name = { $regex: search, $options: "i" };
+  }
+  if (filter) {
+    const capacityFilter = {};
+    if (filter === "underloaded") {
+      capacityFilter.$expr = {
+        $lt: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.2],
+      };
+    } else if (filter === "normal") {
+      capacityFilter.$expr = {
+        $and: [
+          {
+            $gte: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.2],
+          },
+          {
+            $lte: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.8],
+          },
+        ],
+      };
+    } else if (filter === "overloaded") {
+      capacityFilter.$expr = {
+        $gt: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.8],
+      };
+    }
+    query = { ...query, ...capacityFilter };
+  }
+
+  const stations = await Station.find(query)
+    .populate("available_bikes")
+    .skip((page - 1) * limit)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
   res.status(200).json({
     success: true,
     data: stations,
@@ -29,14 +68,41 @@ exports.getStationById = catchAsync(async (req, res) => {
   });
 });
 
+// get all station names
+
+exports.getStationsList = catchAsync(async (req, res) => {
+  const stations = await Station.find({}, { name: 1, _id: 1 }).sort({
+    createdAt: -1,
+  });
+
+  if (!stations) {
+    return res.status(404).json({
+      success: false,
+      message: "No stations found",
+    });
+  }
+
+  const stationLists = stations.map((station) => {
+    return {
+      value: station._id,
+      label: station.name,
+    };
+  });
+
+  res.status(200).json({
+    success: true,
+    data: stationLists,
+  });
+});
+
 // Add a new station (Only SuperAdmins)
 exports.addStation = catchAsync(async (req, res) => {
-  //   if (req.user.role !== "SuperAdmin") {
-  //     return res.status(403).json({
-  //       success: false,
-  //       message: "Unauthorized",
-  //     });
-  //   }
+  if (req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
 
   const { name, location, totalSlots, address } = req.body;
 
@@ -145,7 +211,7 @@ exports.getStationMetrics = catchAsync(async (req, res) => {
     success: true,
     data: {
       totalStations,
-      maxBikes: maxBikes[0].totalSlots,
+      maxCapacity: maxBikes[0].totalSlots,
     },
   });
 });
