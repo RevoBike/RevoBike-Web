@@ -8,30 +8,101 @@ import {
   Text,
   TextInput,
   Select,
+  FileInput,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconBike } from "@tabler/icons-react";
+import { IconUpload } from "@tabler/icons-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { GetStationsList } from "@/app/api/station-api";
+import { AddBike } from "@/app/api/bikes-api";
+import { notifications } from "@mantine/notifications";
 
 interface AddBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  onAdd: (values: { type: string; station: string }) => void;
 }
 
-const AddBikeModal = ({ opened, onClose, onAdd }: AddBikeModalProps) => {
+const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
+  const queryClient = useQueryClient();
+
   const form = useForm({
-    initialValues: { type: "", station: "" },
+    initialValues: { model: "", station: "", image: null },
     validate: {
-      type: (value) =>
+      model: (value) =>
         value.length < 3 ? "Type must be at least 3 characters" : null,
-      station: (value) => (!value ? "Status is required" : null),
+      station: (value) => (!value ? "Station is required" : null),
     },
   });
 
-  const handleSubmit = (values: { type: string; station: string }): void => {
-    onAdd(values);
-    form.reset();
-    onClose();
+  const {
+    data: stations,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["stationsList"],
+    queryFn: GetStationsList,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: AddBike,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Bike added successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
+
+  const handleSubmit = (values: {
+    model: string;
+    station: string;
+    image: File | null;
+  }): void => {
+    const formData = new FormData();
+    formData.append("model", values.model);
+    formData.append("station", values.station);
+    if (values.image) {
+      formData.append("file", values.image);
+    }
+    addMutation.mutate(formData);
   };
 
   return (
@@ -58,11 +129,31 @@ const AddBikeModal = ({ opened, onClose, onAdd }: AddBikeModalProps) => {
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
+          <FileInput
+            label="Bike Image"
+            placeholder="Upload an image"
+            accept="image/*"
+            {...form.getInputProps("image")}
+            radius="md"
+            leftSection={<IconUpload size={16} />}
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
           <TextInput
-            label="Bike Type"
-            placeholder="e.g., Road, Mountain, Hybrid"
+            label="Bike Model"
+            placeholder="e.g., Bike, Scooter, etc."
             required
-            {...form.getInputProps("type")}
+            {...form.getInputProps("model")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
@@ -78,27 +169,16 @@ const AddBikeModal = ({ opened, onClose, onAdd }: AddBikeModalProps) => {
             }}
           />
           <Select
-            label="Bike Status"
-            placeholder="Select status"
+            label="Bike Station"
+            placeholder="Select station"
             required
-            data={[
-              { value: "tuludimtu", label: "Tuludimtu" },
-              { value: "akaki", label: "Akaki" },
-              { value: "piasa", label: "Piyasa" },
-            ]}
-            {...form.getInputProps("status")}
+            data={stations?.data}
+            {...form.getInputProps("station")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
           <Group justify="flex-end" mt="lg" gap="xs">
@@ -122,7 +202,6 @@ const AddBikeModal = ({ opened, onClose, onAdd }: AddBikeModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconBike size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
@@ -130,7 +209,7 @@ const AddBikeModal = ({ opened, onClose, onAdd }: AddBikeModalProps) => {
                 },
               }}
             >
-              Add Bike
+              {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>}
             </Button>
           </Group>
         </Stack>

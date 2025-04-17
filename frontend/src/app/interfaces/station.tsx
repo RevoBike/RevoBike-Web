@@ -1,15 +1,20 @@
 export interface Station {
-  id: number;
+  _id: string;
   name: string;
   address: string;
-  capacity: number;
-  bikes: number;
+  available_bikes: [];
+  createdAt: string;
+  updatedAt: string;
+  totalSlots: number;
+  location: {
+    coordinates: number[];
+  };
 }
 
 export interface FormValues {
   name: string;
   address: string;
-  capacity: string;
+  capacity: number;
 }
 
 export interface HandleSubmitProps {
@@ -20,4 +25,9 @@ export interface EditStationModalProps {
   opened: boolean;
   onClose: () => void;
   station: Station;
+}
+
+export interface AddStationModalProps {
+  opened: boolean;
+  onClose: () => void;
 }

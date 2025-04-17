@@ -1,35 +1,31 @@
 "use client";
 
-import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Loader,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateStation } from "@/app/api/station-api";
 import { notifications } from "@mantine/notifications";
-
-interface AddStationModalProps {
-  opened: boolean;
-  onClose: () => void;
-}
-
-interface FormValues {
-  name: string;
-  address: string;
-  capacity: number;
-}
+import { AddStationModalProps, FormValues } from "@/app/interfaces/station";
 
 const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
   const queryClient = useQueryClient();
   const form = useForm({
-    initialValues: { name: "", address: "", capacity: 0 },
+    initialValues: { name: "", address: "", capacity: 1 },
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must be at least 2 characters" : null,
       address: (value) =>
-        value.length < 5 ? "Address must be at least 5 characters" : null,
+        value.length < 2 ? "Address must be at least 2 characters" : null,
       capacity: (value) =>
-        !/^\d+$/.test(String(value)) || Number(value) < 1
-          ? "Capacity must be a positive number"
-          : null,
+        value < 1 ? "Capacity must be a positive number" : null,
     },
   });
 
@@ -60,6 +56,8 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["stationsList"] });
     },
   });
 
@@ -93,7 +91,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
         <Stack gap="lg">
           <TextInput
             label="Station Name"
-            placeholder="e.g., Central Park"
+            placeholder="e.g., Tuludimtu Station"
             required
             {...form.getInputProps("name")}
             radius="md"
@@ -112,7 +110,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
           />
           <TextInput
             label="Address"
-            placeholder="e.g., 123 Park Ave"
+            placeholder="e.g., Tuludmitu Kebele"
             required
             {...form.getInputProps("address")}
             radius="md"
@@ -176,7 +174,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
                 },
               }}
             >
-              Add Station
+              {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>}
             </Button>
           </Group>
         </Stack>

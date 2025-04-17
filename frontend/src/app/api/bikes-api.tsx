@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 
-const URL = process.env.API_URL || "http://localhost:5000/api/v1";
+const URL = process.env.API_URL || "http://localhost:5000/api";
 
 const GetBikeStats = async (): Promise<{
   totalBikes: number;
@@ -144,21 +144,18 @@ const GetStation = async (
     throw new Error("An unknown error occurred");
   }
 };
-const CreateStation = async (data: {
-  name: string;
-  address: string;
-  capacity: number;
-}): Promise<{
+
+const AddBike = async (
+  data: FormData
+): Promise<{
   data: {
     id: string;
-    name: string;
-    address: string;
-    capacity: number;
-    bikes: number;
+    type: string;
+    station: string;
   };
 }> => {
   try {
-    const response = await axios.post(`${URL}/stations`, data, {
+    const response = await axios.post(`${URL}/bikes`, data, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -233,7 +230,7 @@ const DeleteStation = async (id: string): Promise<void> => {
 export {
   GetStations,
   GetStation,
-  CreateStation,
+  AddBike,
   UpdateStation,
   DeleteStation,
   GetBikeStats,

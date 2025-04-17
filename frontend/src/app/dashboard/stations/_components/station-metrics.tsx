@@ -7,24 +7,24 @@ import { GetStationStats } from "@/app/api/station-api";
 
 export default function StationsMetrics() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["station-stats"],
+    queryKey: ["stationMetrics"],
     queryFn: GetStationStats,
   });
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>Loading...</Text>
-  //     </div>
-  //   );
-  // }
-  // if (error) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>{(error as Error).message}</Text>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
 
   return (
     <div

@@ -1,28 +1,24 @@
 "use client";
 import axios from "axios";
 
-const URL = process.env.API_URL || "http://localhost:5000/api/v1";
+const URL = process.env.API_URL || "http://localhost:5000/api";
 
 const GetStationStats = async (): Promise<{
   totalStations: number;
   maxCapacity: number;
 }> => {
   try {
-    // const response = await axios.get(`${URL}/stations/stats`, {
-    //   headers: {
-    //     Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-    //   },
-    // });
+    const response = await axios.get(`${URL}/stations/station-metrics`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
 
-    // if (response.status === 404) {
-    //   throw new Error(response.data.message);
-    // }
-    // return response.data.data;
-    const data = {
-      totalStations: 100,
-      maxCapacity: 50,
-    };
-    return data;
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    console.log(response.data);
+    return response.data.data;
   } catch (error: Error | unknown) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(error.response.data.message || error.message);
@@ -38,76 +34,38 @@ const GetStations = async (
   statusFilter?: string
 ): Promise<
   {
-    id: string;
+    _id: string;
     name: string;
     address: string;
-    capacity: number;
-    bikes: number;
+    available_bikes: [];
+    createdAt: string;
+    updatedAt: string;
+    totalSlots: number;
+    location: {
+      coordinates: number[];
+    };
   }[]
 > => {
-  // try {
-  //   const response = await axios.get(`${URL}/stations`, {
-  //     headers: {
-  //       Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-  //     },
-  //   });
+  try {
+    const response = await axios.get(
+      `${URL}/stations?filter=${statusFilter}&search=${searchTerm}&limit=${limit}&page=${page}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }
+    );
 
-  //   if (response.status === 404) {
-  //     throw new Error(response.data.message);
-  //   }
-  //   return response.data.data;
-  // } catch (error: Error | unknown) {
-  //   if (axios.isAxiosError(error) && error.response) {
-  //     throw new Error(error.response.data.message || error.message);
-  //   }
-  //   throw new Error("An unknown error occurred");
-  // }
-  const stations = [
-    {
-      id: "134566677888990000",
-      name: "Central Park",
-      address: "123 Park Ave",
-      capacity: 20,
-      bikes: 1,
-    },
-    {
-      id: "134566677888992000",
-      name: "Downtown Hub",
-      address: "456 Main St",
-      capacity: 15,
-      bikes: 5,
-    },
-    {
-      id: "134566677888990300",
-      name: "Riverside Stop",
-      address: "789 River Rd",
-      capacity: 10,
-      bikes: 2,
-    },
-    {
-      id: "134566677888990380",
-      name: "Uptown Plaza",
-      address: "101 Plaza Dr",
-      capacity: 25,
-      bikes: 24,
-    },
-    {
-      id: "134566677888990030",
-      name: "Uptown Plaza 2",
-      address: "102 Plaza Dr",
-      capacity: 25,
-      bikes: 24,
-    },
-    {
-      id: "134566677888990003",
-      name: "Uptown Plaza 3",
-      address: "103 Plaza Dr",
-      capacity: 25,
-      bikes: 24,
-    },
-  ];
-
-  return stations;
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
 };
 
 const GetStation = async (
@@ -139,6 +97,32 @@ const GetStation = async (
     throw new Error("An unknown error occurred");
   }
 };
+
+const GetStationsList = async (): Promise<{
+  data: {
+    value: string;
+    label: string;
+  }[];
+}> => {
+  try {
+    const response = await axios.get(`${URL}/stations/stationList`, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
+};
+
 const CreateStation = async (data: {
   name: string;
   address: string;
@@ -148,12 +132,31 @@ const CreateStation = async (data: {
     id: string;
     name: string;
     address: string;
-    capacity: number;
-    bikes: number;
+    totalSlots: number;
   };
 }> => {
   try {
-    const response = await axios.post(`${URL}/stations`, data, {
+    const OPEN_CAGE_API_KEY =
+      process.env.NEXT_PUBLIC_OPENCAGE_KEY ||
+      "aa67ebeebf5a471d91d1cb5704dcdce8";
+    const geoRes = await axios.get(
+      `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+        data.address + ", Addis Ababa, Ethiopia"
+      )}&key=${OPEN_CAGE_API_KEY}`
+    );
+    if (!geoRes.data.results?.[0]?.geometry) {
+      throw new Error("Invalid address");
+    }
+    const { lat, lng } = geoRes.data.results[0].geometry;
+    const address = geoRes.data.results[0].formatted || data.address;
+
+    const payload = {
+      name: data.name,
+      location: { coordinates: [lng, lat] },
+      totalSlots: Number(data.capacity),
+      address,
+    };
+    const response = await axios.post(`${URL}/stations`, payload, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -217,6 +220,7 @@ const DeleteStation = async (id: string): Promise<void> => {
     if (response.status === 404) {
       throw new Error(response.data.message);
     }
+    return response.data.data;
   } catch (error: Error | unknown) {
     if (axios.isAxiosError(error) && error.response) {
       throw new Error(error.response.data.message || error.message);
@@ -232,4 +236,5 @@ export {
   UpdateStation,
   DeleteStation,
   GetStationStats,
+  GetStationsList,
 };

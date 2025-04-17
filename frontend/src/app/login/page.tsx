@@ -88,7 +88,7 @@ export default function AdminLogin() {
       >
         <Stack gap="lg" className="p-10">
           <Title order={2} ta="center" c="white" fw={700}>
-            RevoBike
+            {/* RevoBike */}Admin
           </Title>
 
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -162,6 +162,7 @@ export default function AdminLogin() {
                   },
                 }}
               >
+                Login
                 {/* {login.isPending ? <Loader size="sm" color="white" /> : "Login"} */}
               </Button>
             </Stack>
