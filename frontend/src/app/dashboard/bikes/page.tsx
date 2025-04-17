@@ -7,7 +7,8 @@ import {
   Group,
   Select,
   Table,
-  Title,
+  TextInput,
+  Container,
 } from "@mantine/core";
 import {
   IconEdit,
@@ -15,6 +16,9 @@ import {
   IconFilter,
   IconTool,
   IconPlus,
+  IconSearch,
+  IconArrowRight,
+  IconArrowLeft,
 } from "@tabler/icons-react";
 import BikeMetrics from "./_components/bike-metrics";
 import EditBikeModal from "./_components/update-modal";
@@ -24,8 +28,17 @@ import AddBikeModal from "./_components/add-modal";
 import BikeDetailsModal from "./_components/details-modal";
 
 export default function BikesManagement() {
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [stationFilter, setStationFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "normal" | "overloaded" | "underloaded"
+  >("all");
+
+  const [stationFilter, setStationFilter] = useState<
+    "all" | "Central Park" | "Downtown Hub" | "Riverside Stop" | "Uptown Plaza"
+  >("all");
+
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [detailsModalOpened, setDetailsModalOpened] = useState(false);
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
@@ -83,6 +96,9 @@ export default function BikesManagement() {
     return matchesStatus && matchesStation;
   });
 
+  const limit = 4;
+  const hasNextPage = bikes && bikes.length === limit;
+
   interface Bike {
     id: string;
     type: string;
@@ -125,17 +141,11 @@ export default function BikesManagement() {
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>Bikes Management</Title>
+      <Group justify="end" mb="md">
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={() => setAddModalOpened(true)}
-          styles={{
-            root: {
-              backgroundColor: "#212529",
-              "&:hover": { backgroundColor: "#343a40" },
-            },
-          }}
+          className="bg-customBlue text-white hover:bg-blue-950"
         >
           Add Bike
         </Button>
@@ -153,9 +163,14 @@ export default function BikesManagement() {
             { value: "maintenance", label: "Maintenance" },
           ]}
           value={statusFilter}
-          onChange={setStatusFilter}
+          // onChange={setStatusFilter}
           leftSection={<IconFilter size={16} />}
-          style={{ width: "200px" }}
+          className="w-full sm:w-[200px]"
+          classNames={{
+            input: "text-gray-800",
+            dropdown: "bg-white text-black",
+            label: "text-gray-800 text-sm",
+          }}
         />
         <Select
           label="Filter by Station"
@@ -165,15 +180,32 @@ export default function BikesManagement() {
             ...stations.map((station) => ({ value: station, label: station })),
           ]}
           value={stationFilter}
-          onChange={setStationFilter}
+          // onChange={setStationFilter}
           leftSection={<IconFilter size={16} />}
-          style={{ width: "200px" }}
+          className="w-full sm:w-[200px]"
+          classNames={{
+            input: "text-gray-800",
+            dropdown: "bg-white text-black",
+            label: "text-gray-800 text-sm",
+          }}
         />
+
+        <div className="w-full sm:w-auto md:mt-4 ml-auto">
+          <TextInput
+            placeholder="Search by bike ID or type"
+            leftSection={<IconSearch color="#7E7E7E" size={20} />}
+            value={searchTerm}
+            // onChange={(event) => {
+            //   setSearchTerm(event.currentTarget.value);
+            //   setCurrentPage(1);
+            // }}
+          />
+        </div>
       </Group>
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr>
+          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400">
             <Table.Th>Bike ID</Table.Th>
             <Table.Th>Type</Table.Th>
             <Table.Th>Station</Table.Th>
@@ -240,6 +272,30 @@ export default function BikesManagement() {
         </Table.Tbody>
       </Table>
 
+      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+        <Button
+          className="bg-customBlue text-white w-fit h-fit p-2"
+          variant="small"
+          onClick={() => {
+            setCurrentPage(Math.max(currentPage - 1, 1));
+          }}
+          disabled={currentPage === 1}
+        >
+          <IconArrowLeft />
+        </Button>
+        <Button
+          className={`bg-customBlue text-white w-fit h-fit p-2`}
+          onClick={() => {
+            if (hasNextPage) {
+              setCurrentPage((old) => old + 1);
+            }
+          }}
+          disabled={!hasNextPage}
+        >
+          <IconArrowRight />
+        </Button>
+      </Container>
+
       {selectedBike && (
         <BikeDetailsModal
           opened={detailsModalOpened}
@@ -277,14 +333,14 @@ export default function BikesManagement() {
         }
         onSchedule={(data) => console.log("Maintenance Scheduled:", data)}
       /> */}
-      {/* 
+
       <AddBikeModal
         opened={addModalOpened}
         onClose={() => setAddModalOpened(false)}
         // onAdd={(newStation) =>
         //   ([...stations, { id: stations.length + 1, ...newStation }])
         // }
-      /> */}
+      />
     </Card>
   );
 }

@@ -6,10 +6,13 @@ import {
   FaTachometerAlt,
   FaBicycle,
   FaUsers,
-  FaCog,
   FaChargingStation,
+  FaKey,
+  FaMoneyBill,
+  FaTools,
+  FaBatteryHalf,
+  FaExclamationTriangle,
 } from "react-icons/fa";
-import { Avatar } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { usePathname } from "next/navigation";
 
@@ -33,32 +36,27 @@ const data = [
   {
     link: "/dashboard/rentals",
     label: "Rentals",
-    icon: FaCog,
+    icon: FaKey,
   },
   {
     link: "/dashboard/settings",
     label: "Payments",
-    icon: FaCog,
+    icon: FaMoneyBill,
   },
   {
     link: "/dashboard/settings",
     label: "Maintenance",
-    icon: FaCog,
+    icon: FaTools,
   },
   {
     link: "/dashboard/settings",
     label: "Battery",
-    icon: FaCog,
+    icon: FaBatteryHalf,
   },
   {
     link: "/dashboard/settings",
     label: "Alerts",
-    icon: FaCog,
-  },
-  {
-    link: "/dashboard/settings",
-    label: "Settings",
-    icon: FaCog,
+    icon: FaExclamationTriangle,
   },
 ];
 
@@ -116,22 +114,11 @@ export default function Sidebar() {
         <div className="flex-1">
           <div className="flex flex-row justify-center align-middle items-center p-4">
             <h1 className="text-lg font-bold text-white bg-clip-text text-transparent">
-              RevoBike Admin
+              Admin
             </h1>
           </div>
 
           <div className="mt-4">{links}</div>
-        </div>
-
-        <div className="p-4 border-t">
-          <div className="flex items-center p-4 cursor-pointer rounded-full w-fit">
-            <Avatar
-              radius="xl"
-              size="sm"
-              // src={`http://localhost:5000/${user?.picture}`}
-            />
-            <span className="ml-2 text-white">Profile</span>
-          </div>
         </div>
       </nav>
     </>

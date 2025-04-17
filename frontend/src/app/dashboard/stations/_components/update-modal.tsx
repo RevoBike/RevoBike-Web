@@ -2,44 +2,70 @@
 
 import { useForm } from "@mantine/form";
 import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
-
-interface Station {
-  name: string;
-  address: string;
-  capacity: string;
-}
-
-interface EditStationModalProps {
-  opened: boolean;
-  onClose: () => void;
-  station: Station;
-  onUpdate: (updatedStation: Station) => void;
-}
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateStation } from "@/app/api/station-api";
+import { notifications } from "@mantine/notifications";
+import {
+  EditStationModalProps,
+  HandleSubmitProps,
+} from "@/app/interfaces/station";
 
 const EditStationModal: React.FC<EditStationModalProps> = ({
   opened,
   onClose,
   station,
-  onUpdate,
 }) => {
+  const queryClient = useQueryClient();
   const form = useForm({
-    initialValues: station || { name: "", address: "", capacity: "" },
+    initialValues: {
+      name: station.name,
+      address: station.address,
+      capacity: station.capacity,
+    },
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must be at least 2 characters" : null,
       address: (value) =>
         value.length < 5 ? "Address must be at least 5 characters" : null,
       capacity: (value) =>
-        !/^\d+$/.test(value) || value < 1
+        !/^\d+$/.test(String(value)) || Number(value) < 1
           ? "Capacity must be a positive number"
           : null,
     },
   });
 
-  const handleSubmit = (values) => {
-    onUpdate({ ...station, ...values, capacity: parseInt(values.capacity) });
-    onClose();
+  const updateMutation = useMutation({
+    mutationFn: UpdateStation,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Station updated successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+    },
+  });
+
+  const handleSubmit: HandleSubmitProps = (values) => {
+    updateMutation.mutate(values);
   };
 
   return (
@@ -144,7 +170,6 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
