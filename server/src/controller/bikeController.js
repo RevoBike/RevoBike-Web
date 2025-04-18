@@ -5,17 +5,83 @@ const catchAsync = require("../utils/catchAsync");
 const { isBikeInsideGeofence } = require("../utils/rideUtils");
 const generateQRCode = require("../utils/generateQRCode");
 const { v4: uuidv4 } = require("uuid");
+const mongoose = require("mongoose");
 
 // Get all bikes (Admins & SuperAdmins only)
 exports.getAllBikes = catchAsync(async (req, res) => {
-  if (req.user.role === "User") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized access",
-    });
-  }
+  // if (req.user.role === "User") {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Unauthorized access",
+  //   });
+  // }
 
-  const bikes = await Bike.find();
+  const bikeFilter = req.query.bikeFilter;
+  const filter = req.query.filter;
+  const search = req.query.search;
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+
+  let matchQuery = {};
+  if (search) {
+    matchQuery.$or = [{ model: { $regex: search, $options: "i" } }];
+    if (mongoose.isValidObjectId(search)) {
+      matchQuery.$or.push({ _id: new mongoose.Types.ObjectId(search) });
+    }
+  }
+  if (
+    filter &&
+    ["available", "in-use", "underMaintenance", "reserved"].includes(filter)
+  ) {
+    matchQuery.status = filter;
+  }
+  if (bikeFilter && mongoose.isValidObjectId(bikeFilter)) {
+    matchQuery.currentStation = new mongoose.Types.ObjectId(bikeFilter);
+  }
+  const bikes = await Bike.aggregate([
+    { $match: matchQuery },
+    {
+      $lookup: {
+        from: Station.collection.collectionName,
+        localField: "currentStation",
+        foreignField: "_id",
+        as: "stationDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$stationDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $project: {
+        model: 1,
+        qrCode: 1,
+        status: 1,
+        currentLocation: 1,
+        geofenceStatus: 1,
+        batteryLevel: 1,
+        batteryHealth: 1,
+        geofenceStatus: 1,
+        lastCharged: 1,
+        lastMaintenance: 1,
+        nextMaintenance: 1,
+        maintenanceHistory: 1,
+        currentStation: { $ifNull: ["$stationDetails.name", "No Station"] },
+        createdAt: 1,
+        totalRides: 1,
+        totalDistance: 1,
+        lastRide: 1,
+        averageSpeed: 1,
+        imageUrl: 1,
+      },
+    },
+    { $sort: { createdAt: -1 } },
+    { $skip: (page - 1) * limit },
+    { $limit: limit },
+  ]);
+
   res.status(200).json({
     success: true,
     data: bikes,
@@ -41,26 +107,24 @@ exports.getBikeById = catchAsync(async (req, res) => {
 
 // Add new bike (Admins & SuperAdmins only)
 exports.addBike = catchAsync(async (req, res) => {
-  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized",
-    });
-  }
+  // if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Unauthorized",
+  //   });
+  // }
 
   const { model, station } = req.body;
   const file = req.file;
-  const imgUrl = `/uploads/${file.filename}`;
+  const imgUrl = file ? `/uploads/${file.filename}` : "";
 
   const qrCode = uuidv4();
-
-  const qrCodeImageUrl = await generateQRCode(qrCode, `qr-${qrCode}.png`);
 
   const newBike = await Bike.create({
     model,
     currentStation: station,
     imageUrl: imgUrl,
-    qrCode: qrCodeImageUrl,
+    qrCode: qrCode,
   });
 
   await Station.updateOne(
@@ -157,5 +221,32 @@ exports.deleteBike = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Bike deleted successfully",
+  });
+});
+
+// Get bike metrics (All users)
+
+exports.getBikeMetrics = catchAsync(async (req, res) => {
+  const totalBikes = await Bike.countDocuments();
+  const totalAvailableBikes = await Bike.countDocuments({
+    status: "available",
+  });
+  const totalRentedBikes = await Bike.countDocuments({ status: "in-use" });
+  const totalReservedBikes = await Bike.countDocuments({
+    status: "reserved",
+  });
+  const totalBikesInMaintenance = await Bike.countDocuments({
+    status: "underMaintenance",
+  });
+
+  res.status(200).json({
+    success: true,
+    data: {
+      totalBikes,
+      totalAvailableBikes,
+      totalRentedBikes,
+      totalReservedBikes,
+      totalBikesInMaintenance,
+    },
   });
 });
