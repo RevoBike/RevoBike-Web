@@ -9,7 +9,15 @@ const { protect, authorizeRoles } = require("../middlewares/middleware");
 //router.post("/verify-otp", verifyOTP);
 //router.post("/login", loginUser);
 
-const { registerUser, loginUser, verifyOTP, deleteAccount, checkUser, resendOTP, forceVerify, directDelete, forgotPassword, resetPassword } = require("../controller/authController");
+const { 
+  registerUser, 
+  loginUser, 
+  verifyOTP, 
+  deleteAccount, 
+  checkUser, 
+  resendOTP, 
+  forceVerify, directDelete, forgotPassword, requestPasswordReset,
+  resetPasswordWithOTP } = require("../controller/authController");
 
 
 /**
@@ -476,17 +484,10 @@ router.post("/forgot-password", forgotPassword);
 
 /**
  * @swagger
- * /api/users/reset-password/{resetToken}:
- *   put:
- *     summary: Reset password using token
+ * /api/users/reset-password:
+ *   post:
+ *     summary: Reset password using OTP
  *     tags: [Authentication]
- *     parameters:
- *       - in: path
- *         name: resetToken
- *         required: true
- *         schema:
- *           type: string
- *         description: Password reset token received via email
  *     requestBody:
  *       required: true
  *       content:
@@ -494,8 +495,16 @@ router.post("/forgot-password", forgotPassword);
  *           schema:
  *             type: object
  *             required:
+ *               - email
+ *               - otp
  *               - password
  *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               otp:
+ *                 type: string
+ *                 description: The 6-digit OTP sent to the user's email
  *               password:
  *                 type: string
  *                 format: password
@@ -512,25 +521,21 @@ router.post("/forgot-password", forgotPassword);
  *                   type: boolean
  *                 message:
  *                   type: string
- *                 token:
- *                   type: string
- *                 user:
- *                   type: object
- *                   properties:
- *                     email:
- *                       type: string
- *                     name:
- *                       type: string
- *                     role:
- *                       type: string
  *       400:
- *         description: Invalid or expired token
+ *         description: Invalid OTP or expired
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/reset-password/:resetToken", resetPassword);
+router.post("/reset-password", resetPasswordWithOTP);
+
 
 // Test route
 router.get("/test", (req, res) => {
