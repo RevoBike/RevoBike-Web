@@ -85,7 +85,6 @@ export default function CarAvailability() {
           </Stack>
         </Paper>
         <div
-          p="md"
           radius="md"
           withBorder
           className="bg-gray-50 p-2 rounded-lg shadow-lg"

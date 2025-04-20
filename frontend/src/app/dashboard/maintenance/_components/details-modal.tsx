@@ -11,24 +11,15 @@ import {
   Badge,
   Grid,
   Card,
+  Paper,
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import { Icon } from "leaflet";
 import { io } from "socket.io-client";
 import { GetBike } from "@/app/api/bikes-api";
 import { format } from "date-fns";
 import QRCode from "react-qr-code";
-import L from "leaflet";
-
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 
 interface BikeDetailsModalProps {
   opened: boolean;
@@ -46,12 +37,22 @@ const bikeIcon = new Icon({
   iconAnchor: [12, 41],
 });
 
+function MapCenter({ coordinates }: { coordinates: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    if (coordinates[0] !== 0 && coordinates[1] !== 0) {
+      map.setView([coordinates[1], coordinates[0]], 15);
+    }
+  }, [coordinates, map]);
+  return null;
+}
+
 const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
   opened,
   onClose,
   bikeId,
 }) => {
-  const [location, setLocation] = useState<[number, number]>([9.03, 38.75]);
+  const [location, setLocation] = useState<[number, number]>([0, 0]);
 
   const {
     data: bike,
@@ -139,7 +140,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
             withBorder
             style={{ height: "100%" }}
           >
-            {/* <Card.Section>
+            <Card.Section>
               <MapContainer
                 center={[9.0141, 38.7054]}
                 zoom={15}
@@ -163,31 +164,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
                 )}
                 <MapCenter coordinates={location} />
               </MapContainer>
-            </Card.Section> */}
-            <Card shadow="sm" padding="lg" radius="md" withBorder>
-              <div
-                style={{
-                  height: "300px",
-                  width: "100%",
-                  borderRadius: "8px",
-                  overflow: "hidden",
-                }}
-              >
-                <MapContainer
-                  center={location}
-                  zoom={15}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <Marker position={location} icon={bikeIcon}>
-                    <Popup>{bike?.data.model || "Bike"}</Popup>
-                  </Marker>
-                </MapContainer>
-              </div>
-            </Card>
+            </Card.Section>
             <Text size="lg" mt="md">
               Real-Time Location
             </Text>

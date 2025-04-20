@@ -1,17 +1,45 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Group, Select, Table, Title } from "@mantine/core";
-import { IconFilter, IconPlus, IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  Button,
+  Card,
+  Group,
+  Select,
+  Table,
+  TextInput,
+  Container,
+} from "@mantine/core";
+import {
+  IconFilter,
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconArrowLeft,
+  IconArrowRight,
+} from "@tabler/icons-react";
 import UsersMetrics from "./_components/users-metrics";
 import UserDetailsModal from "./_components/details-modal";
 import DeleteUserModal from "./_components/delete-modal";
 import UpdateUserRoleModal from "./_components/update-modal";
 import AddUserModal from "./_components/add-modal";
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+  role: string;
+  phoneNumber: string;
+  address: string;
+}
+
 export default function UserPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<"all" | "user" | "admin" | "superadmin">(
+    "all"
+  );
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const [detailsModalOpened, setDetailsModalOpened] = useState(false);
   const [addModalOpened, setAddModalOpened] = useState(false);
   const [editModalOpened, setEditModalOpened] = useState(false);
@@ -19,27 +47,27 @@ export default function UserPage() {
   const [users, setUsers] = useState([
     {
       id: 1,
-      username: "John Doe",
+      name: "John Doe",
       email: "john@example.com",
       role: "Admin",
       phoneNumber: "1234567890",
-      address: "123 Main St, Cityville",
+      createdAt: "2023-01-01",
     },
     {
       id: 2,
-      username: "Jane Smith",
+      name: "Jane Smith",
       email: "jane@example.com",
       role: "User",
       phoneNumber: "1234567890",
-      address: "123 Main St, Cityville",
+      createdAt: "2023-01-02",
     },
     {
       id: 3,
-      username: "Charlie Brown",
+      name: "Charlie Brown",
       email: "charlie@example.com",
       role: "User",
       phoneNumber: "1234567890",
-      address: "123 Main St, Cityville",
+      createdAt: "2023-01-03",
     },
   ]);
 
@@ -50,15 +78,6 @@ export default function UserPage() {
     if (filter === "superadmin") return users.role === "SuperAdmin";
     return true;
   });
-
-  interface User {
-    id: number;
-    username: string;
-    email: string;
-    role: string;
-    phoneNumber: string;
-    address: string;
-  }
 
   const handleRowClick = (user: User): void => {
     setSelectedUser(user);
@@ -79,53 +98,60 @@ export default function UserPage() {
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="space-between" mb="md">
-        <Title order={3}>Users Management</Title>
+      <Group justify="end" mb="md">
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={() => setAddModalOpened(true)}
-          styles={{
-            root: {
-              backgroundColor: "#212529",
-              "&:hover": { backgroundColor: "#343a40" },
-            },
-          }}
+          className="bg-customBlue text-white hover:bg-blue-950"
         >
           Add User
         </Button>
       </Group>
       <UsersMetrics />
-      <Group mb="md">
-        <Select
-          label="Filter by role"
-          placeholder="Select role"
-          data={[
-            { value: "all", label: "All" },
-            { value: "user", label: "User" },
-            { value: "admin", label: "Admin" },
-            { value: "superadmin", label: "SuperAdmin" },
-          ]}
-          value={filter}
-          onChange={setFilter}
-          leftSection={<IconFilter size={16} />}
-          style={{ width: "200px" }}
-          classNames={{
-            input: "text-gray-800",
-            dropdown: "bg-white",
-            item: "hover:bg-gray-100",
-          }}
-        />
-      </Group>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 px-2">
+        <div className="w-full sm:w-auto">
+          <Select
+            label="Filter by role"
+            placeholder="Select role"
+            data={[
+              { value: "all", label: "All" },
+              { value: "user", label: "User" },
+              { value: "admin", label: "Admin" },
+              { value: "superadmin", label: "SuperAdmin" },
+            ]}
+            value={filter}
+            onChange={setFilter}
+            leftSection={<IconFilter size={16} />}
+            style={{ width: "200px" }}
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm",
+            }}
+          />
+        </div>
+        <div className="w-full sm:w-auto md:mt-4">
+          <TextInput
+            placeholder="Search by name or phone"
+            leftSection={<IconSearch color="#7E7E7E" size={20} />}
+            // value={searchTerm}
+            // onChange={(event) => {
+            //   setSearchTerm(event.currentTarget.value);
+            //   setCurrentPage(1);
+            // }}
+          />
+        </div>
+      </div>
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr className="bg-red-100 text-gray-800">
+          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400">
             <Table.Th>ID</Table.Th>
-            <Table.Th>UserName</Table.Th>
+            <Table.Th>Name</Table.Th>
             <Table.Th>Email</Table.Th>
             <Table.Th>PhoneNumber</Table.Th>
-            <Table.Th>Address</Table.Th>
             <Table.Th>Role</Table.Th>
+            <Table.Th>CreatedAt</Table.Th>
             <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -138,41 +164,64 @@ export default function UserPage() {
                 onClick={() => handleRowClick(user)}
               >
                 <Table.Td>{user.id}</Table.Td>
-                <Table.Td>{user.username}</Table.Td>
+                <Table.Td>{user.name}</Table.Td>
                 <Table.Td>{user.email}</Table.Td>
                 <Table.Td>{user.phoneNumber}</Table.Td>
-                <Table.Td>{user.address}</Table.Td>
                 <Table.Td>{user.role}</Table.Td>
-                <Table.Td>
-                  <Group>
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleEditClick(user, e)}
-                    >
-                      <IconEdit size={14} color="green" />
-                    </Button>
-                    |
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleDeleteClick(user, e)}
-                    >
-                      <IconTrash size={14} color="red" />
-                    </Button>
-                  </Group>
+                <Table.Td>{user.createdAt}</Table.Td>
+                <Table.Td className="ml-auto">
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    // onClick={() =>
+                    //   handleEditClick({
+                    //     ...station,
+                    //     _id: Number(station._id),
+                    //   })
+                    // }
+                  >
+                    <IconEdit size={20} color="green" />
+                  </Button>
+                  |
+                  <Button
+                    size="xs"
+                    variant="subtle"
+                    onClick={() => handleDeleteClick(station)}
+                  >
+                    <IconTrash size={20} color="red" />
+                  </Button>
                 </Table.Td>
               </Table.Tr>
             );
           })}
         </Table.Tbody>
       </Table>
+      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+        <Button
+          className="bg-customBlue text-white w-fit h-fit p-2"
+          variant="small"
+          onClick={() => {
+            setCurrentPage(Math.max(currentPage - 1, 1));
+          }}
+          disabled={currentPage === 1}
+        >
+          <IconArrowLeft />
+        </Button>
+        <Button
+          className={`bg-customBlue text-white w-fit h-fit p-2`}
+          // onClick={() => {
+          //   if (hasNextPage) {
+          //     setCurrentPage((old) => old + 1);
+          //   }
+          // }}
+          // disabled={!hasNextPage}
+        >
+          <IconArrowRight />
+        </Button>
+      </Container>
       <AddUserModal
         opened={addModalOpened}
         onClose={() => setAddModalOpened(false)}
-        onAdd={(newUser) =>
-          setUsers([...users, { id: users.length + 1, ...newUser }])
-        }
       />
       <UpdateUserRoleModal
         opened={editModalOpened}

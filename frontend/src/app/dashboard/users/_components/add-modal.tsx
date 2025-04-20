@@ -10,30 +10,70 @@ import {
   Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconUserPlus } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreateAdmin } from "@/app/api/user";
+import { notifications } from "@mantine/notifications";
 
 interface AddUserModalProps {
   opened: boolean;
   onClose: () => void;
-  onAdd: (values: { name: string; email: string; role: string }) => void;
 }
 
-const AddUserModal = ({ opened, onClose, onAdd }: AddUserModalProps) => {
+interface FormValues {
+  name: string;
+  email: string;
+  phone_number: string;
+  role: string;
+}
+
+const AddUserModal = ({ opened, onClose }: AddUserModalProps) => {
+  const queryClient = useQueryClient();
+
   const form = useForm({
-    initialValues: { name: "", email: "", role: "" },
+    initialValues: { name: "", email: "", role: "", phone_number: "" },
     validate: {
       name: (value) =>
         value.trim().length < 2 ? "Name must be at least 2 characters" : null,
       email: (value) =>
         /^\S+@\S+\.\S+$/.test(value) ? null : "Invalid email address",
+      phone_number: (value) =>
+        /^\d{10}$/.test(value) ? null : "Phone number must be 10 digits",
       role: (value) => (!value ? "Role is required" : null),
     },
   });
 
-  const handleSubmit = (values) => {
-    onAdd(values);
-    form.reset();
-    onClose();
+  const createMutation = useMutation({
+    mutationFn: CreateAdmin,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "User added successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["userMetrics"] });
+    },
+  });
+
+  const handleSubmit = (values: FormValues) => {
+    createMutation.mutate(values);
   };
 
   return (
@@ -98,16 +138,11 @@ const AddUserModal = ({ opened, onClose, onAdd }: AddUserModalProps) => {
               error: { color: "#f03e3e" },
             }}
           />
-          <Select
-            label="Role"
-            placeholder="Select user's role"
+          <TextInput
+            label="Phone"
+            placeholder="Enter user's phone number"
             required
-            data={[
-              { value: "admin", label: "Admin" },
-              { value: "manager", label: "Manager" },
-              { value: "user", label: "User" },
-            ]}
-            {...form.getInputProps("role")}
+            {...form.getInputProps("phone_number")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
@@ -120,6 +155,23 @@ const AddUserModal = ({ opened, onClose, onAdd }: AddUserModalProps) => {
                 },
               },
               error: { color: "#f03e3e" },
+            }}
+          />
+          <Select
+            label="Role"
+            placeholder="Select user's role"
+            required
+            data={[
+              { value: "Admin", label: "Admin" },
+              { value: "Superadmin", label: "Superadmin" },
+              // { value: "user", label: "User" },
+            ]}
+            {...form.getInputProps("role")}
+            radius="md"
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
           <Group justify="flex-end" mt="lg" gap="xs">
@@ -143,7 +195,6 @@ const AddUserModal = ({ opened, onClose, onAdd }: AddUserModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconUserPlus size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
@@ -151,7 +202,7 @@ const AddUserModal = ({ opened, onClose, onAdd }: AddUserModalProps) => {
                 },
               }}
             >
-              Add User
+              Add
             </Button>
           </Group>
         </Stack>
