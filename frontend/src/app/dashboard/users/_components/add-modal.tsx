@@ -163,7 +163,7 @@ const AddUserModal = ({ opened, onClose }: AddUserModalProps) => {
             required
             data={[
               { value: "Admin", label: "Admin" },
-              { value: "Superadmin", label: "Superadmin" },
+              { value: "SuperAdmin", label: "Superadmin" },
               // { value: "user", label: "User" },
             ]}
             {...form.getInputProps("role")}

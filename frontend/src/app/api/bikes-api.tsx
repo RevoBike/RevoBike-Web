@@ -147,6 +147,7 @@ const UpdateBike = async (data: {
 
 const DeleteBike = async (id: string): Promise<void> => {
   try {
+    console.log("The id", id);
     const response = await axios.delete(`${URL}/bikes/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,

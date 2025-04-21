@@ -117,7 +117,6 @@ export default function BikesManagement() {
   const handleDeleteClick = (bike: Bike, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedBike(bike);
-    console.log(bike);
     openDeleteModal();
   };
 
