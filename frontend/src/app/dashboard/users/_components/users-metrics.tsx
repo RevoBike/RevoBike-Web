@@ -1,26 +1,28 @@
 import { Card, Group, Text } from "@mantine/core";
 import { IconUser } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { GetUserStats } from "@/app/api/user";
 
 export default function UsersMetrics() {
-  // const { data, isLoading, error } = useQuery({
-  //   queryKey: ["bikesMetrics"],
-  //   queryFn: GetBikeStats,
-  // });
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["userMetrics"],
+    queryFn: GetUserStats,
+  });
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>Loading...</Text>
-  //     </div>
-  //   );
-  // }
-  // if (error) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>{(error as Error).message}</Text>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
 
   return (
     <div className="grid gris=rows-2 md:grid-rows-1 grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -41,7 +43,7 @@ export default function UsersMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                100
+                {data?.totalUsers || 0}
               </Text>
             </Group>
           </div>
@@ -66,7 +68,7 @@ export default function UsersMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                890
+                {data?.totalCustomers || 0}
               </Text>
             </Group>
           </div>
@@ -90,7 +92,7 @@ export default function UsersMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                890
+                {data?.totalAdmins || 0}
               </Text>
             </Group>
           </div>
@@ -114,7 +116,7 @@ export default function UsersMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                890
+                {data?.totalSuperAdmins || 0}
               </Text>
             </Group>
           </div>
