@@ -5,24 +5,24 @@ import { GetBikeStats } from "@/app/api/bikes-api";
 
 export default function BikeMetrics() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["bike-stats"],
+    queryKey: ["bikesMetrics"],
     queryFn: GetBikeStats,
   });
 
-  // if (isLoading) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>Loading...</Text>
-  //     </div>
-  //   );
-  // }
-  // if (error) {
-  //   return (
-  //     <div className="flex justify-center items-center h-full">
-  //       <Text>{(error as Error).message}</Text>
-  //     </div>
-  //   );
-  // }
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
   return (
     <div className="grid gris=rows-2 md:grid-rows-1 grid-cols-2 md:grid-cols-4 gap-4 mb-6">
       <Card
@@ -65,7 +65,7 @@ export default function BikeMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                {data?.bikeInMaintenance || 0}{" "}
+                {data?.totalBikesInMaintenance || 0}{" "}
                 <span className="text-sm">Bikes</span>
               </Text>
             </Group>
@@ -90,7 +90,8 @@ export default function BikeMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                {data?.bikeInRental || 0} <span className="text-sm">Bikes</span>
+                {data?.totalRentedBikes || 0}{" "}
+                <span className="text-sm">Bikes</span>
               </Text>
             </Group>
           </div>
@@ -115,7 +116,7 @@ export default function BikeMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                {data?.availableBikes || 0}{" "}
+                {data?.totalAvailableBikes || 0}{" "}
                 <span className="text-sm">Bikes</span>
               </Text>
             </Group>

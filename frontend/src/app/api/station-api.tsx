@@ -17,7 +17,6 @@ const GetStationStats = async (): Promise<{
     if (response.status === 404) {
       throw new Error(response.data.message);
     }
-    console.log(response.data);
     return response.data.data;
   } catch (error: Error | unknown) {
     if (axios.isAxiosError(error) && error.response) {
@@ -174,24 +173,41 @@ const CreateStation = async (data: {
   }
 };
 
-const UpdateStation = async (
-  id: string,
-  data: {
-    name: string;
-    address: string;
-    capacity: number;
-  }
-): Promise<{
+const UpdateStation = async (data: {
+  id: string;
+  name: string;
+  address: string;
+  capacity: number;
+}): Promise<{
   data: {
     id: string;
     name: string;
     address: string;
-    capacity: number;
-    bikes: number;
+    totalSlots: number;
   };
 }> => {
   try {
-    const response = await axios.put(`${URL}/stations/${id}`, data, {
+    const OPEN_CAGE_API_KEY =
+      process.env.NEXT_PUBLIC_OPENCAGE_KEY ||
+      "aa67ebeebf5a471d91d1cb5704dcdce8";
+    const geoRes = await axios.get(
+      `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
+        data.address + ", Addis Ababa, Ethiopia"
+      )}&key=${OPEN_CAGE_API_KEY}`
+    );
+    if (!geoRes.data.results?.[0]?.geometry) {
+      throw new Error("Invalid address");
+    }
+    const { lat, lng } = geoRes.data.results[0].geometry;
+    const address = geoRes.data.results[0].formatted || data.address;
+
+    const payload = {
+      name: data.name,
+      location: { coordinates: [lng, lat] },
+      totalSlots: Number(data.capacity),
+      address,
+    };
+    const response = await axios.put(`${URL}/stations/${data.id}`, payload, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },

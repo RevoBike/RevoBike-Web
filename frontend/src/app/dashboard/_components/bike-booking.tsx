@@ -50,7 +50,7 @@ export default function BikeBookings() {
       <Table.Td>{element.clientName}</Table.Td>
       <Table.Td>{element.bikeType}</Table.Td>
       <Table.Td>
-        <div spacing={0} className="flex flex-row items-center gap-2">
+        <div className="flex flex-row items-center gap-2">
           <Text size="sm">${element.payment.amount}</Text>
           <Text
             size="sm"
@@ -102,7 +102,7 @@ export default function BikeBookings() {
         </div>
 
         <Table highlightOnHover>
-          <Table.Thead verticalSpacing="xs">
+          <Table.Thead>
             <Table.Tr>
               <Table.Th>Booking ID</Table.Th>
               <Table.Th>Booking Date</Table.Th>

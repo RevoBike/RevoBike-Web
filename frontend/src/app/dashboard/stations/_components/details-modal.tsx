@@ -78,7 +78,7 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
                   {station?.totalSlots} slots
                 </Text>
               </Text>
-              <Text size="sm" c="dimmed">
+              <div>
                 Status:{" "}
                 <Badge
                   color={
@@ -117,7 +117,7 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
                       : "Normal"
                     : "Unknown"}
                 </Badge>
-              </Text>
+              </div>
             </Group>
           </Group>
           <Text size="sm" c="dimmed">

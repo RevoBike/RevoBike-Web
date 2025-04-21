@@ -21,7 +21,7 @@ import {
   IconArrowRight,
   IconArrowLeft,
 } from "@tabler/icons-react";
-import BikeMetrics from "./_components/bike-metrics";
+import BikeMetrics from "./_components/maintaienence-metrics";
 import EditBikeModal from "./_components/update-modal";
 import DeleteBikeModal from "./_components/delete-modal";
 import MaintenanceBikeModal from "./_components/maintenance-modal";
@@ -30,16 +30,12 @@ import BikeDetailsModal from "./_components/details-modal";
 import { useDisclosure } from "@mantine/hooks";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
-import { GetBikes } from "@/app/api/bikes-api";
+import { GetBikesUnderMaintenance } from "@/app/api/maintenance-api";
 import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
 
 export default function BikesManagement() {
   const limit = 3;
-
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "available" | "in-use" | "underMaintenance"
-  >("all");
   const [bikeFilter, setBikeFilter] = useState<string>("");
 
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -77,15 +73,14 @@ export default function BikesManagement() {
     error,
   } = useQuery({
     queryKey: [
-      "bikes",
+      "bikesUnderMaintenance",
       currentPage,
       limit,
       searchTerm,
-      statusFilter,
       bikeFilter,
     ],
     queryFn: () =>
-      GetBikes(currentPage, limit, searchTerm, statusFilter, bikeFilter),
+      GetBikesUnderMaintenance(currentPage, limit, searchTerm, bikeFilter),
 
     placeholderData: keepPreviousData,
   });
@@ -119,66 +114,22 @@ export default function BikesManagement() {
     openDeleteModal();
   };
 
-  const handleRowClick = (bikeId: string, e: React.MouseEvent): void => {
-    e.stopPropagation();
+  const handleRowClick = (bikeId: string): void => {
     setSelectedBike(bikeId);
     openDetailsModal();
   };
 
-  const handleMaintenanceClick = (bike: Bike, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedBike(bike._id);
-    openMaintenanceModal();
-  };
-
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="end" mb="md">
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={openAddModal}
-          className="bg-customBlue text-white hover:bg-blue-950"
-        >
-          Add Bike
-        </Button>
-      </Group>
       <BikeMetrics />
 
       <Group mb="md" gap="md">
-        <Select
-          label="Filter by Status"
-          placeholder="Select status"
-          data={[
-            { value: "all", label: "All" },
-            { value: "available", label: "Available" },
-            { value: "in-use", label: "Rented" },
-            { value: "underMaintenance", label: "Maintenance" },
-          ]}
-          value={statusFilter}
-          leftSection={<IconFilter size={16} />}
-          className="w-full sm:w-[200px]"
-          classNames={{
-            input: "text-gray-800",
-            dropdown: "bg-white text-black",
-            label: "text-gray-800 text-sm",
-          }}
-          onChange={(value) => {
-            setStatusFilter(
-              (value as "all" | "available" | "in-use" | "underMaintenance") ||
-                "all"
-            );
-            setCurrentPage(1);
-          }}
-        />
         <Select
           label="Filter by Station"
           placeholder="Select station"
           data={[{ label: "All", value: "" }, ...(stations?.data || [])]}
           value={bikeFilter}
-          onChange={(value) => {
-            setBikeFilter(value as string);
-            setCurrentPage(1);
-          }}
+          onChange={(value) => setBikeFilter(value as string)}
           leftSection={<IconFilter size={16} />}
           className="w-full sm:w-[200px]"
           classNames={{
@@ -207,8 +158,11 @@ export default function BikesManagement() {
             <Table.Th>Bike ID</Table.Th>
             <Table.Th>Model</Table.Th>
             <Table.Th>Station</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>CreatedAt</Table.Th>
+            <Table.Th>Last Maintenance</Table.Th>
+            <Table.Th>Next Maintenance</Table.Th>
+            <Table.Th>Total Rides</Table.Th>
+            <Table.Th>Total distance</Table.Th>
+            <Table.Th>Created At</Table.Th>
             <Table.Th>Actions</Table.Th>
           </Table.Tr>
         </Table.Thead>
@@ -217,33 +171,24 @@ export default function BikesManagement() {
             bikes.map((bike) => (
               <Table.Tr
                 key={bike._id}
-                onClick={(e) => handleRowClick(bike._id, e)}
+                onClick={() => handleRowClick(bike._id)}
                 style={{ cursor: "pointer" }}
               >
                 <Table.Td>{bike._id}</Table.Td>
                 <Table.Td>{bike.model}</Table.Td>
                 <Table.Td>{bike.currentStation}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={
-                      bike.status === "available"
-                        ? "green"
-                        : bike.status === "in-use"
-                        ? "yellow"
-                        : "blue"
-                    }
-                    variant="light"
-                  >
-                    {bike.status}
-                  </Badge>
-                </Table.Td>
+
+                <Table.Td>{formatDate(bike.lastMaintenance)}</Table.Td>
+                <Table.Td>{formatDate(bike.nextMaintenance)}</Table.Td>
+                <Table.Td>{bike.totalRides}</Table.Td>
+                <Table.Td>{bike.totalDistance}</Table.Td>
                 <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
 
                 <Table.Td className="ml-auto">
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => handleMaintenanceClick(bike, e)}
+                    // onClick={(e) => handleMaintenanceClick(bike, e)}
                   >
                     <IconTool size={14} />
                   </Button>
@@ -251,7 +196,7 @@ export default function BikesManagement() {
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => handleEditClick(bike, e)}
+                    onClick={() => handleEditClick(bike)}
                   >
                     <IconEdit size={14} color="green" />
                   </Button>
@@ -259,7 +204,7 @@ export default function BikesManagement() {
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={(e) => handleDeleteClick(bike, e)}
+                    onClick={() => handleDeleteClick(bike)}
                   >
                     <IconTrash size={14} color="red" />
                   </Button>
@@ -321,11 +266,15 @@ export default function BikesManagement() {
         }
       /> */}
 
-      <MaintenanceBikeModal
+      {/* <MaintenanceBikeModal
         opened={maintenanceModalOpened}
-        onClose={closeMaintenanceModal}
-        bikeId={selectedBike}
-      />
+        onClose={() => setMaintenanceModalOpened(false)}
+        bike={selectedBike}
+        onDelete={() =>
+          setSelectedBike(stations.filter((s) => s.id !== selectedBike?.id))
+        }
+        onSchedule={(data) => console.log("Maintenance Scheduled:", data)}
+      /> */}
 
       <AddBikeModal opened={addModalOpened} onClose={closeAddModal} />
     </Card>

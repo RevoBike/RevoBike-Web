@@ -10,7 +10,6 @@ import {
   FaKey,
   FaMoneyBill,
   FaTools,
-  FaBatteryHalf,
   FaExclamationTriangle,
 } from "react-icons/fa";
 import { useDisclosure } from "@mantine/hooks";
@@ -44,14 +43,9 @@ const data = [
     icon: FaMoneyBill,
   },
   {
-    link: "/dashboard/settings",
+    link: "/dashboard/maintenance",
     label: "Maintenance",
     icon: FaTools,
-  },
-  {
-    link: "/dashboard/settings",
-    label: "Battery",
-    icon: FaBatteryHalf,
   },
   {
     link: "/dashboard/settings",

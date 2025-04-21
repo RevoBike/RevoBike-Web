@@ -8,6 +8,7 @@ import {
   Stack,
   Text,
   TextInput,
+  NumberInput,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -127,7 +128,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
               error: { color: "#f03e3e" },
             }}
           />
-          <TextInput
+          <NumberInput
             label="Capacity"
             placeholder="e.g., 20"
             required

@@ -10,7 +10,6 @@ export interface Station {
     coordinates: number[];
   };
 }
-
 export interface FormValues {
   name: string;
   address: string;

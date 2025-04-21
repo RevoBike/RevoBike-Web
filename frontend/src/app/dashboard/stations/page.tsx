@@ -28,7 +28,9 @@ import formatDate from "@/app/_utils/format-date";
 
 import StationsMetrics from "./_components/station-metrics";
 import AddStationModal from "./_components/add-modal";
+import UpdateStationModal from "./_components/update-modal";
 import StationDetailsModal from "./_components/details-modal";
+import DeleteConfirmationModal from "./_components/delete-modal";
 import { Station } from "@/app/interfaces/station";
 
 export default function StationsManagement() {
@@ -56,13 +58,14 @@ export default function StationsManagement() {
     { open: openUpdateModal, close: closeUpdateModal },
   ] = useDisclosure(false);
 
-  const handleEditClick = (station: Station) => {
+  const handleEditClick = (station: Station, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedStation(station);
     openUpdateModal();
   };
 
-  const handleDeleteClick = (station: Station) => {
-    // e.stopPropagation();
+  const handleDeleteClick = (station: Station, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedStation(station);
     openDeleteModal();
   };
@@ -130,12 +133,13 @@ export default function StationsManagement() {
               { value: "normal", label: "Normal (20-80%)" },
             ]}
             value={filter}
-            onChange={(value) =>
+            onChange={(value) => {
               setFilter(
                 (value as "all" | "normal" | "overloaded" | "underloaded") ||
                   "all"
-              )
-            }
+              );
+              setCurrentPage(1);
+            }}
             leftSection={<IconFilter size={16} />}
             className="w-full sm:w-[200px]"
             classNames={{
@@ -196,7 +200,9 @@ export default function StationsManagement() {
                 >
                   <Table.Td>{station._id}</Table.Td>
                   <Table.Td>{station.name}</Table.Td>
-                  <Table.Td>{station.address}</Table.Td>
+                  <Table.Td>{`${
+                    station.address.slice(0, 15) || "..."
+                  }...`}</Table.Td>
                   <Table.Td>{station.totalSlots || 0}</Table.Td>
                   <Table.Td>
                     {(station.available_bikes &&
@@ -213,12 +219,7 @@ export default function StationsManagement() {
                     <Button
                       size="xs"
                       variant="subtle"
-                      // onClick={() =>
-                      //   handleEditClick({
-                      //     ...station,
-                      //     _id: Number(station._id),
-                      //   })
-                      // }
+                      onClick={(e) => handleEditClick(station, e)}
                     >
                       <IconEdit size={20} color="green" />
                     </Button>
@@ -226,7 +227,7 @@ export default function StationsManagement() {
                     <Button
                       size="xs"
                       variant="subtle"
-                      onClick={() => handleDeleteClick(station)}
+                      onClick={(e) => handleDeleteClick(station, e)}
                     >
                       <IconTrash size={20} color="red" />
                     </Button>
@@ -238,7 +239,7 @@ export default function StationsManagement() {
       </Table>
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
-          className="bg-customBlue text-white w-fit h-fit p-2"
+          className="bg-customBlue text-white w-fit h-fit p-1"
           variant="small"
           onClick={() => {
             setCurrentPage(Math.max(currentPage - 1, 1));
@@ -248,7 +249,7 @@ export default function StationsManagement() {
           <IconArrowLeft />
         </Button>
         <Button
-          className={`bg-customBlue text-white w-fit h-fit p-2`}
+          className={`bg-customBlue text-white w-fit h-fit p-1`}
           onClick={() => {
             if (hasNextPage) {
               setCurrentPage((old) => old + 1);
@@ -267,20 +268,17 @@ export default function StationsManagement() {
         station={selectedStation}
         setSelectedStation={setSelectedStation}
       />
-      {/* <EditStationModal
+      <UpdateStationModal
         opened={updateModalOpened}
         onClose={closeUpdateModal}
         station={selectedStation}
-      /> */}
-      {/* <DeleteConfirmationModal
+      />
+
+      <DeleteConfirmationModal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
-        station={station}
-        onDelete={() => {
-          setSelectedStation(null);
-          closeDeleteModal();
-        }}
-      /> */}
+        station={{ id: selectedStation?._id, name: selectedStation?.name }}
+      />
     </Card>
   );
 }

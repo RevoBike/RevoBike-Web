@@ -1,39 +1,94 @@
 "use client";
 
-import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
+import {
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+  Textarea,
+} from "@mantine/core";
 import { IconTool } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { AddBikeUnderMaintenance } from "@/app/api/maintenance-api";
+import { DatePickerInput } from "@mantine/dates";
+import { notifications } from "@mantine/notifications";
 
 interface MaintenanceBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  bike: { model: string; type: string } | null;
-  onSchedule: (data: { description: string }) => void;
+  bikeId: string;
 }
 
 const MaintenanceBikeModal = ({
   opened,
   onClose,
-  bike,
-  onSchedule,
+  bikeId,
 }: MaintenanceBikeModalProps) => {
+  const queryClient = useQueryClient();
+
   const form = useForm({
     initialValues: {
       description: "",
+      date: new Date(),
+      type: "",
+      cost: 1,
+      technician: "",
     },
     validate: {
       description: (value) =>
         value.trim().length < 5
           ? "Description must be at least 5 characters long"
           : null,
+      cost: (value) => (value <= 0 ? "Cost must be greater than 0" : null),
+      technician: (value) =>
+        value.trim().length < 3 ? "Technician name is required" : null,
     },
   });
 
-  const handleSchedule = () => {
+  const maintainMutation = useMutation({
+    mutationFn: AddBikeUnderMaintenance,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Bike added to maintenance successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
+    },
+  });
+
+  const handleSubmit = () => {
     if (form.validate().hasErrors) return;
-    onSchedule({ description: form.values.description });
-    form.reset();
-    onClose();
+    const { date, description, type, technician, cost } = form.values;
+    maintainMutation.mutate({
+      bikeId,
+      date,
+      description,
+      type,
+      technician,
+      cost,
+    });
   };
 
   return (
@@ -47,7 +102,7 @@ const MaintenanceBikeModal = ({
       }
       centered
       radius="md"
-      size="sm"
+      size="md"
       styles={{
         header: {
           padding: "16px 24px",
@@ -58,39 +113,13 @@ const MaintenanceBikeModal = ({
         },
       }}
     >
-      <form onSubmit={(e) => e.preventDefault()}>
+      <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
-          <Text size="md" c="gray.7" lineClamp={2}>
-            Are you sure you want to schedule maintenance for the bike{" "}
-            <Text span fw={600} c="gray.9">
-              {bike?.model}
-            </Text>{" "}
-            of type{" "}
-            <Text span fw={600} c="gray.9">
-              {bike?.type}
-            </Text>
-            ?
-          </Text>
-          <Text
-            size="sm"
-            c="blue.6"
-            fw={500}
-            style={{
-              backgroundColor: "rgba(219, 234, 254, 0.5)",
-              padding: "8px 12px",
-              borderRadius: "4px",
-              borderLeft: "4px solid #3b82f6",
-            }}
-          >
-            This action will mark the bike as "Under Maintenance."
-          </Text>
-
-          {/* Maintenance Description Input */}
           <TextInput
-            label="Maintenance Description"
-            placeholder="Enter details about the maintenance"
+            label="Maintenance type"
+            placeholder="e.g., Battery change, etc."
             required
-            {...form.getInputProps("description")}
+            {...form.getInputProps("type")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
@@ -105,8 +134,97 @@ const MaintenanceBikeModal = ({
               error: { color: "#f03e3e" },
             }}
           />
+          <TextInput
+            label="Technician"
+            placeholder="e.g., John Doe"
+            required
+            {...form.getInputProps("technician")}
+            radius="md"
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
+          <div className="flex gap-4 w-full">
+            <TextInput
+              label="Cost"
+              placeholder="e.g., 20"
+              required
+              {...form.getInputProps("cost")}
+              radius="md"
+              styles={{
+                label: {
+                  color: "#495057",
+                  fontWeight: 500,
+                  marginBottom: "8px",
+                },
+                input: {
+                  backgroundColor: "#f8f9fa",
+                  borderColor: "#ced4da",
+                  "&:focus": {
+                    borderColor: "#868e96",
+                    boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                  },
+                },
+                error: { color: "#f03e3e" },
+              }}
+              style={{ width: "50%" }}
+            />
+            <DatePickerInput
+              label="Date"
+              placeholder="Select date"
+              {...form.getInputProps("date")}
+              minDate={new Date()}
+              radius="md"
+              styles={{
+                label: {
+                  color: "#495057",
+                  fontWeight: 500,
+                  marginBottom: "6px",
+                },
+                input: {
+                  backgroundColor: "#f8f9fa",
+                  borderColor: "#ced4da",
+                  "&:focus": {
+                    borderColor: "#868e96",
+                    boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                  },
+                },
+                error: { color: "#f03e3e" },
+              }}
+              style={{ width: "50%" }}
+            />
+          </div>
 
-          <Group justify="flex-end" mt="md" gap="xs">
+          <Textarea
+            label="Description"
+            placeholder="e.g., A brief description of the maintenance, etc."
+            required
+            {...form.getInputProps("description")}
+            radius="md"
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "6px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
+
+          <Group justify="flex-end" mt="lg" gap="xs">
             <Button
               variant="subtle"
               color="gray.6"
@@ -123,19 +241,19 @@ const MaintenanceBikeModal = ({
               Cancel
             </Button>
             <Button
-              color="blue.7"
-              size="md"
+              type="submit"
+              color="gray.9"
+              size="sm"
               radius="md"
-              leftSection={<IconTool size={16} />}
-              onClick={handleSchedule}
               styles={{
                 root: {
-                  padding: "8px 16px",
-                  "&:hover": { backgroundColor: "#2563eb" },
+                  backgroundColor: "#212529",
+                  "&:hover": { backgroundColor: "#343a40" },
                 },
               }}
             >
               Schedule
+              {/* {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>} */}
             </Button>
           </Group>
         </Stack>

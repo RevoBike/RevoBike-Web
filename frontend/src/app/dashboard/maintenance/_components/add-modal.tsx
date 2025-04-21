@@ -3,45 +3,53 @@
 import {
   Button,
   Group,
-  Loader,
   Modal,
   Stack,
   Text,
   TextInput,
-  NumberInput,
+  Select,
+  FileInput,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { UpdateStation } from "@/app/api/station-api";
+import { IconUpload } from "@tabler/icons-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { GetStationsList } from "@/app/api/station-api";
+import { AddBike } from "@/app/api/bikes-api";
 import { notifications } from "@mantine/notifications";
-import { Station, FormValues } from "@/app/interfaces/station";
 
-interface UpdateStationProps {
+interface AddBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  station: Station | null;
 }
 
-const UpdateStationModal = ({
-  opened,
-  onClose,
-  station,
-}: UpdateStationProps) => {
+const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
   const queryClient = useQueryClient();
+
   const form = useForm({
-    initialValues: {
-      name: station?.name || "",
-      address: station?.address || "",
-      capacity: station?.totalSlots ? Number(station.totalSlots) : 0,
+    initialValues: { model: "", station: "", image: null },
+    validate: {
+      model: (value) =>
+        value.length < 3 ? "Type must be at least 3 characters" : null,
+      station: (value) => (!value ? "Station is required" : null),
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: UpdateStation,
+  const {
+    data: stations,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["stationsList"],
+    queryFn: GetStationsList,
+  });
+
+  const addMutation = useMutation({
+    mutationFn: AddBike,
     onSuccess: () => {
       notifications.show({
         title: "Success",
-        message: "Station updated successfully",
+        message: "Bike added successfully",
         color: "green",
         autoClose: 1000,
         withCloseButton: true,
@@ -60,22 +68,41 @@ const UpdateStationModal = ({
         position: "top-right",
       });
     },
-
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["stations"] });
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
     },
   });
 
-  const handleSubmit = (values: FormValues): void => {
-    if (form.validate().hasErrors) return;
-    const { name, address, capacity } = values;
-    updateMutation.mutate({
-      id: station?._id || "",
-      name,
-      address,
-      capacity: Number(capacity),
-    });
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
+
+  const handleSubmit = (values: {
+    model: string;
+    station: string;
+    image: File | null;
+  }): void => {
+    const formData = new FormData();
+    formData.append("model", values.model);
+    formData.append("station", values.station);
+    if (values.image) {
+      formData.append("file", values.image);
+    }
+    addMutation.mutate(formData);
   };
 
   return (
@@ -84,7 +111,7 @@ const UpdateStationModal = ({
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          Update Station
+          Add New Bike
         </Text>
       }
       centered
@@ -102,12 +129,13 @@ const UpdateStationModal = ({
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
-          <TextInput
-            label="Station Name"
-            placeholder={station?.name}
-            value={station?.name}
-            {...form.getInputProps("name")}
+          <FileInput
+            label="Bike Image"
+            placeholder="Upload an image"
+            accept="image/*"
+            {...form.getInputProps("image")}
             radius="md"
+            leftSection={<IconUpload size={16} />}
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
               input: {
@@ -122,9 +150,10 @@ const UpdateStationModal = ({
             }}
           />
           <TextInput
-            label="Address"
-            placeholder={station?.address}
-            {...form.getInputProps("address")}
+            label="Bike Model"
+            placeholder="e.g., Bike, Scooter, etc."
+            required
+            {...form.getInputProps("model")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
@@ -139,22 +168,17 @@ const UpdateStationModal = ({
               error: { color: "#f03e3e" },
             }}
           />
-          <NumberInput
-            label="Capacity"
-            placeholder="e.g., 20"
-            {...form.getInputProps("capacity")}
+          <Select
+            label="Bike Station"
+            placeholder="Select station"
+            required
+            data={stations?.data}
+            {...form.getInputProps("station")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
           <Group justify="flex-end" mt="lg" gap="xs">
@@ -185,11 +209,7 @@ const UpdateStationModal = ({
                 },
               }}
             >
-              {updateMutation.isPending ? (
-                <Loader size={20} />
-              ) : (
-                <span>Update</span>
-              )}
+              {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>}
             </Button>
           </Group>
         </Stack>
@@ -198,4 +218,4 @@ const UpdateStationModal = ({
   );
 };
 
-export default UpdateStationModal;
+export default AddBikeModal;

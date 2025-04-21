@@ -1,5 +1,7 @@
 import "@mantine/core/styles.css";
 import "@mantine/notifications/styles.css";
+import "@mantine/dates/styles.css";
+import "leaflet/dist/leaflet.css";
 import { Poppins } from "next/font/google";
 import type { Metadata } from "next";
 import "./globals.css";
