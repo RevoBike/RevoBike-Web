@@ -238,7 +238,7 @@ exports.updateStation = catchAsync(async (req, res) => {
     return res.status(403).json({
       success: false,
       message: "Unauthorized",
-  )}
+    });
   }
   const id = req.params.id;
   let { name, totalSlots, address, location } = req.body;
