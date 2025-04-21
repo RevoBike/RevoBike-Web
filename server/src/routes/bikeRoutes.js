@@ -4,7 +4,9 @@ const {
   getBikeById,
   addBike,
   deleteBike,
+  getBikeMetrics,
   updateBikeLocation,
+  updateBikeDetails,
 } = require("../controller/bikeController");
 const upload = require("../config/multerConfig");
 const { protect, authorizeRoles } = require("../middlewares/middleware");
@@ -34,6 +36,10 @@ const router = express.Router();
  *                     $ref: '#/components/schemas/Bike'
  */
 router.get("/", getAllBikes);
+
+// add swagger for this route
+
+router.get("/bike-metrics", protect, getBikeMetrics);
 
 /**
  * @openapi
@@ -232,5 +238,7 @@ router.delete("/:id", protect, authorizeRoles("admin"), deleteBike);
  *         description: Unauthorized - Invalid or missing token
  */
 router.post("/location/update", protect, updateBikeLocation);
+
+router.put("/:id", protect, updateBikeDetails);
 
 module.exports = router;
