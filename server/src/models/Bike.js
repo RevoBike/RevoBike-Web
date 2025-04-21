@@ -29,6 +29,7 @@ const BikeSchema = new mongoose.Schema(
         default: [0, 0],
       },
     },
+
     currentStation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Station",
