@@ -50,10 +50,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
     },
     // Password reset fields
-    resetPasswordToken: {
+    resetPasswordOTP: {
       type: String,
     },
-    resetPasswordExpire: {
+    resetPasswordOTPExpires: {
       type: Date,
     },
     role: {
