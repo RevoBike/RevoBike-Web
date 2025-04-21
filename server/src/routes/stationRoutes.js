@@ -9,7 +9,6 @@ const {
   deleteStation,
   getStationMetrics,
   getStationsList,
-  updateStation,
 } = require("../controller/stationController");
 
 /**
@@ -301,8 +300,6 @@ router.put(
   authorizeRoles("SuperAdmin"),
   updateStationLocation
 );
-
-router.put("/:id", protect, authorizeRoles("SuperAdmin"), updateStation);
 
 /**
  * @swagger

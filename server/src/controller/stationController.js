@@ -186,21 +186,6 @@ exports.deleteStation = catchAsync(async (req, res) => {
     });
   }
 
-  const existingStation = await Station.findById(req.params.id);
-  if (!existingStation) {
-    return res.status(404).json({
-      success: false,
-      message: "Station not found",
-    });
-  }
-
-  if (existingStation.available_bikes.length > 0) {
-    return res.status(400).json({
-      success: false,
-      message: "Cannot delete station with available bikes",
-    });
-  }
-
   const station = await Station.findByIdAndDelete(req.params.id);
 
   if (!station) {
@@ -226,66 +211,7 @@ exports.getStationMetrics = catchAsync(async (req, res) => {
     success: true,
     data: {
       totalStations,
-      maxCapacity: maxBikes[0]?.totalSlots,
+      maxCapacity: maxBikes[0].totalSlots,
     },
-  });
-});
-
-// Update Station (SuperAdmin only)
-
-exports.updateStation = catchAsync(async (req, res) => {
-  if (req.user.role !== "SuperAdmin") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized",
-  )}
-  }
-  const id = req.params.id;
-  let { name, totalSlots, address, location } = req.body;
-  const station = await Station.findOne({ _id: id });
-  if (!station) {
-    return res.status(404).json({
-      success: false,
-      message: "Station not found",
-    });
-  }
-
-  if (
-    !location ||
-    !Array.isArray(location.coordinates) ||
-    location.coordinates.length !== 2
-  ) {
-    return res.status(400).json({
-      success: false,
-      message:
-        "Invalid location. Must provide coordinates [longitude, latitude].",
-    });
-  }
-
-  if (totalSlots < station.available_bikes.length) {
-    return res.status(400).json({
-      success: false,
-      mesage: "Total slots cannot be less than available bikes",
-    });
-  }
-
-  if (!name) {
-    name = station.name;
-  }
-
-  const updatedStation = await Station.findByIdAndUpdate(
-    id,
-    {
-      name,
-      totalSlots,
-      address,
-      location: { type: "Point", coordinates: location.coordinates },
-    },
-    { new: true, runValidators: true }
-  );
-
-  res.status(200).json({
-    success: true,
-    data: updatedStation,
   });
 });

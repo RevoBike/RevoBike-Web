@@ -9,12 +9,12 @@ const mongoose = require("mongoose");
 
 // Get all bikes (Admins & SuperAdmins only)
 exports.getAllBikes = catchAsync(async (req, res) => {
-  if (req.user.role === "User") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized access",
-    });
-  }
+  // if (req.user.role === "User") {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Unauthorized access",
+  //   });
+  // }
 
   const bikeFilter = req.query.bikeFilter;
   const filter = req.query.filter;
@@ -38,7 +38,6 @@ exports.getAllBikes = catchAsync(async (req, res) => {
   if (bikeFilter && mongoose.isValidObjectId(bikeFilter)) {
     matchQuery.currentStation = new mongoose.Types.ObjectId(bikeFilter);
   }
-
   const bikes = await Bike.aggregate([
     { $match: matchQuery },
     {
@@ -100,23 +99,20 @@ exports.getBikeById = catchAsync(async (req, res) => {
     });
   }
 
-  const station = await Station.findById(bike.currentStation);
-  const bikeData = bike.toObject();
-
   res.status(200).json({
     success: true,
-    data: { ...bikeData, currentStation: station?.name || "No Station" },
+    data: bike,
   });
 });
 
 // Add new bike (Admins & SuperAdmins only)
 exports.addBike = catchAsync(async (req, res) => {
-  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized",
-    });
-  }
+  // if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+  //   return res.status(403).json({
+  //     success: false,
+  //     message: "Unauthorized",
+  //   });
+  // }
 
   const { model, station } = req.body;
   const file = req.file;
@@ -213,35 +209,14 @@ exports.deleteBike = catchAsync(async (req, res) => {
       message: "Unauthorized",
     });
   }
-  const bike = await Bike.findOne({ _id: req.params.id });
+
+  const bike = await Bike.findByIdAndDelete(req.params.id);
   if (!bike) {
     return res.status(404).json({
       success: false,
       message: "Bike not found",
     });
   }
-  if (bike.status !== "available") {
-    return res.status(400).json({
-      success: false,
-      message: "Can not delete bike in-use.",
-    });
-  }
-
-  const station = await Station.findById(bike.currentStation);
-  if (!station) {
-    return res.status(404).json({
-      success: false,
-      message: "Station not found",
-    });
-  }
-
-  const bikeIndex = station.available_bikes.indexOf(bike._id);
-  if (bikeIndex > -1) {
-    station.available_bikes.splice(bikeIndex, 1);
-  }
-
-  await station.save();
-  await Bike.findByIdAndDelete(req.params.id);
 
   res.status(200).json({
     success: true,
@@ -252,12 +227,6 @@ exports.deleteBike = catchAsync(async (req, res) => {
 // Get bike metrics (All users)
 
 exports.getBikeMetrics = catchAsync(async (req, res) => {
-  if (req.user.role === "User") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized access",
-    });
-  }
   const totalBikes = await Bike.countDocuments();
   const totalAvailableBikes = await Bike.countDocuments({
     status: "available",
@@ -279,73 +248,5 @@ exports.getBikeMetrics = catchAsync(async (req, res) => {
       totalReservedBikes,
       totalBikesInMaintenance,
     },
-  });
-});
-
-// Update bike details (Admins & SuperAdmins only)
-exports.updateBikeDetails = catchAsync(async (req, res) => {
-  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
-    return res.status(403).json({
-      success: false,
-      message: "Unauthorized",
-    });
-  }
-  const id = req.params.id;
-  let { model, currentStation } = req.body;
-
-  const bike = await Bike.findOne({ _id: id });
-  if (!bike) {
-    return res.status(404).json({
-      success: false,
-      message: "Bike not found",
-    });
-  }
-
-  if (!model) {
-    model = bike.model;
-  }
-
-  if (!currentStation) {
-    currentStation = bike.currentStation;
-  }
-
-  const prevStation = await Station.findOne({ _id: bike.currentStation });
-  if (!prevStation) {
-    return res.status(404).json({
-      success: false,
-      message: "Station not found",
-    });
-  }
-
-  const prevStationIndex = prevStation.available_bikes.indexOf(id);
-
-  if (prevStationIndex > -1) {
-    prevStation.available_bikes.splice(prevStationIndex, 1);
-  }
-
-  await prevStation.save();
-
-  const newStation = await Station.findOne({ _id: currentStation });
-  if (!newStation) {
-    return res.status(404).json({
-      success: false,
-      message: "Bike not found",
-    });
-  }
-  newStation.available_bikes.push(id);
-  await newStation.save();
-
-  const updatedBike = await Bike.findByIdAndUpdate(
-    id,
-    {
-      model,
-      currentStation,
-    },
-    { new: true, runValidators: true }
-  );
-
-  res.status(201).json({
-    success: true,
-    data: updatedBike,
   });
 });

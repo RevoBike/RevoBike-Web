@@ -5,18 +5,16 @@ const crypto = require("crypto");
 const userSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
-    email: {
-      type: String,
-      required: true,
+    email: { 
+      type: String, 
+      required: true, 
       unique: true,
       validate: {
-        validator: function (value) {
-          return this.role == "User"
-            ? value.endsWith("@aastustudent.edu.et")
-            : value.endsWith("gmail.com"); // Admins and SuperAdmins can use any email
+        validator: function(value) {
+          return value.endsWith("@aastustudent.edu.et"); 
         },
-        message: "Only university emails are allowed.",
-      },
+        message: "Only university emails are allowed."
+      } 
     },
     phone_number: {
       type: String,
@@ -26,35 +24,31 @@ const userSchema = new mongoose.Schema(
         validator: function (value) {
           return /^0[79]\d{8}$/.test(value); // RegEX-09. or 07., total 10 digits
         },
-        message: "Phone number must start with 09 or 07 and be 10 digits long.",
-      },
+        message: "Phone number must start with 09 or 07 and be 10 digits long."
+      }
     },
     password: { type: String, required: true, select: false },
-    universityId: {
-      type: String,
-      required: function () {
-        return this.role === "User";
-      },
-      // unique: function () {
-      //   return this.role === "User";
-      // },
+    universityId: { 
+      type: String, 
+      required: function() { return this.role === "User"; }, 
+      unique: function() { return this.role === "User"; } 
+    }, 
+    isVerified: { 
+      type: Boolean, 
+      default: false 
+    }, 
+    otpCode: { 
+      type: String 
     },
-    isVerified: {
-      type: Boolean,
-      default: false,
-    },
-    otpCode: {
-      type: String,
-    },
-    otpExpires: {
-      type: Date,
+    otpExpires: { 
+      type: Date 
     },
     // Password reset fields
     resetPasswordToken: {
-      type: String,
+      type: String
     },
     resetPasswordExpire: {
-      type: Date,
+      type: Date
     },
     role: {
       type: String,
@@ -84,14 +78,14 @@ userSchema.methods.comparePassword = async function (enteredPassword) {
 };
 
 // Generate password reset token
-userSchema.methods.getResetPasswordToken = function () {
-  const resetToken = crypto.randomBytes(20).toString("hex");
-
+userSchema.methods.getResetPasswordToken = function() {
+  const resetToken = crypto.randomBytes(20).toString('hex');
+  
   // Hash the token and set to resetPasswordToken field
   this.resetPasswordToken = crypto
-    .createHash("sha256")
+    .createHash('sha256')
     .update(resetToken)
-    .digest("hex");
+    .digest('hex');
 
   // Set expire time to 10 minutes
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;

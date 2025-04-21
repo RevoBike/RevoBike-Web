@@ -53,8 +53,6 @@ const stationRoutes = require("./src/routes/stationRoutes");
 const rideRoutes = require("./src/routes/rideRoutes");
 const paymentRoutes = require("./src/routes/paymentRoutes");
 const bikeRoutes = require("./src/routes/bikeRoutes");
-const maintenanceRoute = require("./src/routes/maintenanceRoute");
-const adminRoutes = require("./src/routes/userRoutes");
 
 const swaggerSpec = require("./src/config/swaggerConfig");
 
@@ -67,8 +65,6 @@ app.use("/api/bikes", bikeRoutes); //Bike routes
 
 app.use("/api/payments", paymentRoutes); //Payment routes
 app.use("/api/rides", rideRoutes); //Ride routes
-app.use("/api/maintenance", maintenanceRoute); //Maintenance routes
-app.use("/api/admin", adminRoutes); //Admin routes
 
 // Swagger UI route
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
