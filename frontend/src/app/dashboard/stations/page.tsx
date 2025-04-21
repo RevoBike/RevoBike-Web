@@ -221,7 +221,7 @@ export default function StationsManagement() {
                       variant="subtle"
                       onClick={(e) => handleEditClick(station, e)}
                     >
-                      <IconEdit size={20} color="green" />
+                      <IconEdit size={18} color="green" />
                     </Button>
                     |
                     <Button
@@ -229,7 +229,7 @@ export default function StationsManagement() {
                       variant="subtle"
                       onClick={(e) => handleDeleteClick(station, e)}
                     >
-                      <IconTrash size={20} color="red" />
+                      <IconTrash size={18} color="red" />
                     </Button>
                   </Table.Td>
                 </Table.Tr>

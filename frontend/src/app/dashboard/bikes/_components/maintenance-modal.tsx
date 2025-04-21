@@ -42,9 +42,9 @@ const MaintenanceBikeModal = ({
         value.trim().length < 5
           ? "Description must be at least 5 characters long"
           : null,
-      cost: (value) => (value <= 0 ? "Cost must be greater than 0" : null),
-      technician: (value) =>
-        value.trim().length < 3 ? "Technician name is required" : null,
+      // cost: (value) => (value <= 0 ? "Cost must be greater than 0" : null),
+      // technician: (value) =>
+      //   value.trim().length < 3 ? "Technician name is required" : null,
     },
   });
 
@@ -137,7 +137,6 @@ const MaintenanceBikeModal = ({
           <TextInput
             label="Technician"
             placeholder="e.g., John Doe"
-            required
             {...form.getInputProps("technician")}
             radius="md"
             styles={{
@@ -157,7 +156,6 @@ const MaintenanceBikeModal = ({
             <TextInput
               label="Cost"
               placeholder="e.g., 20"
-              required
               {...form.getInputProps("cost")}
               radius="md"
               styles={{
@@ -181,6 +179,7 @@ const MaintenanceBikeModal = ({
             <DatePickerInput
               label="Date"
               placeholder="Select date"
+              required
               {...form.getInputProps("date")}
               minDate={new Date()}
               radius="md"

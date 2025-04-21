@@ -111,24 +111,23 @@ const AddBike = async (
   }
 };
 
-const UpdateStation = async (
-  id: string,
-  data: {
-    name: string;
-    address: string;
-    capacity: number;
-  }
-): Promise<{
+const UpdateBike = async (data: {
+  id: string;
+  model: string;
+  station: string | null;
+}): Promise<{
   data: {
     id: string;
-    name: string;
-    address: string;
-    capacity: number;
-    bikes: number;
+    model: string;
+    station: string;
   };
 }> => {
   try {
-    const response = await axios.put(`${URL}/stations/${id}`, data, {
+    const payload = {
+      model: data.model,
+      currentStation: data.station,
+    };
+    const response = await axios.put(`${URL}/bikes/${data.id}`, payload, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -146,9 +145,9 @@ const UpdateStation = async (
   }
 };
 
-const DeleteStation = async (id: string): Promise<void> => {
+const DeleteBike = async (id: string): Promise<void> => {
   try {
-    const response = await axios.delete(`${URL}/stations/${id}`, {
+    const response = await axios.delete(`${URL}/bikes/${id}`, {
       headers: {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
@@ -165,11 +164,4 @@ const DeleteStation = async (id: string): Promise<void> => {
   }
 };
 
-export {
-  GetBikes,
-  GetBike,
-  AddBike,
-  UpdateStation,
-  DeleteStation,
-  GetBikeStats,
-};
+export { GetBikes, GetBike, AddBike, UpdateBike, DeleteBike, GetBikeStats };

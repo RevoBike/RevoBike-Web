@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@mantine/form";
 import {
   Button,
   Group,
@@ -9,39 +8,100 @@ import {
   Text,
   TextInput,
   Select,
+  Loader,
 } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import { useForm } from "@mantine/form";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { GetStationsList } from "@/app/api/station-api";
+import { notifications } from "@mantine/notifications";
+import { Bike } from "@/app/interfaces/bike";
+import { UpdateBike } from "@/app/api/bikes-api";
 
-interface EditBikeModalProps {
+interface UpdateBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  bike: { model: string; station: string; type: string } | null;
-  onUpdate: (updatedBike: {
-    model?: string;
-    station: string;
-    type: string;
-  }) => void;
+  bike: Bike | null;
 }
 
-const EditBikeModal: React.FC<EditBikeModalProps> = ({
-  opened,
-  onClose,
-  bike,
-  onUpdate,
-}) => {
-  const form = useForm({
-    initialValues: bike || { station: "", type: "" },
-    validate: {
-      station: (value) => (!value ? "Status is required" : null),
+interface FormValues {
+  model: string;
+  station: string | null;
+}
 
-      type: (value) =>
-        value.length < 3 ? "Type must be at least 3 characters" : null,
+const UpdateBikeModal = ({ opened, onClose, bike }: UpdateBikeModalProps) => {
+  const queryClient = useQueryClient();
+
+  const form = useForm({
+    initialValues: {
+      model: bike?.model || "",
+      station: bike?.currentStation ?? null,
+      image: null,
     },
   });
 
-  const handleSubmit = (values) => {
-    onUpdate({ ...bike, ...values });
-    onClose();
+  const {
+    data: stations,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["stationsList"],
+    queryFn: GetStationsList,
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: UpdateBike,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Bike updated successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+    },
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
+  const handleSubmit = (values: FormValues): void => {
+    if (form.validate().hasErrors) return;
+    const { model, station } = values;
+    updateMutation.mutate({
+      id: bike?._id || "",
+      model,
+      station,
+    });
   };
 
   return (
@@ -50,7 +110,7 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          Edit Bike: {bike?.model}
+          Update Bike
         </Text>
       }
       centered
@@ -68,51 +128,36 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
+          <TextInput
+            label="Bike Model"
+            placeholder={bike?.model}
+            {...form.getInputProps("model")}
+            radius="md"
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
           <Select
-            label="Station"
-            placeholder="Tuludimtu"
-            required
-            data={[
-              { value: "tuludimtu", label: "Tuludimtu" },
-              { value: "akaki", label: "Akaki" },
-              { value: "piasa", label: "Piyasa" },
-            ]}
+            label="Bike Station"
+            placeholder={bike?.currentStation}
+            data={stations?.data}
             {...form.getInputProps("station")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
-
-          <TextInput
-            label="Bike Type"
-            placeholder="e.g., Road, Mountain, Hybrid"
-            required
-            {...form.getInputProps("type")}
-            radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
-            }}
-          />
-
           <Group justify="flex-end" mt="lg" gap="xs">
             <Button
               variant="subtle"
@@ -134,7 +179,6 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
@@ -142,7 +186,11 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
                 },
               }}
             >
-              Update Bike
+              {updateMutation.isPending ? (
+                <Loader size={20} />
+              ) : (
+                <span>Update</span>
+              )}
             </Button>
           </Group>
         </Stack>
@@ -151,4 +199,4 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
   );
 };
 
-export default EditBikeModal;
+export default UpdateBikeModal;

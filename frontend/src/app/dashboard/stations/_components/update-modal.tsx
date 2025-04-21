@@ -64,6 +64,7 @@ const UpdateStationModal = ({
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["stations"] });
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
     },
   });
 
