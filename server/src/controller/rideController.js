@@ -4,7 +4,7 @@ const Station = require('../models/Station');
 const catchAsync = require('../utils/catchAsync');
 const { calculateDistance, calculateRideCost } = require('../utils/rideUtils');
 
-
+ 
 // Start Ride
 exports.startRide = catchAsync(async (req, res) => {
     if (req.user.role !== "User") {
@@ -20,8 +20,9 @@ exports.startRide = catchAsync(async (req, res) => {
     }
 
 
-    const { qrCode } = req.body;
-    const bike = await Bike.findOne({ qrCode });
+  
+    const { bikeId } = req.body;
+    const bike = await Bike.findOne({ bikeId });
 
     if (!bike || bike.status !== "available") {
         return res.status(400).json({ success: false, message: "Bike not available" });

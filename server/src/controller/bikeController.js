@@ -59,9 +59,12 @@ exports.addBike = catchAsync(async (req, res) => {
 });
 
 exports.updateBikeLocation = catchAsync(async (req, res) => {
-    const { qrCode, longitude, latitude } = req.body;
+    // const { qrCode, longitude, latitude } = req.body;
+    // const bike = await Bike.findOne({ qrCode });
+    const { bikeId, longitude, latitude } = req.body;
+    const bike = await Bike.findOne({ bikeId });
 
-    const bike = await Bike.findOne({ qrCode });
+
     if (!bike) {
         return res.status(404).json({ success: false, message: "Bike not found" });
     }
@@ -108,11 +111,18 @@ exports.updateBikeLocation = catchAsync(async (req, res) => {
     // Emit real-time location update
     const io = req.app.get("io");
     io.emit("bikeLocationUpdated", {
-        qrCode,
+        bikeId,
         longitude,
         latitude,
         geofenceStatus: bike.geofenceStatus,
     });
+    
+    // io.emit("bikeLocationUpdated", {
+    //     qrCode,
+    //     longitude,
+    //     latitude,
+    //     geofenceStatus: bike.geofenceStatus,
+    // });
 
     res.status(200).json({ success: true, message: "Bike location updated", bike });
 });

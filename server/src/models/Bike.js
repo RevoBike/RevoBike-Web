@@ -6,7 +6,7 @@ const BikeSchema = new mongoose.Schema(
             type: String,
             required: true,
             unique: true,
-        },
+        },//Format: STEPG001
         qrCode: {
             type: String,
             required: true,
