@@ -2,8 +2,30 @@
 
 import { Card, Group, Text, ThemeIcon } from "@mantine/core";
 import { IconHome, IconGlassFull } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { GetStationStats } from "@/app/api/station-api";
 
 export default function StationsMetrics() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["stationMetrics"],
+    queryFn: GetStationStats,
+  });
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>Loading...</Text>
+      </div>
+    );
+  }
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
+
   return (
     <div
       style={{
@@ -35,7 +57,8 @@ export default function StationsMetrics() {
               Total Stations
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
-              10 <span className="text-sm">Stations</span>
+              {data?.totalStations || 0}{" "}
+              <span className="text-sm">Stations</span>
             </Text>
           </div>
         </Group>
@@ -62,7 +85,7 @@ export default function StationsMetrics() {
               Max Station Capacity
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
-              89 <span className="text-sm">Bikes</span>
+              {data?.maxCapacity || 0} <span className="text-sm">Bikes</span>
             </Text>
           </div>
         </Group>

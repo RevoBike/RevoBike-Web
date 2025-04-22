@@ -1,13 +1,16 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { protect, authorizeRoles } = require('../middlewares/middleware');
+const { protect, authorizeRoles } = require("../middlewares/middleware");
 const {
-    getAllStations,
-    getStationById,
-    addStation,
-    updateStationLocation,
-    deleteStation
-} = require('../controller/stationController');
+  getAllStations,
+  getStationById,
+  addStation,
+  updateStationLocation,
+  deleteStation,
+  getStationMetrics,
+  getStationsList,
+  updateStation,
+} = require("../controller/stationController");
 
 /**
  * @swagger
@@ -55,7 +58,6 @@ const {
  *         - totalSlots
  */
 
-
 /**
  * @swagger
  * /api/stations:
@@ -82,10 +84,80 @@ const {
  *       500:
  *         description: Internal Server Error
  */
-router.get('/', 
-    protect,
-    getAllStations
-);
+router.get("/", protect, getAllStations);
+
+// add swagger for this route
+
+/**
+ * @swagger
+ * /api/stations/station-metrics:
+ *  get:
+ *    summary: Get station metrics
+ *   description: Fetch metrics for all stations (accessible by all authenticated users)
+ *  tags: [Stations]
+ *  security:
+ *    - bearerAuth: []
+ *   responses:
+ *     200:
+ *      description: Successfully retrieved station metrics
+ *     content:
+ *       application/json:
+ *        schema:
+ *         type: object
+ *        properties:
+ *         success:
+ *          type: boolean
+ *         data:
+ *         type: array
+ *        items:
+ *         type: object
+ *        properties:
+ *         stationId:
+ *         type: string
+ *        description: The ID of the station
+ *        totalBikes:
+ *        type: integer
+ *       description: Total number of bikes at the station
+ *       availableBikes:
+ *      type: integer
+ *     description: Total number of available bikes at the station
+ *      totalSlots:
+ *     type: integer
+ *    description: Total number of slots at the station
+ *     500:
+ *       description: Internal Server Error
+ * */
+
+router.get("/station-metrics", protect, getStationMetrics);
+
+/**
+ * @swagger
+ * /api/stations/stationList:
+ *  get:
+ *   summary: Get a list of stations
+ *  description: Fetch a list of stations (accessible by all authenticated users)
+ * tags: [Stations]
+ * security:
+ *  - bearerAuth: []
+ * responses:
+ *  200:
+ *   description: Successfully retrieved the list of stations
+ *  content:
+ *  application/json:
+ *   schema:
+ *    type: object
+ *   properties:
+ *   success:
+ *   type: boolean
+ *  data:
+ *  type: array
+ * items:
+ *  $ref: '#/components/schemas/Station'
+ *  500:
+ *  description: Internal Server Error
+ * */
+
+router.get("/stationList", protect, getStationsList);
 
 /**
  * @swagger
@@ -120,10 +192,8 @@ router.get('/',
  *       500:
  *         description: Internal Server Error
  */
-router.get('/:id',
-     protect, 
-     getStationById
-    );
+
+router.get("/:id", protect, getStationById);
 
 /**
  * @swagger
@@ -174,11 +244,7 @@ router.get('/:id',
  *       500:
  *         description: Internal Server Error
  */
-router.post("/", 
-    protect, 
-    authorizeRoles("SuperAdmin"), 
-    addStation
-);
+router.post("/", protect, authorizeRoles("SuperAdmin"), addStation);
 
 /**
  * @swagger
@@ -229,11 +295,14 @@ router.post("/",
  *       500:
  *         description: Internal Server Error
  */
-router.put("/:id/location",
-    protect, 
-    authorizeRoles("SuperAdmin"), 
-    updateStationLocation
-    );
+router.put(
+  "/:id/location",
+  protect,
+  authorizeRoles("SuperAdmin"),
+  updateStationLocation
+);
+
+router.put("/:id", protect, authorizeRoles("SuperAdmin"), updateStation);
 
 /**
  * @swagger
@@ -261,10 +330,6 @@ router.put("/:id/location",
  *       500:
  *         description: Internal Server Error
  */
-router.delete("/:id", 
-    protect, 
-    authorizeRoles("SuperAdmin"), 
-    deleteStation
-);
+router.delete("/:id", protect, authorizeRoles("SuperAdmin"), deleteStation);
 
 module.exports = router;

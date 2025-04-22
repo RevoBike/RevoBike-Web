@@ -4,9 +4,12 @@ const {
   getBikeById,
   addBike,
   deleteBike,
+  getBikeMetrics,
   updateBikeLocation,
-} = require("../controllers/bikeController");
-const { protect, authorize } = require("../middlewares/authMiddleware");
+  updateBikeDetails,
+} = require("../controller/bikeController");
+const upload = require("../config/multerConfig");
+const { protect, authorizeRoles } = require("../middlewares/middleware");
 
 const router = express.Router();
 
@@ -33,6 +36,10 @@ const router = express.Router();
  *                     $ref: '#/components/schemas/Bike'
  */
 router.get("/", getAllBikes);
+
+// add swagger for this route
+
+router.get("/bike-metrics", protect, getBikeMetrics);
 
 /**
  * @openapi
@@ -121,7 +128,13 @@ router.get("/:id", getBikeById);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.post("/", protect, authorize("admin"), addBike);
+router.post(
+  "/",
+  protect,
+  authorizeRoles("admin"),
+  upload.single("file"),
+  addBike
+);
 
 /**
  * @openapi
@@ -163,7 +176,7 @@ router.post("/", protect, authorize("admin"), addBike);
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.delete("/:id", protect, authorize("admin"), deleteBike);
+router.delete("/:id", protect, authorizeRoles("admin"), deleteBike);
 
 /**
  * @openapi
@@ -225,5 +238,7 @@ router.delete("/:id", protect, authorize("admin"), deleteBike);
  *         description: Unauthorized - Invalid or missing token
  */
 router.post("/location/update", protect, updateBikeLocation);
+
+router.put("/:id", protect, updateBikeDetails);
 
 module.exports = router;

@@ -2,23 +2,51 @@
 
 import { Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DeleteBike } from "@/app/api/bikes-api";
+import { notifications } from "@mantine/notifications";
 
 interface DeleteBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  bike: { model: string; type: string } | null;
-  onDelete: () => void;
+  bike: { _id?: string; model?: string } | null;
 }
 
-const DeleteBikeModal = ({
-  opened,
-  onClose,
-  bike,
-  onDelete,
-}: DeleteBikeModalProps) => {
+const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: DeleteBike,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Bike deleted successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
+    },
+  });
   const handleDelete = () => {
-    onDelete();
-    onClose();
+    deleteMutation.mutate(bike?._id || "");
   };
 
   return (
@@ -49,10 +77,6 @@ const DeleteBikeModal = ({
           <Text span fw={600} c="gray.9">
             {bike?.model}
           </Text>{" "}
-          of type{" "}
-          <Text span fw={600} c="gray.9">
-            {bike?.type}
-          </Text>
           ?
         </Text>
         <Text
@@ -90,12 +114,7 @@ const DeleteBikeModal = ({
             radius="md"
             leftSection={<IconTrash size={16} />}
             onClick={handleDelete}
-            styles={{
-              root: {
-                padding: "8px 16px",
-                "&:hover": { backgroundColor: "#e03131" },
-              },
-            }}
+            className="bg-customBlue text-white"
           >
             Delete
           </Button>

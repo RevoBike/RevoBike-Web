@@ -2,23 +2,55 @@
 
 import { Button, Group, Modal, Stack, Text } from "@mantine/core";
 import { IconTrash } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DeleteStation } from "@/app/api/station-api";
+import { notifications } from "@mantine/notifications";
 
 interface DeleteConfirmationModalProps {
   opened: boolean;
   onClose: () => void;
-  station: { name: string } | null;
-  onDelete: () => void;
+  station: { id?: string; name?: string } | null;
 }
 
 const DeleteConfirmationModal = ({
   opened,
   onClose,
   station,
-  onDelete,
 }: DeleteConfirmationModalProps) => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: DeleteStation,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Station deleted successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
+    },
+  });
+
   const handleDelete = () => {
-    onDelete();
-    onClose();
+    deleteMutation.mutate(station?.id || "");
   };
 
   return (
@@ -62,7 +94,7 @@ const DeleteConfirmationModal = ({
             borderLeft: "4px solid #f87171",
           }}
         >
-          This action cannot be undone.
+          This action can not be undone.
         </Text>
         <Group justify="flex-end" mt="md" gap="xs">
           <Button
@@ -86,12 +118,7 @@ const DeleteConfirmationModal = ({
             radius="md"
             leftSection={<IconTrash size={16} />}
             onClick={handleDelete}
-            styles={{
-              root: {
-                padding: "8px 16px",
-                "&:hover": { backgroundColor: "#e03131" },
-              },
-            }}
+            className="bg-customBlue text-white"
           >
             Delete
           </Button>

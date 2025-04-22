@@ -1,45 +1,82 @@
 "use client";
 
+import {
+  Button,
+  Group,
+  Loader,
+  Modal,
+  Stack,
+  Text,
+  TextInput,
+  NumberInput,
+} from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { Button, Group, Modal, Stack, Text, TextInput } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateStation } from "@/app/api/station-api";
+import { notifications } from "@mantine/notifications";
+import { Station, FormValues } from "@/app/interfaces/station";
 
-interface Station {
-  name: string;
-  address: string;
-  capacity: string;
-}
-
-interface EditStationModalProps {
+interface UpdateStationProps {
   opened: boolean;
   onClose: () => void;
-  station: Station;
-  onUpdate: (updatedStation: Station) => void;
+  station: Station | null;
 }
 
-const EditStationModal: React.FC<EditStationModalProps> = ({
+const UpdateStationModal = ({
   opened,
   onClose,
   station,
-  onUpdate,
-}) => {
+}: UpdateStationProps) => {
+  const queryClient = useQueryClient();
   const form = useForm({
-    initialValues: station || { name: "", address: "", capacity: "" },
-    validate: {
-      name: (value) =>
-        value.length < 2 ? "Name must be at least 2 characters" : null,
-      address: (value) =>
-        value.length < 5 ? "Address must be at least 5 characters" : null,
-      capacity: (value) =>
-        !/^\d+$/.test(value) || value < 1
-          ? "Capacity must be a positive number"
-          : null,
+    initialValues: {
+      name: station?.name || "",
+      address: station?.address || "",
+      capacity: station?.totalSlots ? Number(station.totalSlots) : 0,
     },
   });
 
-  const handleSubmit = (values) => {
-    onUpdate({ ...station, ...values, capacity: parseInt(values.capacity) });
-    onClose();
+  const updateMutation = useMutation({
+    mutationFn: UpdateStation,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Station updated successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
+    },
+  });
+
+  const handleSubmit = (values: FormValues): void => {
+    if (form.validate().hasErrors) return;
+    const { name, address, capacity } = values;
+    updateMutation.mutate({
+      id: station?._id || "",
+      name,
+      address,
+      capacity: Number(capacity),
+    });
   };
 
   return (
@@ -48,7 +85,7 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          Edit Station: {station?.name}
+          Update Station
         </Text>
       }
       centered
@@ -68,8 +105,8 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
         <Stack gap="lg">
           <TextInput
             label="Station Name"
-            placeholder="e.g., Central Park"
-            required
+            placeholder={station?.name}
+            value={station?.name}
             {...form.getInputProps("name")}
             radius="md"
             styles={{
@@ -87,8 +124,7 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
           />
           <TextInput
             label="Address"
-            placeholder="e.g., 123 Park Ave"
-            required
+            placeholder={station?.address}
             {...form.getInputProps("address")}
             radius="md"
             styles={{
@@ -104,10 +140,9 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
               error: { color: "#f03e3e" },
             }}
           />
-          <TextInput
+          <NumberInput
             label="Capacity"
             placeholder="e.g., 20"
-            required
             {...form.getInputProps("capacity")}
             radius="md"
             styles={{
@@ -144,7 +179,6 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
               styles={{
                 root: {
                   backgroundColor: "#212529",
@@ -152,7 +186,11 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
                 },
               }}
             >
-              Update Station
+              {updateMutation.isPending ? (
+                <Loader size={20} />
+              ) : (
+                <span>Update</span>
+              )}
             </Button>
           </Group>
         </Stack>
@@ -161,4 +199,4 @@ const EditStationModal: React.FC<EditStationModalProps> = ({
   );
 };
 
-export default EditStationModal;
+export default UpdateStationModal;
