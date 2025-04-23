@@ -143,12 +143,24 @@ exports.addBike = catchAsync(async (req, res) => {
 });
 
 exports.updateBikeLocation = catchAsync(async (req, res) => {
-  const { qrCode, longitude, latitude } = req.body;
 
-  const bike = await Bike.findOne({ qrCode });
-  if (!bike) {
-    return res.status(404).json({ success: false, message: "Bike not found" });
-  }
+    // const { qrCode, longitude, latitude } = req.body;
+    // const bike = await Bike.findOne({ qrCode });
+    const { bikeId, longitude, latitude } = req.body;
+    const bike = await Bike.findOne({ bikeId });
+
+
+    if (!bike) {
+        return res.status(404).json({ success: false, message: "Bike not found" });
+    }
+// =======
+//   const { qrCode, longitude, latitude } = req.body;
+
+//   const bike = await Bike.findOne({ qrCode });
+//   if (!bike) {
+//     return res.status(404).json({ success: false, message: "Bike not found" });
+//   }
+
 
   // Validate GPS coordinates
   if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -180,6 +192,21 @@ exports.updateBikeLocation = catchAsync(async (req, res) => {
 
     // Emit real-time alert to all connected admins
     const io = req.app.get("io");
+    
+    io.emit("bikeLocationUpdated", {
+        bikeId,
+        longitude,
+        latitude,
+        geofenceStatus: bike.geofenceStatus,
+    });
+    
+    // io.emit("bikeLocationUpdated", {
+    //     qrCode,
+    //     longitude,
+    //     latitude,
+    //     geofenceStatus: bike.geofenceStatus,
+    // });
+
     io.emit("geofenceAlert", {
       message: `Bike ${bike.bikeId} exited the geofence!`,
       bikeId: bike.bikeId,
@@ -188,6 +215,7 @@ exports.updateBikeLocation = catchAsync(async (req, res) => {
   } else if (isInside && bike.geofenceStatus !== "inside") {
     bike.geofenceStatus = "inside"; // Bike re-entered the geofence
   }
+
 
   await bike.save();
 
