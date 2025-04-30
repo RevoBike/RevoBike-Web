@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const userRoutes = require('./src/routes/users'); 
 const app = express();
 
@@ -8,6 +9,11 @@ const app = express();
 dotenv.config();
 
 // Middleware
+app.use(cors({
+    origin: 'http://localhost:3000', // Adjust this to your frontend URL
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true,
+}));
 app.use(express.json());
 
 // MongoDB connection
