@@ -10,7 +10,7 @@ dotenv.config();
 
 // Middleware
 app.use(cors({
-    origin: '*', // Temporarily allow all origins for testing
+    origin: 'https://revobike-web-3.onrender.com',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     credentials: true,
 }));
