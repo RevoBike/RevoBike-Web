@@ -3,7 +3,7 @@ const Alert = require("../models/Alert");
 const Station = require("../models/Station");
 const catchAsync = require("../utils/catchAsync");
 const { isBikeInsideGeofence } = require("../utils/rideUtils");
-const generateQRCode = require("../utils/generateQRCode");
+const generateQRCode = require("../utils/generateQrCode");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
 
