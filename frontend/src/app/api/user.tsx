@@ -1,8 +1,9 @@
-"use client";
+  "use client";
 import axios from "axios";
 import { User } from "@/app/interfaces/user";
 
-const URL = process.env.API_URL || "http://localhost:5000/api";
+const URL = process.env.API_URL || "https://revobike-web-3.onrender.com/api";
+
 
 const CreateAdmin = async (data: {
   name: string;
