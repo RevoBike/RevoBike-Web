@@ -13,14 +13,155 @@ const { protect, authorizeRoles } = require("../middlewares/middleware");
 
 const router = express.Router();
 
+/**
+ * @swagger
+ * tags:
+ *   name: Users
+ *   description: User management and retrieval
+ */
+
+/**
+ * @swagger
+ * /api/admin/all:
+ *   get:
+ *     summary: Get all users in the system
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users
+ */
 router.get("/all", protect, getAllUsersInTheSystem);
+
+/**
+ * @swagger
+ * /api/admin:
+ *   get:
+ *     summary: Get all users (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ */
 router.get("/", protect, authorizeRoles("admin"), getAllUsers);
+
+/**
+ * @swagger
+ * /api/admin/user-metrics:
+ *   get:
+ *     summary: Get user metrics (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: User metrics data
+ */
 router.get("/user-metrics", protect, authorizeRoles("admin"), getUserMetrics);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User data
+ */
 router.get("/:id", protect, getUserById);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   put:
+ *     summary: Update user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       description: User data to update
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               universityId:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ */
 router.put("/:id", protect, updateUser);
+
+/**
+ * @swagger
+ * /api/admin/{id}:
+ *   delete:
+ *     summary: Delete user by ID (admin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: User ID
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User deleted successfully
+ */
 router.delete("/:id", protect, authorizeRoles("admin"), deleteUser);
 
-// to verify user (Only Admins & SuperAdmins can do this)
+/**
+ * @swagger
+ * /api/admin/verify/{userId}:
+ *   put:
+ *     summary: Verify user (Admin and SuperAdmin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         description: User ID to verify
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User verified successfully
+ */
 router.put(
   "/verify/:userId",
   protect,
@@ -28,7 +169,38 @@ router.put(
   verifyUser
 );
 
-//for adding admin
+/**
+ * @swagger
+ * /api/admin:
+ *   post:
+ *     summary: Create a new admin user (SuperAdmin only)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       description: Admin user data
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               phone_number:
+ *                 type: string
+ *               universityId:
+ *                 type: string
+ *               role:
+ *                 type: string
+ *     responses:
+ *       201:
+ *         description: Admin user created successfully
+ */
 router.post("/", protect, authorizeRoles("SuperAdmin"), createAdmin);
 
 module.exports = router;
