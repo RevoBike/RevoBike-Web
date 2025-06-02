@@ -14,7 +14,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Revo bike Admin",
+  title: "Admin Dashboard",
   description: "This is admin dashboard for Revo bike",
 };
 

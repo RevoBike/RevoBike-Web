@@ -4,7 +4,9 @@ import { MdNotifications, MdAccountCircle, MdExitToApp } from "react-icons/md";
 const NavBar = () => {
   return (
     <div className="bg-white shadow-md p-4 flex justify-between items-center">
-      <div></div>
+      <h1 className="text-[#154B1B] font-bold text-2xl italic">
+        Energy Is Free
+      </h1>
       <div className="flex items-center space-x-4">
         <button className="text-gray-700 hover:text-gray-900">
           <MdNotifications size={25} color="blue" />

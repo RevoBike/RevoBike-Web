@@ -20,6 +20,7 @@ import {
   IconSearch,
   IconEdit,
   IconTrash,
+  IconMapPin,
 } from "@tabler/icons-react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStations } from "@/app/api/station-api";
@@ -31,10 +32,11 @@ import AddStationModal from "./_components/add-modal";
 import UpdateStationModal from "./_components/update-modal";
 import StationDetailsModal from "./_components/details-modal";
 import DeleteConfirmationModal from "./_components/delete-modal";
+import MapModal from "./_components/map-modal";
 import { Station } from "@/app/interfaces/station";
 
 export default function StationsManagement() {
-  const limit = 8;
+  const limit = 5;
   const [filter, setFilter] = useState<
     "all" | "normal" | "overloaded" | "underloaded"
   >("all");
@@ -43,6 +45,9 @@ export default function StationsManagement() {
   const [selectedStation, setSelectedStation] = useState<Station | null>(null);
 
   const [addModalOpened, { open: openAddModal, close: closeAddModal }] =
+    useDisclosure(false);
+
+  const [mapModalOpened, { open: openMapModal, close: closeMapModal }] =
     useDisclosure(false);
   const [
     detailsModalOpened,
@@ -111,11 +116,19 @@ export default function StationsManagement() {
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="end" mb="sm">
+      <Group justify="between" mb="sm">
+        <div className="flex items-center gap-1" onClick={openMapModal}>
+          <IconMapPin
+            size={24}
+            color="#154B1B"
+            className="hover:cursor-pointer"
+          />
+          <Text className="text-[#154B1B] hover:cursor-pointer">View Map</Text>
+        </div>
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={openAddModal}
-          className="bg-customBlue text-white hover:bg-blue-950"
+          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
         >
           Add Station
         </Button>
@@ -165,8 +178,7 @@ export default function StationsManagement() {
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400 ">
-            <Table.Th>Station ID</Table.Th>
+          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400 ">
             <Table.Th>Name</Table.Th>
             <Table.Th>Address</Table.Th>
             <Table.Th>Capacity</Table.Th>
@@ -198,11 +210,8 @@ export default function StationsManagement() {
                   style={{ cursor: "pointer" }}
                   onClick={() => handleRowClick(station)}
                 >
-                  <Table.Td>{station._id}</Table.Td>
                   <Table.Td>{station.name}</Table.Td>
-                  <Table.Td>{`${
-                    station.address.slice(0, 15) || "..."
-                  }...`}</Table.Td>
+                  <Table.Td>{station.address}</Table.Td>
                   <Table.Td>{station.totalSlots || 0}</Table.Td>
                   <Table.Td>
                     {(station.available_bikes &&
@@ -239,7 +248,7 @@ export default function StationsManagement() {
       </Table>
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
-          className="bg-customBlue text-white w-fit h-fit p-1"
+          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
           variant="small"
           onClick={() => {
             setCurrentPage(Math.max(currentPage - 1, 1));
@@ -249,7 +258,7 @@ export default function StationsManagement() {
           <IconArrowLeft />
         </Button>
         <Button
-          className={`bg-customBlue text-white w-fit h-fit p-1`}
+          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
           onClick={() => {
             if (hasNextPage) {
               setCurrentPage((old) => old + 1);
@@ -262,6 +271,8 @@ export default function StationsManagement() {
       </Container>
 
       <AddStationModal opened={addModalOpened} onClose={closeAddModal} />
+      <MapModal opened={mapModalOpened} onClose={closeMapModal} />
+
       <StationDetailsModal
         opened={detailsModalOpened}
         onClose={closeDetailsModal}

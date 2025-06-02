@@ -1,11 +1,13 @@
 "use client";
-const checkAdmin = () => {
-  const accessToken = localStorage.getItem("accessToken");
-  const role = localStorage.getItem("role");
+import { useMemo } from "react";
 
-  if (!accessToken || !role) {
-    return false;
-  }
-  return true;
+export const useCheckAdmin = () => {
+  const accessToken = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("accessToken") || "";
+    }
+    return "";
+  }, []);
+
+  return !!accessToken;
 };
-export default checkAdmin;

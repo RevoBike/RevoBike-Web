@@ -8,10 +8,10 @@ import {
   Text,
   TextInput,
   Textarea,
+  Loader,
 } from "@mantine/core";
-import { IconTool } from "@tabler/icons-react";
 import { useForm } from "@mantine/form";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { AddBikeUnderMaintenance } from "@/app/api/maintenance-api";
 import { DatePickerInput } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
@@ -111,6 +111,10 @@ const MaintenanceBikeModal = ({
         body: {
           padding: "24px",
         },
+      }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
       }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -244,15 +248,13 @@ const MaintenanceBikeModal = ({
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white  hover:bg-green-600"
             >
-              Schedule
-              {/* {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>} */}
+              {maintainMutation.isPending ? (
+                <Loader size={20} />
+              ) : (
+                <span>Schedule</span>
+              )}
             </Button>
           </Group>
         </Stack>

@@ -1,6 +1,5 @@
 "use client";
 
-import { useForm } from "@mantine/form";
 import {
   Button,
   Group,
@@ -8,40 +7,90 @@ import {
   Stack,
   Text,
   TextInput,
-  Select,
+  Textarea,
+  Loader,
 } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import { useForm } from "@mantine/form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { UpdateBikeUnderMaintenance } from "@/app/api/maintenance-api";
+import { DatePickerInput } from "@mantine/dates";
+import { notifications } from "@mantine/notifications";
+import { Bike } from "@/app/interfaces/bike";
 
-interface EditBikeModalProps {
+interface MaintenanceBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  bike: { model: string; station: string; type: string } | null;
-  onUpdate: (updatedBike: {
-    model?: string;
-    station: string;
-    type: string;
-  }) => void;
+  bike: Bike | null;
 }
 
-const EditBikeModal: React.FC<EditBikeModalProps> = ({
+const UpdateMaintenanceModal = ({
   opened,
   onClose,
   bike,
-  onUpdate,
-}) => {
-  const form = useForm({
-    initialValues: bike || { station: "", type: "" },
-    validate: {
-      station: (value) => (!value ? "Status is required" : null),
+}: MaintenanceBikeModalProps) => {
+  const queryClient = useQueryClient();
 
-      type: (value) =>
-        value.length < 3 ? "Type must be at least 3 characters" : null,
+  const form = useForm({
+    initialValues: {
+      description: "",
+      date: new Date(),
+      type: "",
+      cost: 1,
+      technician: "",
+    },
+    // validate: {
+    //   description: (value) =>
+    //     value.trim().length < 5
+    //       ? "Description must be at least 5 characters long"
+    //       : null,
+    //   // cost: (value) => (value <= 0 ? "Cost must be greater than 0" : null),
+    //   // technician: (value) =>
+    //   //   value.trim().length < 3 ? "Technician name is required" : null,
+    // },
+  });
+
+  const maintainMutation = useMutation({
+    mutationFn: UpdateBikeUnderMaintenance,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Bike maintenance updated successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["bikesUnderMaintenance"] });
+      queryClient.invalidateQueries({ queryKey: ["bikes"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
     },
   });
 
-  const handleSubmit = (values) => {
-    onUpdate({ ...bike, ...values });
-    onClose();
+  const handleSubmit = () => {
+    if (form.validate().hasErrors) return;
+    const { date, description, type, technician, cost } = form.values;
+    maintainMutation.mutate({
+      bikeId: bike?._id || "",
+      date,
+      description,
+      type,
+      technician,
+      cost,
+    });
   };
 
   return (
@@ -50,7 +99,7 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          Edit Bike: {bike?.model}
+          Update Maintenance
         </Text>
       }
       centered
@@ -68,16 +117,10 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
-          <Select
-            label="Station"
-            placeholder="Tuludimtu"
-            required
-            data={[
-              { value: "tuludimtu", label: "Tuludimtu" },
-              { value: "akaki", label: "Akaki" },
-              { value: "piasa", label: "Piyasa" },
-            ]}
-            {...form.getInputProps("station")}
+          <TextInput
+            label="Maintenance type"
+            placeholder="e.g., Battery change, etc."
+            {...form.getInputProps("type")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
@@ -92,15 +135,81 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
               error: { color: "#f03e3e" },
             }}
           />
-
           <TextInput
-            label="Bike Type"
-            placeholder="e.g., Road, Mountain, Hybrid"
-            required
-            {...form.getInputProps("type")}
+            label="Technician"
+            placeholder="e.g., John Doe"
+            {...form.getInputProps("technician")}
             radius="md"
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
+              input: {
+                backgroundColor: "#f8f9fa",
+                borderColor: "#ced4da",
+                "&:focus": {
+                  borderColor: "#868e96",
+                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                },
+              },
+              error: { color: "#f03e3e" },
+            }}
+          />
+          <div className="flex gap-4 w-full">
+            <TextInput
+              label="Cost"
+              placeholder="e.g., 20"
+              {...form.getInputProps("cost")}
+              radius="md"
+              styles={{
+                label: {
+                  color: "#495057",
+                  fontWeight: 500,
+                  marginBottom: "8px",
+                },
+                input: {
+                  backgroundColor: "#f8f9fa",
+                  borderColor: "#ced4da",
+                  "&:focus": {
+                    borderColor: "#868e96",
+                    boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                  },
+                },
+                error: { color: "#f03e3e" },
+              }}
+              style={{ width: "50%" }}
+            />
+            <DatePickerInput
+              label="Date"
+              placeholder="Select date"
+              {...form.getInputProps("date")}
+              minDate={new Date()}
+              radius="md"
+              styles={{
+                label: {
+                  color: "#495057",
+                  fontWeight: 500,
+                  marginBottom: "6px",
+                },
+                input: {
+                  backgroundColor: "#f8f9fa",
+                  borderColor: "#ced4da",
+                  "&:focus": {
+                    borderColor: "#868e96",
+                    boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
+                  },
+                },
+                error: { color: "#f03e3e" },
+              }}
+              style={{ width: "50%" }}
+            />
+          </div>
+
+          <Textarea
+            label="Description"
+            placeholder="e.g., A brief description of the maintenance, etc."
+            {...form.getInputProps("description")}
+            radius="md"
+            styles={{
+              label: { color: "#495057", fontWeight: 500, marginBottom: "6px" },
               input: {
                 backgroundColor: "#f8f9fa",
                 borderColor: "#ced4da",
@@ -134,15 +243,13 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white  hover:bg-green-600"
             >
-              Update Bike
+              {maintainMutation.isPending ? (
+                <Loader size={20} />
+              ) : (
+                <span>Update</span>
+              )}
             </Button>
           </Group>
         </Stack>
@@ -151,4 +258,4 @@ const EditBikeModal: React.FC<EditBikeModalProps> = ({
   );
 };
 
-export default EditBikeModal;
+export default UpdateMaintenanceModal;

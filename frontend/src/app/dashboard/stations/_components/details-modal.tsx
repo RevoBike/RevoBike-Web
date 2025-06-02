@@ -28,9 +28,11 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
   onClose,
   station,
 }) => {
-  const defaultPosition: [number, number] = [9.03, 38.75];
+  const defaultPosition: [number, number] = [
+    8.885430393300563, 38.809710479708315,
+  ];
   const position: [number, number] = station?.location?.coordinates
-    ? [station.location.coordinates[1], station.location.coordinates[0]]
+    ? [station.location.coordinates[0], station.location.coordinates[1]]
     : defaultPosition;
   return (
     <Modal
@@ -60,6 +62,10 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
           boxShadow: "0 8px 24px rgba(0, 0, 0, 0.1)",
           borderRadius: "12px",
         },
+      }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
       }}
     >
       <Stack gap="lg" className="text-gray-800">

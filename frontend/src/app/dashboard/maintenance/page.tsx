@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import {
-  Badge,
   Button,
   Card,
   Group,
@@ -15,39 +14,29 @@ import {
   IconEdit,
   IconTrash,
   IconFilter,
-  IconTool,
-  IconPlus,
   IconSearch,
   IconArrowRight,
   IconArrowLeft,
+  IconCheck,
 } from "@tabler/icons-react";
 import BikeMetrics from "./_components/maintaienence-metrics";
-import EditBikeModal from "./_components/update-modal";
 import DeleteBikeModal from "./_components/delete-modal";
-import MaintenanceBikeModal from "./_components/maintenance-modal";
-import AddBikeModal from "./_components/add-modal";
-import BikeDetailsModal from "./_components/details-modal";
+import DoneBikeMaintenanceModal from "./_components/done-maintenance";
 import { useDisclosure } from "@mantine/hooks";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
 import { GetBikesUnderMaintenance } from "@/app/api/maintenance-api";
 import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
+import UpdateMaintenanceModal from "./_components/update-modal";
 
 export default function BikesManagement() {
-  const limit = 3;
+  const limit = 5;
   const [bikeFilter, setBikeFilter] = useState<string>("");
 
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [selectedBike, setSelectedBike] = useState<string | null>(null);
-
-  const [addModalOpened, { open: openAddModal, close: closeAddModal }] =
-    useDisclosure(false);
-  const [
-    detailsModalOpened,
-    { open: openDetailsModal, close: closeDetailsModal },
-  ] = useDisclosure(false);
+  const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
 
   const [
     deleteModalOpened,
@@ -103,20 +92,22 @@ export default function BikesManagement() {
     );
   }
 
-  const handleEditClick = (bike: Bike) => {
+  const handleMaintenanceClick = (bike: Bike, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSelectedBike(bike);
+    openMaintenanceModal();
+  };
+
+  const handleEditClick = (bike: Bike, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedBike(bike);
     openUpdateModal();
   };
 
-  const handleDeleteClick = (bike: Bike) => {
-    // e.stopPropagation();
+  const handleDeleteClick = (bike: Bike, e: React.MouseEvent) => {
+    e.stopPropagation();
     setSelectedBike(bike);
     openDeleteModal();
-  };
-
-  const handleRowClick = (bikeId: string): void => {
-    setSelectedBike(bikeId);
-    openDetailsModal();
   };
 
   return (
@@ -154,7 +145,7 @@ export default function BikesManagement() {
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400">
+          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
             <Table.Th>Bike ID</Table.Th>
             <Table.Th>Model</Table.Th>
             <Table.Th>Station</Table.Th>
@@ -169,12 +160,8 @@ export default function BikesManagement() {
         <Table.Tbody>
           {bikes &&
             bikes.map((bike) => (
-              <Table.Tr
-                key={bike._id}
-                onClick={() => handleRowClick(bike._id)}
-                style={{ cursor: "pointer" }}
-              >
-                <Table.Td>{bike._id}</Table.Td>
+              <Table.Tr key={bike._id} style={{ cursor: "pointer" }}>
+                <Table.Td>{bike.bikeId}</Table.Td>
                 <Table.Td>{bike.model}</Table.Td>
                 <Table.Td>{bike.currentStation}</Table.Td>
 
@@ -188,25 +175,25 @@ export default function BikesManagement() {
                   <Button
                     size="xs"
                     variant="subtle"
-                    // onClick={(e) => handleMaintenanceClick(bike, e)}
+                    onClick={(e) => handleMaintenanceClick(bike, e)}
                   >
-                    <IconTool size={14} />
+                    <IconCheck size={18} />
                   </Button>
                   |
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={() => handleEditClick(bike)}
+                    onClick={(e) => handleEditClick(bike, e)}
                   >
-                    <IconEdit size={14} color="green" />
+                    <IconEdit size={18} color="green" />
                   </Button>
                   |
                   <Button
                     size="xs"
                     variant="subtle"
-                    onClick={() => handleDeleteClick(bike)}
+                    onClick={(e) => handleDeleteClick(bike, e)}
                   >
-                    <IconTrash size={14} color="red" />
+                    <IconTrash size={18} color="red" />
                   </Button>
                 </Table.Td>
               </Table.Tr>
@@ -216,7 +203,7 @@ export default function BikesManagement() {
 
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
-          className="bg-customBlue text-white w-fit h-fit p-2"
+          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
           variant="small"
           onClick={() => {
             setCurrentPage(Math.max(currentPage - 1, 1));
@@ -226,7 +213,7 @@ export default function BikesManagement() {
           <IconArrowLeft />
         </Button>
         <Button
-          className={`bg-customBlue text-white w-fit h-fit p-2`}
+          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600`}
           onClick={() => {
             if (hasNextPage) {
               setCurrentPage((old) => old + 1);
@@ -238,45 +225,23 @@ export default function BikesManagement() {
         </Button>
       </Container>
 
-      {selectedBike && (
-        <BikeDetailsModal
-          opened={detailsModalOpened}
-          onClose={closeDetailsModal}
-          bikeId={selectedBike}
-        />
-      )}
-      {/* <EditBikeModal
-        opened={editModalOpened}
-        onClose={() => setEditModalOpened(false)}
+      <UpdateMaintenanceModal
+        opened={updateModalOpened}
+        onClose={closeUpdateModal}
         bike={selectedBike}
-        onUpdate={(updatedStation) =>
-          setSelectedBike(
-            stations.map((s) =>
-              s.id === updatedStation.id ? updatedStation : s
-            )
-          )
-        }
-      /> */}
-      {/* <DeleteBikeModal
+      />
+
+      <DeleteBikeModal
         opened={deleteModalOpened}
-        onClose={() => setDeleteModalOpened(false)}
+        onClose={closeDeleteModal}
         bike={selectedBike}
-        onDelete={() =>
-          setSelectedBike(stations.filter((s) => s.id !== selectedBike?.id))
-        }
-      /> */}
+      />
 
-      {/* <MaintenanceBikeModal
+      <DoneBikeMaintenanceModal
         opened={maintenanceModalOpened}
-        onClose={() => setMaintenanceModalOpened(false)}
+        onClose={closeMaintenanceModal}
         bike={selectedBike}
-        onDelete={() =>
-          setSelectedBike(stations.filter((s) => s.id !== selectedBike?.id))
-        }
-        onSchedule={(data) => console.log("Maintenance Scheduled:", data)}
-      /> */}
-
-      <AddBikeModal opened={addModalOpened} onClose={closeAddModal} />
+      />
     </Card>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { Button, Group, Modal, Stack, Text } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { DeleteBike } from "@/app/api/bikes-api";
 import { notifications } from "@mantine/notifications";
@@ -43,6 +42,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
       queryClient.invalidateQueries({ queryKey: ["stations"] });
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
       queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesLocations"] });
     },
   });
   const handleDelete = () => {
@@ -69,6 +69,10 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
         body: {
           padding: "24px",
         },
+      }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
       }}
     >
       <Stack gap="lg">
@@ -112,9 +116,8 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
             color="red.7"
             size="md"
             radius="md"
-            leftSection={<IconTrash size={16} />}
             onClick={handleDelete}
-            className="bg-customBlue text-white"
+            className="bg-[#154B1B] text-white  hover:bg-green-600"
           >
             Delete
           </Button>

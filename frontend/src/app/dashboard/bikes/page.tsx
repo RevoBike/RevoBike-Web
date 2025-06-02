@@ -20,6 +20,7 @@ import {
   IconSearch,
   IconArrowRight,
   IconArrowLeft,
+  IconMapPin,
 } from "@tabler/icons-react";
 import BikeMetrics from "./_components/bike-metrics";
 import UpdateBikeModal from "./_components/update-modal";
@@ -27,6 +28,7 @@ import DeleteBikeModal from "./_components/delete-modal";
 import MaintenanceBikeModal from "./_components/maintenance-modal";
 import AddBikeModal from "./_components/add-modal";
 import BikeDetailsModal from "./_components/details-modal";
+import BikeMapModal from "./_components/map-modal";
 import { useDisclosure } from "@mantine/hooks";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
@@ -35,7 +37,7 @@ import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
 
 export default function BikesManagement() {
-  const limit = 3;
+  const limit = 5;
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "available" | "in-use" | "underMaintenance"
@@ -47,6 +49,8 @@ export default function BikesManagement() {
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
 
   const [addModalOpened, { open: openAddModal, close: closeAddModal }] =
+    useDisclosure(false);
+  const [mapModalOpened, { open: openMapModal, close: closeMapModal }] =
     useDisclosure(false);
   const [
     detailsModalOpened,
@@ -120,25 +124,33 @@ export default function BikesManagement() {
     openDeleteModal();
   };
 
-  const handleRowClick = (bikeId: string, e: React.MouseEvent): void => {
+  const handleRowClick = (bike: Bike, e: React.MouseEvent): void => {
     e.stopPropagation();
-    setSelectedBike(bikeId);
+    setSelectedBike(bike);
     openDetailsModal();
   };
 
   const handleMaintenanceClick = (bike: Bike, e: React.MouseEvent) => {
     e.stopPropagation();
-    setSelectedBike(bike._id);
+    setSelectedBike(bike);
     openMaintenanceModal();
   };
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
-      <Group justify="end" mb="md">
+      <Group justify="between" mb="md">
+        <div className="flex items-center gap-1" onClick={openMapModal}>
+          <IconMapPin
+            size={24}
+            color="#154B1B"
+            className="hover:cursor-pointer"
+          />
+          <Text className="text-[#154B1B] hover:cursor-pointer">View Map</Text>
+        </div>
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={openAddModal}
-          className="bg-customBlue text-white hover:bg-blue-950"
+          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
         >
           Add Bike
         </Button>
@@ -204,7 +216,7 @@ export default function BikesManagement() {
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400">
+          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
             <Table.Th>Bike ID</Table.Th>
             <Table.Th>Model</Table.Th>
             <Table.Th>Station</Table.Th>
@@ -218,10 +230,10 @@ export default function BikesManagement() {
             bikes.map((bike) => (
               <Table.Tr
                 key={bike._id}
-                onClick={(e) => handleRowClick(bike._id, e)}
+                onClick={(e) => handleRowClick(bike, e)}
                 style={{ cursor: "pointer" }}
               >
-                <Table.Td>{bike._id}</Table.Td>
+                <Table.Td>{bike.bikeId}</Table.Td>
                 <Table.Td>{bike.model}</Table.Td>
                 <Table.Td>{bike.currentStation}</Table.Td>
                 <Table.Td>
@@ -272,7 +284,7 @@ export default function BikesManagement() {
 
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
-          className="bg-customBlue text-white w-fit h-fit p-1"
+          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
           variant="small"
           onClick={() => {
             setCurrentPage(Math.max(currentPage - 1, 1));
@@ -282,7 +294,7 @@ export default function BikesManagement() {
           <IconArrowLeft />
         </Button>
         <Button
-          className={`bg-customBlue text-white w-fit h-fit p-1`}
+          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
           onClick={() => {
             if (hasNextPage) {
               setCurrentPage((old) => old + 1);
@@ -298,9 +310,11 @@ export default function BikesManagement() {
         <BikeDetailsModal
           opened={detailsModalOpened}
           onClose={closeDetailsModal}
-          bikeId={selectedBike}
+          bikeId={selectedBike._id}
         />
       )}
+
+      <BikeMapModal opened={mapModalOpened} onClose={closeMapModal} />
 
       <UpdateBikeModal
         opened={updateModalOpened}
@@ -317,7 +331,7 @@ export default function BikesManagement() {
       <MaintenanceBikeModal
         opened={maintenanceModalOpened}
         onClose={closeMaintenanceModal}
-        bikeId={selectedBike}
+        bikeId={selectedBike?._id || ""}
       />
 
       <AddBikeModal opened={addModalOpened} onClose={closeAddModal} />

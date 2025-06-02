@@ -1,22 +1,35 @@
 "use client";
 
 import { useForm } from "@mantine/form";
-import { Button, Group, Modal, Stack, Text, Select } from "@mantine/core";
-import { IconEdit } from "@tabler/icons-react";
+import {
+  Button,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  Select,
+  Loader,
+} from "@mantine/core";
+import { User } from "@/app/interfaces/user";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { notifications } from "@mantine/notifications";
+import { UpdateRole } from "@/app/api/user";
 
 interface UpdateUserRoleModalProps {
   opened: boolean;
   onClose: () => void;
-  user: { name: string; role: string };
-  onUpdate: (updatedUser: { name: string; role: string }) => void;
+  user: User | null;
+}
+interface FormValues {
+  role: string;
 }
 
 const UpdateUserRoleModal: React.FC<UpdateUserRoleModalProps> = ({
   opened,
   onClose,
   user,
-  onUpdate,
 }) => {
+  const queryClient = useQueryClient();
   const form = useForm({
     initialValues: { role: user?.role || "" },
     validate: {
@@ -24,9 +37,41 @@ const UpdateUserRoleModal: React.FC<UpdateUserRoleModalProps> = ({
     },
   });
 
-  const handleSubmit = (values) => {
-    onUpdate({ ...user, role: values.role });
-    onClose();
+  const updateMutation = useMutation({
+    mutationFn: UpdateRole,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "Role updated successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      form.reset();
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["userMetrics"] });
+    },
+  });
+
+  const handleSubmit = (values: FormValues): void => {
+    updateMutation.mutate({
+      role: values.role,
+      id: user?._id || "",
+    });
   };
 
   return (
@@ -58,23 +103,15 @@ const UpdateUserRoleModal: React.FC<UpdateUserRoleModalProps> = ({
             placeholder="Select user's role"
             required
             data={[
-              { value: "admin", label: "Admin" },
-              { value: "manager", label: "Manager" },
-              { value: "user", label: "User" },
+              { value: "Admin", label: "Admin" },
+              { value: "SuperAdmin", label: "Super Admin" },
             ]}
             {...form.getInputProps("role")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
 
@@ -99,15 +136,9 @@ const UpdateUserRoleModal: React.FC<UpdateUserRoleModalProps> = ({
               color="gray.9"
               size="sm"
               radius="md"
-              leftSection={<IconEdit size={16} />}
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white hover:bg-green-600"
             >
-              Update Role
+              {updateMutation.isPending ? <Loader /> : "Update"}
             </Button>
           </Group>
         </Stack>

@@ -44,12 +44,7 @@ export default function StationsMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group gap="md" align="flex-start">
-          <ThemeIcon
-            size={36}
-            radius="xl"
-            variant="gradient"
-            gradient={{ from: "gray.9", to: "gray.7", deg: 45 }}
-          >
+          <ThemeIcon className="bg-[#154B1B]" size={36} radius="xl">
             <IconHome size={20} color="white" />
           </ThemeIcon>
           <div>
@@ -72,12 +67,7 @@ export default function StationsMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group gap="md" align="flex-start">
-          <ThemeIcon
-            size={36}
-            radius="xl"
-            variant="gradient"
-            gradient={{ from: "gray.9", to: "gray.7", deg: 45 }}
-          >
+          <ThemeIcon size={36} radius="xl" className="bg-[#154B1B]">
             <IconGlassFull size={20} color="white" />
           </ThemeIcon>
           <div>

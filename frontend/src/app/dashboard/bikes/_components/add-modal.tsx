@@ -8,11 +8,9 @@ import {
   Text,
   TextInput,
   Select,
-  FileInput,
   Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { IconUpload } from "@tabler/icons-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
 import { AddBike } from "@/app/api/bikes-api";
@@ -27,8 +25,11 @@ const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
   const queryClient = useQueryClient();
 
   const form = useForm({
-    initialValues: { model: "", station: "", image: null },
+    initialValues: { model: "", station: "", bikeId: "" },
     validate: {
+      bikeId: (value) =>
+        value.startsWith("STEPG") ? null : "Bike ID must start with STEPG",
+
       model: (value) =>
         value.length < 3 ? "Type must be at least 3 characters" : null,
       station: (value) => (!value ? "Station is required" : null),
@@ -72,6 +73,7 @@ const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
       queryClient.invalidateQueries({ queryKey: ["bikesMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesLocations"] });
     },
   });
 
@@ -94,15 +96,9 @@ const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
   const handleSubmit = (values: {
     model: string;
     station: string;
-    image: File | null;
+    bikeId: string;
   }): void => {
-    const formData = new FormData();
-    formData.append("model", values.model);
-    formData.append("station", values.station);
-    if (values.image) {
-      formData.append("file", values.image);
-    }
-    addMutation.mutate(formData);
+    addMutation.mutate(values);
   };
 
   return (
@@ -126,16 +122,19 @@ const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
           padding: "24px",
         },
       }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
+      }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
-          <FileInput
-            label="Bike Image"
-            placeholder="Upload an image"
-            accept="image/*"
-            {...form.getInputProps("image")}
+          <TextInput
+            label="Bike ID"
+            placeholder="STEPG001"
+            required
+            {...form.getInputProps("bikeId")}
             radius="md"
-            leftSection={<IconUpload size={16} />}
             styles={{
               label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
               input: {
@@ -202,12 +201,7 @@ const AddBikeModal = ({ opened, onClose }: AddBikeModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white  hover:bg-green-600"
             >
               {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>}
             </Button>

@@ -14,6 +14,7 @@ const GetBikeStats = async (): Promise<{
   try {
     const response = await axios.get(`${URL}/bikes/bike-metrics`, {
       headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
@@ -42,6 +43,7 @@ const GetBikes = async (
       `${URL}/bikes?filter=${statusFilter}&bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`,
       {
         headers: {
+          "x-auth-token": localStorage.getItem("accessToken"),
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }
@@ -67,13 +69,13 @@ const GetBike = async (
   try {
     const response = await axios.get(`${URL}/bikes/${id}`, {
       headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
     if (response.status === 404) {
       throw new Error(response.data.message);
     }
-    console.log("Getting the bike", response.data.data);
     return response.data;
   } catch (error: Error | unknown) {
     if (axios.isAxiosError(error) && error.response) {
@@ -83,9 +85,11 @@ const GetBike = async (
   }
 };
 
-const AddBike = async (
-  data: FormData
-): Promise<{
+const AddBike = async (data: {
+  model: string;
+  station: string;
+  bikeId: string;
+}): Promise<{
   data: {
     id: string;
     type: string;
@@ -95,6 +99,7 @@ const AddBike = async (
   try {
     const response = await axios.post(`${URL}/bikes`, data, {
       headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
@@ -129,6 +134,7 @@ const UpdateBike = async (data: {
     };
     const response = await axios.put(`${URL}/bikes/${data.id}`, payload, {
       headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
@@ -147,9 +153,9 @@ const UpdateBike = async (data: {
 
 const DeleteBike = async (id: string): Promise<void> => {
   try {
-    console.log("The id", id);
     const response = await axios.delete(`${URL}/bikes/${id}`, {
       headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
       },
     });
@@ -165,4 +171,38 @@ const DeleteBike = async (id: string): Promise<void> => {
   }
 };
 
-export { GetBikes, GetBike, AddBike, UpdateBike, DeleteBike, GetBikeStats };
+const GetBikeLocation = async (): Promise<
+  {
+    bikeId: string;
+    coordinates: number[];
+  }[]
+> => {
+  try {
+    const response = await axios.get(`${URL}/bikes/locations`, {
+      headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
+};
+
+export {
+  GetBikes,
+  GetBike,
+  AddBike,
+  UpdateBike,
+  DeleteBike,
+  GetBikeStats,
+  GetBikeLocation,
+};

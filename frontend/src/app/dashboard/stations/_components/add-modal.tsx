@@ -9,22 +9,22 @@ import {
   Text,
   TextInput,
   NumberInput,
+  Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateStation } from "@/app/api/station-api";
 import { notifications } from "@mantine/notifications";
 import { AddStationModalProps, FormValues } from "@/app/interfaces/station";
+import stations from "@/app/_lib/stations";
 
 const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
   const queryClient = useQueryClient();
   const form = useForm({
-    initialValues: { name: "", address: "", capacity: 1 },
+    initialValues: { name: "", address: "", capacity: 1, location: [] },
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must be at least 2 characters" : null,
-      address: (value) =>
-        value.length < 2 ? "Address must be at least 2 characters" : null,
       capacity: (value) =>
         value < 1 ? "Capacity must be a positive number" : null,
     },
@@ -59,10 +59,24 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
       queryClient.invalidateQueries({ queryKey: ["stations"] });
       queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
       queryClient.invalidateQueries({ queryKey: ["stationsList"] });
+      queryClient.invalidateQueries({ queryKey: ["stationLocations"] });
     },
   });
 
   const handleSubmit = (values: FormValues): void => {
+    const selectedStation = stations.find(
+      (station) => station.value.toString() === values.address
+    );
+    if (selectedStation) {
+      values.address = selectedStation.label;
+    } else {
+      values.address = "Unknown Address";
+    }
+
+    values.location = selectedStation?.value || [
+      8.885462193542084, 38.809689022037034,
+    ];
+
     addMutation.mutate(values);
   };
 
@@ -87,6 +101,10 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
           padding: "24px",
         },
       }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
+      }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
@@ -109,23 +127,20 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
               error: { color: "#f03e3e" },
             }}
           />
-          <TextInput
+          <Select
             label="Address"
-            placeholder="e.g., Tuludmitu Kebele"
+            placeholder="Select address"
             required
+            data={stations.map((station) => ({
+              ...station,
+              value: station.value.toString(),
+            }))}
             {...form.getInputProps("address")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
           <NumberInput
@@ -168,12 +183,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white hover:bg-green-600"
             >
               {addMutation.isPending ? <Loader size={20} /> : <span>Add</span>}
             </Button>
