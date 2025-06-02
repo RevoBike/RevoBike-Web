@@ -4,6 +4,7 @@ export interface User {
   email: string;
   role: string;
   phone_number: string;
+  universityId: string;
   createdAt: string;
   updatedAt: string;
 }

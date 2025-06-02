@@ -14,7 +14,6 @@ import {
 } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import { Icon } from "leaflet";
 import { io } from "socket.io-client";
 import { GetBike } from "@/app/api/bikes-api";
 import { format } from "date-fns";
@@ -40,19 +39,14 @@ interface FormatDate {
   (date: string | null | undefined): string;
 }
 
-const bikeIcon = new Icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
 const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
   opened,
   onClose,
   bikeId,
 }) => {
-  const [location, setLocation] = useState<[number, number]>([9.03, 38.75]);
-
+  const [location, setLocation] = useState<[number, number]>([
+    8.885430393300563, 38.809710479708315,
+  ]);
   const {
     data: bike,
     isLoading,
@@ -61,6 +55,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
     queryKey: ["bike", bikeId],
     queryFn: () => GetBike(bikeId),
     enabled: !!bikeId,
+    refetchInterval: 5000,
   });
 
   useEffect(() => {
@@ -71,6 +66,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
     });
 
     socket.on("bikeLocationUpdated", (update) => {
+      console.log("Bike location update received:", update); // Debug log
       if (update.bikeId === bikeId) {
         setLocation([update.coordinates[1], update.coordinates[0]]);
       }
@@ -87,6 +83,11 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
 
   useEffect(() => {
     if (bike?.data?.currentLocation?.coordinates) {
+      console.log(
+        "Initial bike location:",
+        bike.data.currentLocation.coordinates
+      ); // Debug log
+
       setLocation(bike.data.currentLocation.coordinates);
     }
   }, [bike]);
@@ -110,27 +111,14 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
       size="xl"
       styles={{
         body: { maxHeight: "80vh", overflowY: "auto" },
-        title: { color: "#1A202C" },
+        title: { color: "#1A202C", fontWeight: 700 },
+      }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
       }}
     >
       <Grid>
-        <Grid.Col>
-          <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Card.Section>
-              <Image
-                src={
-                  `http://localhost:5000/${bike?.data?.imgUrl}` ||
-                  "https://via.placeholder.com/300"
-                }
-                height={200}
-                alt={bike?.data?.model}
-              />
-            </Card.Section>
-            <Text size="lg" mt="md">
-              Bike Image
-            </Text>
-          </Card>
-        </Grid.Col>
         <Grid.Col>
           <Card
             shadow="sm"
@@ -139,31 +127,6 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
             withBorder
             style={{ height: "100%" }}
           >
-            {/* <Card.Section>
-              <MapContainer
-                center={[9.0141, 38.7054]}
-                zoom={15}
-                style={{ height: "200px", width: "100%" }}
-              >
-                <TileLayer
-                  url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                />
-                {location[0] !== 0 && location[1] !== 0 && (
-                  <Marker position={[location[1], location[0]]} icon={bikeIcon}>
-                    <Popup>
-                      <Text>{bike?.data.model}</Text>
-                      <Text size="sm">Status: {bike?.data?.status}</Text>
-                      <Text size="sm">
-                        Location: {location[1].toFixed(4)},{" "}
-                        {location[0].toFixed(4)}
-                      </Text>
-                    </Popup>
-                  </Marker>
-                )}
-                <MapCenter coordinates={location} />
-              </MapContainer>
-            </Card.Section> */}
             <Card shadow="sm" padding="lg" radius="md" withBorder>
               <div
                 style={{
@@ -182,8 +145,17 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                   />
-                  <Marker position={location} icon={bikeIcon}>
-                    <Popup>{bike?.data.model || "Bike"}</Popup>
+                  <Marker position={location}>
+                    <Popup>
+                      <Text>
+                        <strong>Bike ID:</strong> {bike?.data.bikeId}
+                      </Text>
+                      <Text>
+                        <strong>Coordinates:</strong>{" "}
+                        {bike?.data.currentLocation.coordinates[0]},{" "}
+                        {bike?.data.currentLocation.coordinates[1]}
+                      </Text>
+                    </Popup>
                   </Marker>
                 </MapContainer>
               </div>
@@ -195,7 +167,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
         </Grid.Col>
 
         <Grid.Col span={12}>
-          <div className=" shadow-lg p-4 bg-customBlue rounded-md text-white">
+          <div className=" shadow-lg p-4 bg-[#154B1B] rounded-md text-white">
             <Text size="lg" mb="md">
               General Information
             </Text>
@@ -223,16 +195,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
                 <Text>{bike?.data?.currentStation}</Text>
               </div>
             </Group>
-            <Group>
-              <div className="mt-6">
-                <Text size="sm" className="text-gray-400 mb-2">
-                  QR Code
-                </Text>
-                {bike?.data?.qrCode && (
-                  <QRCode value={bike.data.qrCode} size={128} />
-                )}
-              </div>
-            </Group>
+
             <Group mt="md">
               <div>
                 <Text size="sm" className="text-gray-400">
@@ -297,7 +260,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
         </Grid.Col>
 
         <Grid.Col span={12}>
-          <div className=" shadow-lg p-4 bg-customBlue rounded-md text-white">
+          <div className=" shadow-lg p-4 bg-[#154B1B] rounded-md text-white">
             <Text size="lg" mb="md">
               Maintenance
             </Text>
@@ -321,36 +284,6 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
                 <Text>{bike?.data?.maintenanceNotes || "None"}</Text>
               </div>
             </Group>
-            {bike && bike?.data?.maintenanceHistory?.length > 0 && (
-              <>
-                <Text size="md" mb="sm">
-                  Maintenance History
-                </Text>
-                <Table highlightOnHover>
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Type</th>
-                      <th>Description</th>
-                      <th>Technician</th>
-                      <th>Cost</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {bike?.data?.maintenanceHistory &&
-                      bike?.data?.maintenanceHistory.map((entry, index) => (
-                        <tr key={index}>
-                          <td>{formatDate(entry.date)}</td>
-                          <td>{entry.type || "N/A"}</td>
-                          <td>{entry.description || "N/A"}</td>
-                          <td>{entry.technician || "N/A"}</td>
-                          <td>{entry.cost ? `$${entry.cost}` : "N/A"}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </Table>
-              </>
-            )}
           </div>
         </Grid.Col>
 
@@ -389,7 +322,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
         </Grid.Col>
 
         <Grid.Col span={12}>
-          <div className=" shadow-lg p-4 bg-customBlue rounded-md text-white">
+          <div className=" shadow-lg p-4 bg-[#154B1B] rounded-md text-white">
             <Text size="lg" mb="md">
               Safety Features
             </Text>

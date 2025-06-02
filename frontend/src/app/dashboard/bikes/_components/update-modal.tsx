@@ -76,6 +76,7 @@ const UpdateBikeModal = ({ opened, onClose, bike }: UpdateBikeModalProps) => {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
       queryClient.invalidateQueries({ queryKey: ["stations"] });
+      queryClient.invalidateQueries({ queryKey: ["bikesLocations"] });
     },
   });
 
@@ -124,6 +125,10 @@ const UpdateBikeModal = ({ opened, onClose, bike }: UpdateBikeModalProps) => {
         body: {
           padding: "24px",
         },
+      }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
       }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
@@ -179,12 +184,7 @@ const UpdateBikeModal = ({ opened, onClose, bike }: UpdateBikeModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white  hover:bg-green-600"
             >
               {updateMutation.isPending ? (
                 <Loader size={20} />

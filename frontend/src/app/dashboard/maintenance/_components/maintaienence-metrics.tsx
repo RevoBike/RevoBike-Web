@@ -33,7 +33,7 @@ export default function BikeMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconBike size={20} />
           </div>
           <div>

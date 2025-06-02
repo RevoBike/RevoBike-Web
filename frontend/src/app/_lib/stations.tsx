@@ -1,31 +1,31 @@
 const stations = [
   {
-    label: "AASTU Engineering Library",
-    value: [8.886108797854533, 38.81040785402484],
+    label: "Around AASTU Engineering Library",
+    value: [8.88611154008546, 38.810400421375896],
   },
   {
-    label: "Block 81",
-    value: [8.885034776906728, 38.80830970414314],
+    label: "Around Block 81",
+    value: [8.884931154493104, 38.80787879572481],
   },
   {
-    label: "AASTU Digital Library",
-    value: [8.885460051067476, 38.81154325018164],
+    label: "Around AASTU Digital Library",
+    value: [8.885349552328805, 38.81096493321354],
   },
   {
-    label: "AASTU Innovation Center",
-    value: [8.883253241977423, 38.80957739803809],
+    label: "Around AASTU Innovation Center",
+    value: [8.883137025013506, 38.80912475266776],
   },
   {
-    label: "AASTU Student Cafeteria",
+    label: "Around AASTU Student Cafeteria",
     value: [8.887636856997593, 38.81080174705178],
   },
   {
-    label: "AASTU Football Field",
+    label: "Around AASTU Football Field",
     value: [8.887701292927572, 38.80801214935125],
   },
 
   {
-    label: "AASTU Block 28",
+    label: "Around AASTU Block 28",
     value: [8.891463817110797, 38.811108512357706],
   },
 ];

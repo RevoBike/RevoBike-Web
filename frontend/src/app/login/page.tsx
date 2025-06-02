@@ -2,168 +2,171 @@
 
 import { useForm, SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useEffect } from "react";
 import { z } from "zod";
-import { Card, TextInput, Button, Title, Stack, Loader } from "@mantine/core";
-import { IconUser, IconKey, IconEye, IconEyeOff } from "@tabler/icons-react";
+import {
+  Card,
+  TextInput,
+  Button,
+  Title,
+  Stack,
+  Loader,
+  PasswordInput,
+} from "@mantine/core";
+import { IconKey, IconMail } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
-import checkAdmin from "../_utils/check-admin";
+import { Login } from "../api/user";
 
 const loginSchema = z.object({
-  username: z.string().min(1, "Username is required"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
+  email: z
+    .string()
+    .nonempty("Email is required!")
+    .email("Invalid email address!"),
+  password: z
+    .string()
+    .nonempty("Password is required!")
+    .min(8, "Password must be at least 8 characters!"),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function AdminLogin() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
-
-  // Uncomment if you want to redirect authenticated users
-  // useEffect(() => {
-  //   if (checkAdmin()) {
-  //     router.push("/dashboard");
-  //   }
-  // }, [router]);
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm({
     defaultValues: {
-      username: "",
+      email: "",
       password: "",
+    },
+    mode: "onBlur",
+    resolver: zodResolver(loginSchema),
+  });
+  const { register, handleSubmit, formState, reset } = form;
+  const { errors, isSubmitting } = formState;
+
+  const login = useMutation({
+    mutationFn: Login,
+    onSuccess: (data) => {
+      notifications.show({
+        title: "Login Successful",
+        message: "Welcome back!",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      localStorage.setItem("accessToken", data.token);
+      localStorage.setItem("role", data.user.role);
+      reset();
+      router.push("/dashboard");
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Failure",
+        message: error ? error.message : "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
     },
   });
 
-  // const login = useMutation({
-  //   mutationFn: adminApi.Login,
-  //   onSuccess: (data) => {
-  //     notifications.show({
-  //       title: "Login Successful",
-  //       message: "Welcome back!",
-  //       color: "green",
-  //       autoClose: 1000,
-  //       withCloseButton: true,
-  //       position: "top-right",
-  //     });
-  //     console.log(data);
-  //     localStorage.setItem("accessToken", data.accessToken);
-  //     localStorage.setItem("role", data.user.role);
-  //     router.push("/dashboard");
-  //   },
-  //   onError: (error) => {
-  //     notifications.show({
-  //       title: "Failure",
-  //       message: error ? error.message : "An error occurred",
-  //       color: "red",
-  //       autoClose: 1000,
-  //       withCloseButton: true,
-  //       position: "top-right",
-  //     });
-  //   },
-  // });
-
   const onSubmit: SubmitHandler<LoginFormData> = (data) => {
-    // login.mutate({
-    //   username: data.username,
-    //   password: data.password,
-    // });
-    router.push("/dashboard");
+    login.mutate({
+      email: data.email,
+      password: data.password,
+    });
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-200 to-blue-100">
+    <div className="flex items-center justify-center min-h-screen bg-[#154b1b] p-4 sm:p-6 md:p-8">
       <Card
-        padding="lg"
+        padding="xl"
         radius="xl"
-        shadow="lg"
+        shadow="2xl"
         withBorder
-        style={{ width: "384px", backgroundColor: "#2b2c31" }}
+        className="bg-white w-full max-w-sm sm:max-w-md transition-transform duration-300"
       >
-        <Stack gap="lg" className="p-10">
-          <Title order={2} ta="center" c="white" fw={700}>
-            {/* RevoBike */}Admin
+        <Stack gap="lg" className="p-6 sm:p-8">
+          <Title
+            order={2}
+            ta="center"
+            c="gray.8"
+            fw={700}
+            className="text-2xl sm:text-3xl tracking-tight"
+          >
+            Admin Login
           </Title>
 
           <form onSubmit={handleSubmit(onSubmit)}>
-            <Stack gap="md">
+            <Stack gap="lg">
               <TextInput
-                placeholder="Enter your username"
+                label="Email"
+                placeholder="john@gmail.com"
                 required
-                {...register("username")}
-                error={errors.username?.message}
-                leftSection={<IconUser size={20} color="#98a2b3" />}
-                radius="lg"
+                {...register("email")}
+                error={errors.email?.message}
+                leftSection={<IconMail size={20} color="#154b1b" />}
+                radius="md"
                 styles={{
                   input: {
-                    backgroundColor: "#343a40",
-                    color: "white",
-                    borderColor: "#495057",
-                    "&:focus": {
-                      borderColor: "#339af0",
-                      boxShadow: "0 0 0 2px rgba(51, 154, 240, 0.2)",
-                    },
+                    borderColor: "#154b1b",
+                  },
+                  label: {
+                    color: "#1f2937",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                  },
+                  error: {
+                    color: "#ef4444",
+                    fontSize: "0.875rem",
+                    marginTop: "4px",
                   },
                 }}
+                className="w-full"
               />
 
-              <TextInput
-                type={showPassword ? "text" : "password"}
+              <PasswordInput
+                label="Password"
                 placeholder="Enter your password"
                 required
                 {...register("password")}
                 error={errors.password?.message}
-                leftSection={<IconKey size={20} color="#98a2b3" />}
-                rightSection={
-                  <Button
-                    variant="subtle"
-                    color="gray"
-                    onClick={() => setShowPassword(!showPassword)}
-                    style={{ padding: 0, width: "24px", height: "24px" }}
-                  >
-                    {showPassword ? (
-                      <IconEyeOff size={16} color="#98a2b3" />
-                    ) : (
-                      <IconEye size={16} color="#98a2b3" />
-                    )}
-                  </Button>
-                }
-                radius="lg"
+                leftSection={<IconKey size={20} color="#154b1b" />}
+                radius="md"
                 styles={{
                   input: {
-                    backgroundColor: "#343a40",
-                    color: "white",
-                    borderColor: "#495057",
-                    "&:focus": {
-                      borderColor: "#339af0",
-                      boxShadow: "0 0 0 2px rgba(51, 154, 240, 0.2)",
-                    },
+                    borderColor: "#154b1b",
+                  },
+                  label: {
+                    color: "#1f2937",
+                    fontSize: "1rem",
+                    fontWeight: 600,
+                    marginBottom: "8px",
+                  },
+                  error: {
+                    color: "#ef4444",
+                    fontSize: "0.875rem",
+                    marginTop: "4px",
                   },
                 }}
+                className="w-full"
               />
 
               <Button
                 type="submit"
                 fullWidth
-                color="blue.6"
-                radius="lg"
-                // disabled={login.isPending}
-                styles={{
-                  root: {
-                    backgroundColor: "#1c7ed6",
-                    "&:hover": { backgroundColor: "#1864ab" },
-                    transition: "background-color 0.3s",
-                  },
-                }}
+                radius="md"
+                className="bg-[#154b1b] hover:bg-green-600 text-white font-semibold  text-base transition-all duration-300 ease-in-out"
+                disabled={isSubmitting}
               >
-                Login
-                {/* {login.isPending ? <Loader size="sm" color="white" /> : "Login"} */}
+                {login.isPending ? (
+                  <Loader size="sm" color="white" />
+                ) : (
+                  <span>Login</span>
+                )}
               </Button>
             </Stack>
           </form>

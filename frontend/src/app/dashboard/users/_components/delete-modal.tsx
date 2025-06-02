@@ -1,24 +1,52 @@
 "use client";
 
-import { Button, Group, Modal, Stack, Text } from "@mantine/core";
-import { IconTrash } from "@tabler/icons-react";
+import { Button, Group, Loader, Modal, Stack, Text } from "@mantine/core";
+import { User } from "@/app/interfaces/user";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { DeleteUser } from "@/app/api/user";
+import { notifications } from "@mantine/notifications";
 
 interface DeleteUserModalProps {
   opened: boolean;
   onClose: () => void;
-  user: { name: string; email: string } | null;
-  onDelete: () => void;
+  user: User | null;
 }
 
-const DeleteUserModal = ({
-  opened,
-  onClose,
-  user,
-  onDelete,
-}: DeleteUserModalProps) => {
+const DeleteUserModal = ({ opened, onClose, user }: DeleteUserModalProps) => {
+  const queryClient = useQueryClient();
+
+  const deleteMutation = useMutation({
+    mutationFn: DeleteUser,
+    onSuccess: () => {
+      notifications.show({
+        title: "Success",
+        message: "User deleted successfully",
+        color: "green",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+      onClose();
+    },
+    onError: (error) => {
+      notifications.show({
+        title: "Error",
+        message: error?.message || "An error occurred",
+        color: "red",
+        autoClose: 1000,
+        withCloseButton: true,
+        position: "top-right",
+      });
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["userMetrics"] });
+    },
+  });
+
   const handleDelete = () => {
-    onDelete();
-    onClose();
+    deleteMutation.mutate({ id: user?._id || "" });
   };
 
   return (
@@ -88,16 +116,10 @@ const DeleteUserModal = ({
             color="red.7"
             size="md"
             radius="md"
-            leftSection={<IconTrash size={16} />}
             onClick={handleDelete}
-            styles={{
-              root: {
-                padding: "8px 16px",
-                "&:hover": { backgroundColor: "#e03131" },
-              },
-            }}
+            className="bg-[#154B1B] text-white hover:bg-green-600"
           >
-            Delete
+            {deleteMutation.isPending ? <Loader /> : "Delete"}
           </Button>
         </Group>
       </Stack>

@@ -1,26 +1,30 @@
 "use client";
 
 import { Button, Group, Modal, Stack, Text } from "@mantine/core";
-import { Bike } from "@/app/interfaces/bike";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { DeleteBikeMaintenance } from "@/app/api/maintenance-api";
+import { DoneBikeMaintenance } from "@/app/api/maintenance-api";
 import { notifications } from "@mantine/notifications";
+import { Bike } from "@/app/interfaces/bike";
 
-interface DeleteBikeModalProps {
+interface MaintenanceBikeModalProps {
   opened: boolean;
   onClose: () => void;
   bike: Bike | null;
 }
 
-const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
+const DoneBikeMaintenanceModal = ({
+  opened,
+  onClose,
+  bike,
+}: MaintenanceBikeModalProps) => {
   const queryClient = useQueryClient();
 
-  const deleteMutation = useMutation({
-    mutationFn: DeleteBikeMaintenance,
+  const doneMutation = useMutation({
+    mutationFn: DoneBikeMaintenance,
     onSuccess: () => {
       notifications.show({
         title: "Success",
-        message: "Maintenance schedule deleted successfully",
+        message: "Bike status updated successfully",
         color: "green",
         autoClose: 1000,
         withCloseButton: true,
@@ -46,7 +50,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
     },
   });
   const handleDelete = () => {
-    deleteMutation.mutate({ bikeId: bike?._id || "" });
+    doneMutation.mutate(bike?._id || "");
   };
 
   return (
@@ -54,8 +58,8 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
-          Confirm Deletion
+        <Text size="md" fw={700} c="gray.9">
+          Confirm Maintenance Completion
         </Text>
       }
       centered
@@ -73,21 +77,21 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
     >
       <Stack gap="lg">
         <Text size="md" c="gray.7" lineClamp={2}>
-          Are you sure you want to delete the maintenance schedule for bike{" "}
+          Are you sure you want to mark the maintenance of bike{" "}
           <Text span fw={600} c="gray.9">
             {bike?.bikeId}
           </Text>{" "}
-          ?
+          done ?
         </Text>
         <Text
           size="sm"
-          c="red.6"
+          c="blue.6"
           fw={500}
           style={{
-            backgroundColor: "rgba(254, 226, 226, 0.5)",
+            backgroundColor: "rgba(0, 0, 251, 0.2)",
             padding: "8px 12px",
             borderRadius: "4px",
-            borderLeft: "4px solid #f87171",
+            borderLeft: "4px solid blue",
           }}
         >
           This action cannot be undone.
@@ -115,7 +119,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
             onClick={handleDelete}
             className="bg-[#154B1B] text-white  hover:bg-green-600"
           >
-            Delete
+            Done
           </Button>
         </Group>
       </Stack>
@@ -123,4 +127,4 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
   );
 };
 
-export default DeleteBikeModal;
+export default DoneBikeMaintenanceModal;

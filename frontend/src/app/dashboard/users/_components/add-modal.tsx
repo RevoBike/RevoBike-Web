@@ -8,6 +8,7 @@ import {
   Text,
   TextInput,
   Select,
+  Loader,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -164,7 +165,7 @@ const AddUserModal = ({ opened, onClose }: AddUserModalProps) => {
             data={[
               { value: "Admin", label: "Admin" },
               { value: "SuperAdmin", label: "Superadmin" },
-              // { value: "user", label: "User" },
+              // { value: "User", label: "User" },
             ]}
             {...form.getInputProps("role")}
             radius="md"
@@ -195,14 +196,9 @@ const AddUserModal = ({ opened, onClose }: AddUserModalProps) => {
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white hover:bg-green-600"
             >
-              Add
+              {createMutation.isPending ? <Loader /> : "Add"}
             </Button>
           </Group>
         </Stack>

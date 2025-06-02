@@ -14,6 +14,7 @@ export interface FormValues {
   name: string;
   address: string;
   capacity: number;
+  location: number[];
 }
 
 export interface HandleSubmitProps {

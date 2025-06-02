@@ -21,7 +21,6 @@ import {
   IconArrowRight,
 } from "@tabler/icons-react";
 import UsersMetrics from "./_components/users-metrics";
-import UserDetailsModal from "./_components/details-modal";
 import DeleteUserModal from "./_components/delete-modal";
 import UpdateUserRoleModal from "./_components/update-modal";
 import AddUserModal from "./_components/add-modal";
@@ -42,12 +41,6 @@ export default function UserPage() {
 
   const [addModalOpened, { open: openAddModal, close: closeAddModal }] =
     useDisclosure(false);
-
-  const [
-    detailsModalOpened,
-    { open: openDetailsModal, close: closeDetailsModal },
-  ] = useDisclosure(false);
-
   const [
     deleteModalOpened,
     { open: openDeleteModal, close: closeDeleteModal },
@@ -86,11 +79,6 @@ export default function UserPage() {
     );
   }
 
-  const handleRowClick = (user: User): void => {
-    setSelectedUser(user);
-    setDetailsModalOpened(true);
-  };
-
   const handleEditClick = (user: User, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedUser(user);
@@ -109,7 +97,7 @@ export default function UserPage() {
         <Button
           leftSection={<IconPlus size={16} />}
           onClick={openAddModal}
-          className="bg-customBlue text-white hover:bg-blue-950"
+          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
         >
           Add User
         </Button>
@@ -156,11 +144,11 @@ export default function UserPage() {
 
       <Table highlightOnHover>
         <Table.Thead>
-          <Table.Tr className="bg-customBlue text-white hover:bg-gray-400">
-            <Table.Th>ID</Table.Th>
+          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
             <Table.Th>Name</Table.Th>
             <Table.Th>Email</Table.Th>
             <Table.Th>PhoneNumber</Table.Th>
+            <Table.Th>University ID</Table.Th>
             <Table.Th>Role</Table.Th>
             <Table.Th>CreatedAt</Table.Th>
             <Table.Th>Actions</Table.Th>
@@ -170,16 +158,13 @@ export default function UserPage() {
           {users &&
             users.map((user) => {
               return (
-                <Table.Tr
-                  key={user._id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleRowClick(user)}
-                >
-                  <Table.Td>{user._id}</Table.Td>
+                <Table.Tr key={user._id} style={{ cursor: "pointer" }}>
                   <Table.Td>{user.name}</Table.Td>
                   <Table.Td>{user.email}</Table.Td>
                   <Table.Td>{user.phone_number}</Table.Td>
+                  <Table.Td>{user.universityId || "NA"}</Table.Td>
                   <Table.Td>{user.role}</Table.Td>
+
                   <Table.Td>{formatDate(user.createdAt)}</Table.Td>
                   <Table.Td className="ml-auto">
                     <Button
@@ -205,7 +190,7 @@ export default function UserPage() {
       </Table>
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
-          className="bg-customBlue text-white w-fit h-fit p-1"
+          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
           variant="small"
           onClick={() => {
             setCurrentPage(Math.max(currentPage - 1, 1));
@@ -215,7 +200,7 @@ export default function UserPage() {
           <IconArrowLeft />
         </Button>
         <Button
-          className={`bg-customBlue text-white w-fit h-fit p-1`}
+          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
           onClick={() => {
             if (hasNextPage) {
               setCurrentPage((old) => old + 1);
@@ -227,30 +212,16 @@ export default function UserPage() {
         </Button>
       </Container>
       <AddUserModal opened={addModalOpened} onClose={closeAddModal} />
-      {/* <UpdateUserRoleModal
-        opened={editModalOpened}
-        onClose={() => setEditModalOpened(false)}
+      <UpdateUserRoleModal
+        opened={updateModalOpened}
+        onClose={closeUpdateModal}
         user={selectedUser}
-        onUpdate={(updatedUser) =>
-          setUsers(
-            users.map((s) => (s.id === updatedUser.id ? updatedUser : s))
-          )
-        }
-      /> */}
-      {/* <DeleteUserModal
+      />
+      <DeleteUserModal
         opened={deleteModalOpened}
-        onClose={() => setDeleteModalOpened(false)}
+        onClose={closeDeleteModal}
         user={selectedUser}
-        onDelete={() =>
-          setUsers(users.filter((s) => s.id !== selectedUser?.id))
-        }
-      /> */}
-
-      {/* <UserDetailsModal
-        opened={detailsModalOpened}
-        onClose={() => setDetailsModalOpened(false)}
-        user={selectedUser}
-      /> */}
+      />
     </Card>
   );
 }

@@ -1,5 +1,6 @@
 export interface Bike {
   _id: string;
+  bikeId: string;
   qrCode: string;
   status: string;
   currentLocation: {

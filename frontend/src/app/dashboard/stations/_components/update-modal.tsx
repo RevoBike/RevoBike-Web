@@ -9,12 +9,14 @@ import {
   Text,
   TextInput,
   NumberInput,
+  Select,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateStation } from "@/app/api/station-api";
 import { notifications } from "@mantine/notifications";
 import { Station, FormValues } from "@/app/interfaces/station";
+import stations from "@/app/_lib/stations";
 
 interface UpdateStationProps {
   opened: boolean;
@@ -31,8 +33,9 @@ const UpdateStationModal = ({
   const form = useForm({
     initialValues: {
       name: station?.name || "",
-      address: station?.address || "",
       capacity: station?.totalSlots ? Number(station.totalSlots) : 0,
+      location: station?.location.coordinates || [],
+      address: station?.address || "",
     },
   });
 
@@ -65,17 +68,32 @@ const UpdateStationModal = ({
       queryClient.invalidateQueries({ queryKey: ["stations"] });
       queryClient.invalidateQueries({ queryKey: ["bikes"] });
       queryClient.invalidateQueries({ queryKey: ["stationMetrics"] });
+      queryClient.invalidateQueries({ queryKey: ["stationLocations"] });
     },
   });
 
   const handleSubmit = (values: FormValues): void => {
     if (form.validate().hasErrors) return;
-    const { name, address, capacity } = values;
+
+    const selectedStation = stations.find(
+      (station) => station.value.toString() === values.address
+    );
+    if (selectedStation) {
+      values.address = selectedStation.label;
+    } else {
+      values.address = "Unknown Address";
+    }
+
+    values.location = selectedStation?.value || [
+      8.885462193542084, 38.809689022037034,
+    ];
+
     updateMutation.mutate({
       id: station?._id || "",
-      name,
-      address,
-      capacity: Number(capacity),
+      name: values.name,
+      address: values.address,
+      capacity: Number(values.capacity),
+      location: values.location,
     });
   };
 
@@ -100,6 +118,10 @@ const UpdateStationModal = ({
           padding: "24px",
         },
       }}
+      overlayProps={{
+        backgroundOpacity: 0.7,
+        blur: 0.5,
+      }}
     >
       <form onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="lg">
@@ -122,22 +144,20 @@ const UpdateStationModal = ({
               error: { color: "#f03e3e" },
             }}
           />
-          <TextInput
+          <Select
             label="Address"
-            placeholder={station?.address}
+            placeholder="Select address"
+            required
+            data={stations.map((station) => ({
+              ...station,
+              value: station.value.toString(),
+            }))}
             {...form.getInputProps("address")}
             radius="md"
-            styles={{
-              label: { color: "#495057", fontWeight: 500, marginBottom: "8px" },
-              input: {
-                backgroundColor: "#f8f9fa",
-                borderColor: "#ced4da",
-                "&:focus": {
-                  borderColor: "#868e96",
-                  boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                },
-              },
-              error: { color: "#f03e3e" },
+            classNames={{
+              input: "text-gray-800",
+              dropdown: "bg-white text-black",
+              label: "text-gray-800 text-sm mb-2",
             }}
           />
           <NumberInput
@@ -179,12 +199,7 @@ const UpdateStationModal = ({
               color="gray.9"
               size="sm"
               radius="md"
-              styles={{
-                root: {
-                  backgroundColor: "#212529",
-                  "&:hover": { backgroundColor: "#343a40" },
-                },
-              }}
+              className="bg-[#154B1B] text-white  hover:bg-green-600"
             >
               {updateMutation.isPending ? (
                 <Loader size={20} />

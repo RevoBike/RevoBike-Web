@@ -15,6 +15,7 @@ const GetBikesUnderMaintenance = async (
       `${URL}/maintenance?bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`,
       {
         headers: {
+          "x-auth-token": localStorage.getItem("accessToken"),
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }
@@ -52,6 +53,7 @@ const AddBikeUnderMaintenance = async (data: {
       },
       {
         headers: {
+          "x-auth-token": localStorage.getItem("accessToken"),
           Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         },
       }
@@ -69,4 +71,92 @@ const AddBikeUnderMaintenance = async (data: {
   }
 };
 
-export { GetBikesUnderMaintenance, AddBikeUnderMaintenance };
+const DoneBikeMaintenance = async (id: string): Promise<Bike> => {
+  try {
+    const response = await axios.get(`${URL}/maintenance/${id}`, {
+      headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
+};
+
+const UpdateBikeUnderMaintenance = async (data: {
+  bikeId: string;
+  date: Date;
+  description: string;
+  type: string;
+  technician: string;
+  cost: number;
+}): Promise<Bike> => {
+  try {
+    const response = await axios.put(
+      `${URL}/maintenance/${data.bikeId}`,
+      {
+        description: data.description,
+        date: data.date,
+        type: data.type,
+        technician: data.technician,
+        cost: data.cost,
+      },
+      {
+        headers: {
+          "x-auth-token": localStorage.getItem("accessToken"),
+          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+        },
+      }
+    );
+
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
+};
+
+const DeleteBikeMaintenance = async (data: {
+  bikeId: string;
+}): Promise<Bike> => {
+  try {
+    const response = await axios.delete(`${URL}/maintenance/${data.bikeId}`, {
+      headers: {
+        "x-auth-token": localStorage.getItem("accessToken"),
+        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+      },
+    });
+
+    if (response.status === 404) {
+      throw new Error(response.data.message);
+    }
+    return response.data.data;
+  } catch (error: Error | unknown) {
+    if (axios.isAxiosError(error) && error.response) {
+      throw new Error(error.response.data.message || error.message);
+    }
+    throw new Error("An unknown error occurred");
+  }
+};
+
+export {
+  GetBikesUnderMaintenance,
+  AddBikeUnderMaintenance,
+  DoneBikeMaintenance,
+  UpdateBikeUnderMaintenance,
+  DeleteBikeMaintenance,
+};

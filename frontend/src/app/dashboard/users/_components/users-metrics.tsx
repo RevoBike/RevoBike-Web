@@ -34,7 +34,7 @@ export default function UsersMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconUser size={20} />
           </div>
           <div>
@@ -58,7 +58,7 @@ export default function UsersMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconUser size={20} />
           </div>
 
@@ -82,7 +82,7 @@ export default function UsersMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconUser size={20} />
           </div>
 
@@ -106,7 +106,7 @@ export default function UsersMetrics() {
         className="rounded-xl hover:shadow-lg hover:transform hover:translate-y-1 transition-transform duration-200 ease-in-out"
       >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconUser size={20} />
           </div>
 
