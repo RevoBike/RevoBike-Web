@@ -10,7 +10,7 @@ const options = {
     },
     servers: [
       {
-        url: `https://revobike-web-3.onrender.com`,
+        url: `https://https://backend-ge4m.onrender.com/api`,
       },
     ],
     components: {
