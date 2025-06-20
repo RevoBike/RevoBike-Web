@@ -21,7 +21,7 @@ exports.startRide = catchAsync(async (req, res) => {
 
 
   
-    const { bikeId } = req.body;
+    const { bikeId } = req.params; // Get bikeId from path parameters
     const bike = await Bike.findOne({ bikeId });
 
     if (!bike || bike.status !== "available") {

@@ -14,7 +14,7 @@ const { protect, authorizeRoles } = require("../middlewares/middleware");
 const router = express.Router();
 
 /**
- * @openapi
+ * @swagger
  * /bikes:
  *   get:
  *     summary: Get all bikes
@@ -37,12 +37,32 @@ const router = express.Router();
  */
 router.get("/", getAllBikes);
 
-// add swagger for this route
-
+/**
+ * @swagger
+ * /bikes/bike-metrics:
+ *   get:
+ *     summary: Get bike metrics
+ *     description: Retrieves metrics for bikes (authenticated users only).
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved bike metrics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 data:
+ *                   type: object
+ */
 router.get("/bike-metrics", protect, getBikeMetrics);
 
 /**
- * @openapi
+ * @swagger
  * /bikes/{id}:
  *   get:
  *     summary: Get a bike by ID
@@ -77,7 +97,7 @@ router.get("/bike-metrics", protect, getBikeMetrics);
 router.get("/:id", getBikeById);
 
 /**
- * @openapi
+ * @swagger
  * /bikes:
  *   post:
  *     summary: Add a new bike
@@ -179,7 +199,7 @@ router.post(
 router.delete("/:id", protect, authorizeRoles("admin"), deleteBike);
 
 /**
- * @openapi
+ * @swagger
  * /bikes/location/update:
  *   post:
  *     summary: Update a bike's location
