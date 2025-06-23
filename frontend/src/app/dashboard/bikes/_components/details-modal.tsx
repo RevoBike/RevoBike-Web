@@ -1,23 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Modal,
-  Group,
-  Text,
-  Image,
-  Table,
-  Progress,
-  Badge,
-  Grid,
-  Card,
-} from "@mantine/core";
+import { Modal, Group, Text, Progress, Badge, Grid, Card } from "@mantine/core";
 import { useQuery } from "@tanstack/react-query";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import { io } from "socket.io-client";
 import { GetBike } from "@/app/api/bikes-api";
 import { format } from "date-fns";
-import QRCode from "react-qr-code";
 import L from "leaflet";
 
 delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
@@ -47,11 +36,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
   const [location, setLocation] = useState<[number, number]>([
     8.885430393300563, 38.809710479708315,
   ]);
-  const {
-    data: bike,
-    isLoading,
-    error,
-  } = useQuery({
+  const { data: bike } = useQuery({
     queryKey: ["bike", bikeId],
     queryFn: () => GetBike(bikeId),
     enabled: !!bikeId,
@@ -66,7 +51,6 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
     });
 
     socket.on("bikeLocationUpdated", (update) => {
-      console.log("Bike location update received:", update); // Debug log
       if (update.bikeId === bikeId) {
         setLocation([update.coordinates[1], update.coordinates[0]]);
       }
@@ -83,11 +67,6 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
 
   useEffect(() => {
     if (bike?.data?.currentLocation?.coordinates) {
-      console.log(
-        "Initial bike location:",
-        bike.data.currentLocation.coordinates
-      ); // Debug log
-
       setLocation(bike.data.currentLocation.coordinates);
     }
   }, [bike]);
@@ -108,7 +87,7 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
       opened={opened}
       onClose={onClose}
       title={`Bike Details: ${bike?.data?.model}`}
-      size="xl"
+      size="lg"
       styles={{
         body: { maxHeight: "80vh", overflowY: "auto" },
         title: { color: "#1A202C", fontWeight: 700 },

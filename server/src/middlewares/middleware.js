@@ -4,14 +4,17 @@ require("dotenv").config();
 
 const protect = async (req, res, next) => {
   let token;
-  
+
   // Check for x-auth-token header
   if (req.header("x-auth-token")) {
     token = req.header("x-auth-token");
   }
-  
+
   // Check for Authorization Bearer token
-  else if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+  else if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     token = req.headers.authorization.split(" ")[1];
   }
 
@@ -34,6 +37,7 @@ const protect = async (req, res, next) => {
 
 const authorizeRoles = (...roles) => {
   return (req, res, next) => {
+    console.log("Here", req.user.role, roles);
     if (!roles.includes(req.user.role)) {
       return res
         .status(403)

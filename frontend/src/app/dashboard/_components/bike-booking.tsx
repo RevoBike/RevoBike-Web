@@ -78,12 +78,10 @@ export default function BikeBookings() {
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder>
-      <Stack spacing="lg">
+      <Stack>
         <div className="flex flex-row justify-between items-center">
-          <Text size="xl" weight={600}>
-            Bike Bookings
-          </Text>
-          <Group spacing="sm">
+          <Text size="xl">Bike Bookings</Text>
+          <Group>
             <TextInput
               rightSection={<IconSearch size={16} />}
               placeholder="Search"

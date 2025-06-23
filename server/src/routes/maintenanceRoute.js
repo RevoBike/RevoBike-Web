@@ -3,6 +3,8 @@ const {
   getBikesUnderMaintenance,
   addBikeUnderMaintenance,
   doneBikeMaintenance,
+  updateBikeUnderMaintenance,
+  deleteBikeMaintenance,
 } = require("../controller/maintenanceController");
 const { protect, authorizeRoles } = require("../middlewares/middleware");
 
@@ -32,7 +34,7 @@ const router = express.Router();
  *                   items:
  *                     $ref: '#/components/schemas/Bike'
  */
-router.get("/maintenance", protect, getBikesUnderMaintenance);
+router.get("", protect, getBikesUnderMaintenance);
 
 /**
  * @swagger
@@ -56,7 +58,7 @@ router.get("/maintenance", protect, getBikesUnderMaintenance);
  *         description: Maintenance record not found
  */
 router.get(
-  "/maintenance/:id",
+  "/:id",
   protect,
   authorizeRoles("Admin", "SuperAdmin"),
   doneBikeMaintenance
@@ -84,10 +86,24 @@ router.get(
  *         description: Bike not found
  */
 router.post(
-  "/maintenance/:id",
+  "/:id",
   protect,
   authorizeRoles("Admin", "SuperAdmin"),
   addBikeUnderMaintenance
+);
+
+router.put(
+  "/:id",
+  protect,
+  authorizeRoles("Admin", "SuperAdmin"),
+  updateBikeUnderMaintenance
+);
+
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("Admin", "SuperAdmin"),
+  deleteBikeMaintenance
 );
 
 module.exports = router;

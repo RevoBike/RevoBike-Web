@@ -9,46 +9,36 @@ import {
   Select,
   Table,
   Text,
-  TextInput,
   Container,
 } from "@mantine/core";
 import { DatePickerInput } from "@mantine/dates";
 import {
   IconFilter,
-  IconSearch,
   IconArrowLeft,
   IconArrowRight,
+  IconX,
 } from "@tabler/icons-react";
 import LineGraph from "./_components/rental-metrics";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetRides } from "@/app/api/rental";
+import { GetRentalStats } from "@/app/api/stats";
+import { Ride } from "@/app/interfaces/rides";
+import { useDisclosure } from "@mantine/hooks";
+import RentalMapModal from "./_components/details-modal";
 import formatDate from "@/app/_utils/format-date";
-
-const aggregateRentalsByMonth = (rentals) => {
-  // const months = Array(12)
-  //   .fill(0)
-  //   .map(() => ({ active: 0, completed: 0 }));
-  // rentals.forEach((rental) => {
-  //   const month = new Date(rental.startTime).getMonth();
-  //   if (rental.status === "Active") {
-  //     months[month].active += 1;
-  //   } else if (rental.status === "Completed") {
-  //     months[month].completed += 1;
-  //   }
-  // });
-  // return months;
-  return [];
-};
+import LoadingPage from "@/app/loading";
 
 export default function RentalsManagement() {
+  const [date, setDate] = useState<Date | null>(null);
   const [statusFilter, setStatusFilter] = useState<
     "all" | "active" | "completed"
   >("all");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [detailsModalOpened, setDetailsModalOpened] = useState(false);
-  const [selectedRental, setSelectedRental] = useState(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [
+    detailsModalOpened,
+    { open: openDetailsModal, close: closeDetailsModal },
+  ] = useDisclosure(false);
+
+  const [selectedRental, setSelectedRental] = useState<Ride | null>(null);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const limit = 10;
 
@@ -57,53 +47,49 @@ export default function RentalsManagement() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["rides", currentPage, limit, searchTerm, statusFilter],
-    queryFn: () => GetRides(currentPage, limit, searchTerm, statusFilter),
-
+    queryKey: ["rides", currentPage, limit, statusFilter, date],
+    queryFn: () => GetRides(currentPage, limit, statusFilter, date),
     placeholderData: keepPreviousData,
+  });
+
+  const { data: rentalStats } = useQuery({
+    queryKey: ["rentalStats"],
+    queryFn: GetRentalStats,
   });
 
   const hasNextPage = rentals && rentals.length === limit;
 
-  const monthlyData = aggregateRentalsByMonth(rentals);
-
-  // Chart data
-  const chartData = {
-    labels: [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ],
-    datasets: [
-      {
-        label: "Active Rentals",
-        data: monthlyData && monthlyData.map((m) => m.active),
-        backgroundColor: "rgba(54, 162, 235, 0.6)", // Blue
-      },
-      {
-        label: "Completed Rentals",
-        data: monthlyData && monthlyData.map((m) => m.completed),
-        backgroundColor: "rgba(75, 192, 192, 0.6)", // Green
-      },
-    ],
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setDate(null);
+    setCurrentPage(1);
   };
+
+  const handleRowClick = (rental: Ride): void => {
+    setSelectedRental(rental);
+    openDetailsModal();
+  };
+
+  if (isLoading) {
+    return <LoadingPage />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex justify-center items-center h-full">
+        <Text>{(error as Error).message}</Text>
+      </div>
+    );
+  }
 
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <Card withBorder radius="md" padding="md" mb="lg">
         <Text size="lg" fw={600} mb="md" c="black">
-          Yearly Rental Status (2025)
+          Yearly Rental Status ({new Date().getFullYear()})
         </Text>
-        <LineGraph rentals={monthlyData} />
+
+        <LineGraph rentals={rentalStats || []} />
       </Card>
 
       <Group mb="md" gap="md" align="flex-end">
@@ -116,9 +102,10 @@ export default function RentalsManagement() {
             { value: "completed", label: "Completed" },
           ]}
           value={statusFilter}
-          onChange={(value) =>
-            setStatusFilter((value as "all" | "active" | "completed") || "all")
-          }
+          onChange={(value) => {
+            setStatusFilter((value as "all" | "active" | "completed") || "all");
+            setCurrentPage(1);
+          }}
           leftSection={<IconFilter size={16} />}
           className="w-full sm:w-[200px]"
           classNames={{
@@ -130,18 +117,17 @@ export default function RentalsManagement() {
         <div>
           <div className="flex gap-3">
             <DatePickerInput
-              label="Start date"
+              label="Date"
               placeholder="Select date"
-              minDate={new Date()}
+              value={date}
+              onChange={(value) => setDate(value)}
               radius="md"
               styles={{
                 label: {
                   color: "#495057",
                   fontWeight: 500,
-                  marginBottom: "6px",
                 },
                 input: {
-                  backgroundColor: "#f8f9fa",
                   borderColor: "#ced4da",
                   "&:focus": {
                     borderColor: "#868e96",
@@ -150,101 +136,86 @@ export default function RentalsManagement() {
                 },
                 error: { color: "#f03e3e" },
               }}
-              style={{ width: "50%" }}
-            />
-
-            <DatePickerInput
-              label="End date"
-              placeholder="Select date"
-              minDate={new Date()}
-              radius="md"
-              styles={{
-                label: {
-                  color: "#495057",
-                  fontWeight: 500,
-                  marginBottom: "6px",
-                },
-                input: {
-                  backgroundColor: "#f8f9fa",
-                  borderColor: "#ced4da",
-                  "&:focus": {
-                    borderColor: "#868e96",
-                    boxShadow: "0 0 0 2px rgba(134, 142, 150, 0.2)",
-                  },
-                },
-                error: { color: "#f03e3e" },
-              }}
-              style={{ width: "50%" }}
+              style={{ width: "200px" }}
             />
           </div>
         </div>
-        <div className="w-full sm:w-auto md:mt-4 ml-auto">
-          <TextInput
-            placeholder="Search by User or Bike ID"
-            leftSection={<IconSearch color="#7E7E7E" size={20} />}
-            value={searchTerm}
-            onChange={(event) => {
-              setSearchTerm(event.currentTarget.value);
-              setCurrentPage(1);
-            }}
-          />
-        </div>
+
+        <Button
+          variant="outline"
+          color="#154B1B"
+          radius="md"
+          onClick={clearFilters}
+          leftSection={<IconX size={16} />}
+          styles={{ root: { height: "36px" } }}
+        >
+          Clear Filters
+        </Button>
       </Group>
 
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
-            <Table.Th>User</Table.Th>
-            <Table.Th>Bike</Table.Th>
-            <Table.Th>Start Station</Table.Th>
-            <Table.Th>End Station</Table.Th>
-            <Table.Th>Start Time</Table.Th>
-            <Table.Th>End Time</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>Payment Status</Table.Th>
-            <Table.Th>Amount Charged</Table.Th>
-            <Table.Th>Distance Covered</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {rentals &&
-            rentals.map((rental) => (
-              <Table.Tr key={rental._id}>
-                <Table.Td>{rental.user && rental.user.name}</Table.Td>
-                <Table.Td>{rental.bike.bikeId}</Table.Td>
-                <Table.Td>{rental.startStationName || "N/A"}</Table.Td>
-                <Table.Td>{rental.endStationName || "N/A"}</Table.Td>
-                <Table.Td>{formatDate(rental.startTime)}</Table.Td>
-                <Table.Td>{formatDate(rental.endTime) || "N/A"}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={rental.status === "active" ? "blue.6" : "green.6"}
-                    variant="light"
-                  >
-                    {rental.status}
-                  </Badge>
-                </Table.Td>
-
-                <Table.Td>
-                  <Badge
-                    color={
-                      rental.paymentStatus === "pending"
-                        ? "yellow.6"
-                        : rental.paymentStatus === "paid"
-                        ? "green.6"
-                        : "red.6"
-                    }
-                    variant="light"
-                  >
-                    {rental.paymentStatus}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>{rental.cost.toFixed(2)} Birr</Table.Td>
-                <Table.Td>{rental.distance} km</Table.Td>
-              </Table.Tr>
-            ))}
-        </Table.Tbody>
-      </Table>
+      <div className="w-full overflow-x-auto">
+        <Table highlightOnHover>
+          <Table.Thead>
+            <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
+              <Table.Th>User</Table.Th>
+              <Table.Th>Bike</Table.Th>
+              <Table.Th>Start Time</Table.Th>
+              <Table.Th>End Time</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Payment Status</Table.Th>
+              <Table.Th>Amount Charged</Table.Th>
+              <Table.Th>Distance Covered</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {rentals &&
+              rentals.map((rental) => (
+                <Table.Tr
+                  key={rental._id}
+                  onClick={() => handleRowClick(rental)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Table.Td>{rental.user && rental.user.name}</Table.Td>
+                  <Table.Td>{rental.bike.bikeId}</Table.Td>
+                  <Table.Td>
+                    {formatDate(rental.startTime)}{" "}
+                    {rental.startTime &&
+                      new Date(rental.startTime).toLocaleString().split(",")[1]}
+                  </Table.Td>
+                  <Table.Td>
+                    {formatDate(rental.endTime)}
+                    {rental.endTime &&
+                      new Date(rental.endTime).toLocaleString().split(",")[1]}
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={rental.status === "active" ? "blue.6" : "green.6"}
+                      variant="light"
+                    >
+                      {rental.status}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={
+                        rental.paymentStatus === "pending"
+                          ? "yellow.6"
+                          : rental.paymentStatus === "paid"
+                          ? "green.6"
+                          : "red.6"
+                      }
+                      variant="light"
+                    >
+                      {rental.paymentStatus}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>{rental.cost.toFixed(2)} Birr</Table.Td>
+                  <Table.Td>{rental.distance} km</Table.Td>
+                </Table.Tr>
+              ))}
+          </Table.Tbody>
+        </Table>
+      </div>
 
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
@@ -269,6 +240,12 @@ export default function RentalsManagement() {
           <IconArrowRight />
         </Button>
       </Container>
+
+      <RentalMapModal
+        opened={detailsModalOpened}
+        onClose={closeDetailsModal}
+        rental={selectedRental}
+      />
     </Card>
   );
 }

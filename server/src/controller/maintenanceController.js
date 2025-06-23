@@ -2,15 +2,35 @@ const Bike = require("../models/Bike");
 const Station = require("../models/Station");
 const catchAsync = require("../utils/catchAsync");
 const mongoose = require("mongoose");
+const cron = require("node-cron");
+
+// Schedule a job to run every day at midnight
+cron.schedule("0 0 * * *", async () => {
+  try {
+    const currentDate = new Date();
+    const bikes = await Bike.find({
+      nextMaintenance: { $lte: currentDate },
+      status: { $ne: "underMaintenance" },
+    });
+
+    for (const bike of bikes) {
+      bike.status = "underMaintenance";
+      await bike.save();
+    }
+    console.log("Bike maintenance statuses updated");
+  } catch (error) {
+    console.error("Error updating bike maintenance statuses:", error);
+  }
+});
 
 // Get all bikes (Admins & SuperAdmins only)
 exports.getBikesUnderMaintenance = catchAsync(async (req, res) => {
-  // if (req.user.role === "User") {
-  //   return res.status(403).json({
-  //     success: false,
-  //     message: "Unauthorized access",
-  //   });
-  // }
+  if (req.user.role === "User") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized access",
+    });
+  }
 
   const search = req.query.search;
   const page = parseInt(req.query.page) || 1;
@@ -19,10 +39,10 @@ exports.getBikesUnderMaintenance = catchAsync(async (req, res) => {
 
   let matchQuery = {};
   if (search) {
-    matchQuery.$or = [{ model: { $regex: search, $options: "i" } }];
-    if (mongoose.isValidObjectId(search)) {
-      matchQuery.$or.push({ _id: new mongoose.Types.ObjectId(search) });
-    }
+    matchQuery.$or = [
+      { model: { $regex: search, $options: "i" } },
+      { bikeId: { $regex: search, $options: "i" } },
+    ];
   }
   if (bikeFilter && mongoose.isValidObjectId(bikeFilter)) {
     matchQuery.currentStation = new mongoose.Types.ObjectId(bikeFilter);
@@ -48,6 +68,7 @@ exports.getBikesUnderMaintenance = catchAsync(async (req, res) => {
     {
       $project: {
         model: 1,
+        bikeId: 1,
         qrCode: 1,
         status: 1,
         currentLocation: 1,
@@ -80,12 +101,12 @@ exports.getBikesUnderMaintenance = catchAsync(async (req, res) => {
 });
 
 exports.addBikeUnderMaintenance = catchAsync(async (req, res) => {
-  // if (req.user.role === "User") {
-  //   return res.status(403).json({
-  //     success: false,
-  //     message: "Unauthorized access",
-  //   });
-  // }
+  if (req.user.role === "User") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized access",
+    });
+  }
 
   const bikeId = req.params.id;
   const { date, type, description, technician, cost } = req.body;
@@ -111,8 +132,6 @@ exports.addBikeUnderMaintenance = catchAsync(async (req, res) => {
     });
   }
 
-  bike.status = "underMaintenance";
-
   bike.nextMaintenance = new Date(date);
 
   bike.maintenanceHistory.push({
@@ -135,14 +154,12 @@ exports.addBikeUnderMaintenance = catchAsync(async (req, res) => {
 //  doneBikeMaintenance
 
 exports.doneBikeMaintenance = catchAsync(async (req, res) => {
-  // if (req.user.role === "User") {
-  //   return res.status(403).json({
-  //     success: false,
-  //     message: "Unauthorized access",
-  //   });
-  // }
-
-  console.log("I have been here");
+  if (req.user.role === "User") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized access",
+    });
+  }
 
   const bikeId = req.params.id;
   const bike = await Bike.findById(bikeId);
@@ -169,6 +186,93 @@ exports.doneBikeMaintenance = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     message: "Bike maintained successfully",
+    data: bike,
+  });
+});
+
+exports.updateBikeUnderMaintenance = catchAsync(async (req, res) => {
+  if (req.user.role === "User") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized access",
+    });
+  }
+
+  const bikeId = req.params.id;
+  const { date, type, description, technician, cost } = req.body;
+  const bike = await Bike.findById(bikeId);
+  if (!bike) {
+    return res.status(404).json({
+      success: false,
+      message: "Bike not found",
+    });
+  }
+
+  if (date) {
+    bike.nextMaintenance = new Date(date);
+  }
+  if (type) {
+    bike.maintenanceHistory[bike.maintenanceHistory.length - 1].type = type;
+  }
+  if (description) {
+    bike.maintenanceHistory[bike.maintenanceHistory.length - 1].description =
+      description;
+  }
+
+  if (technician) {
+    bike.maintenanceHistory[bike.maintenanceHistory.length - 1].technician =
+      technician;
+  }
+
+  if (cost) {
+    bike.maintenanceHistory[bike.maintenanceHistory.length - 1].cost = cost;
+  }
+
+  await bike.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Bike added to maintenance successfully",
+    data: bike,
+  });
+});
+
+// deleteBikeMaintenance
+
+exports.deleteBikeMaintenance = catchAsync(async (req, res) => {
+  if (req.user.role === "User") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized access",
+    });
+  }
+
+  const bikeId = req.params.id;
+  const bike = await Bike.findById(bikeId);
+
+  if (!bike) {
+    return res.status(404).json({
+      success: false,
+      message: "Bike not found",
+    });
+  }
+
+  if (bike.status !== "underMaintenance") {
+    return res.status(400).json({
+      success: false,
+      message: "Bike is not under maintenance",
+    });
+  }
+  bike.maintenanceHistory.pop();
+
+  bike.status = "available";
+  bike.nextMaintenance = null;
+
+  await bike.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Bike maintenance record deleted successfully",
     data: bike,
   });
 });

@@ -29,9 +29,12 @@ import { User } from "@/app/interfaces/user";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetAllUsers } from "@/app/api/user";
 import formatDate from "@/app/_utils/format-date";
+import { useCheckRole } from "@/app/_utils/check-role";
+import LoadingPage from "@/app/loading";
 
 export default function UserPage() {
-  const limit = 5;
+  const isSuperAdmin = useCheckRole();
+  const limit = 10;
   const [filter, setFilter] = useState<"all" | "User" | "Admin" | "SuperAdmin">(
     "all"
   );
@@ -64,11 +67,7 @@ export default function UserPage() {
   const hasNextPage = users && users.length === limit;
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Text>Loading...</Text>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (error) {
@@ -94,13 +93,15 @@ export default function UserPage() {
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <Group justify="end" mb="md">
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={openAddModal}
-          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
-        >
-          Add User
-        </Button>
+        {isSuperAdmin && (
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={openAddModal}
+            className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
+          >
+            Add User
+          </Button>
+        )}
       </Group>
       <UsersMetrics />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 px-2">
@@ -142,52 +143,56 @@ export default function UserPage() {
         </div>
       </div>
 
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Email</Table.Th>
-            <Table.Th>PhoneNumber</Table.Th>
-            <Table.Th>University ID</Table.Th>
-            <Table.Th>Role</Table.Th>
-            <Table.Th>CreatedAt</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {users &&
-            users.map((user) => {
-              return (
-                <Table.Tr key={user._id} style={{ cursor: "pointer" }}>
-                  <Table.Td>{user.name}</Table.Td>
-                  <Table.Td>{user.email}</Table.Td>
-                  <Table.Td>{user.phone_number}</Table.Td>
-                  <Table.Td>{user.universityId || "NA"}</Table.Td>
-                  <Table.Td>{user.role}</Table.Td>
+      <div className="w-full overflow-x-auto">
+        <Table highlightOnHover>
+          <Table.Thead>
+            <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Email</Table.Th>
+              <Table.Th>PhoneNumber</Table.Th>
+              <Table.Th>University ID</Table.Th>
+              <Table.Th>Role</Table.Th>
+              <Table.Th>Created At</Table.Th>
+              {isSuperAdmin && <Table.Th>Actions</Table.Th>}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {users &&
+              users.map((user) => {
+                return (
+                  <Table.Tr key={user._id} style={{ cursor: "pointer" }}>
+                    <Table.Td>{user.name}</Table.Td>
+                    <Table.Td>{user.email}</Table.Td>
+                    <Table.Td>{user.phone_number}</Table.Td>
+                    <Table.Td>{user.universityId || "NA"}</Table.Td>
+                    <Table.Td>{user.role}</Table.Td>
 
-                  <Table.Td>{formatDate(user.createdAt)}</Table.Td>
-                  <Table.Td className="ml-auto">
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleEditClick(user, e)}
-                    >
-                      <IconEdit size={18} color="green" />
-                    </Button>
-                    |
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleDeleteClick(user, e)}
-                    >
-                      <IconTrash size={18} color="red" />
-                    </Button>
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-        </Table.Tbody>
-      </Table>
+                    <Table.Td>{formatDate(user.createdAt)}</Table.Td>
+                    {isSuperAdmin && (
+                      <Table.Td className="ml-auto">
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          onClick={(e) => handleEditClick(user, e)}
+                        >
+                          <IconEdit size={18} color="green" />
+                        </Button>
+                        |
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          onClick={(e) => handleDeleteClick(user, e)}
+                        >
+                          <IconTrash size={18} color="red" />
+                        </Button>
+                      </Table.Td>
+                    )}
+                  </Table.Tr>
+                );
+              })}
+          </Table.Tbody>
+        </Table>
+      </div>
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
           className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "

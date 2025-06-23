@@ -1,8 +1,6 @@
 "use client";
-import axios from "axios";
+import api from "./api";
 import { Bike } from "@/app/interfaces/bike";
-
-const URL = process.env.API_URL || "http://localhost:5000/api";
 
 const GetBikeStats = async (): Promise<{
   totalBikes: number;
@@ -11,24 +9,12 @@ const GetBikeStats = async (): Promise<{
   totalReservedBikes: number;
   totalBikesInMaintenance: number;
 }> => {
-  try {
-    const response = await axios.get(`${URL}/bikes/bike-metrics`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.get(`/bikes/bike-metrics`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const GetBikes = async (
@@ -38,27 +24,14 @@ const GetBikes = async (
   statusFilter?: string,
   bikeFilter?: string
 ): Promise<Bike[]> => {
-  try {
-    const response = await axios.get(
-      `${URL}/bikes?filter=${statusFilter}&bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`,
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.get(
+    `/bikes?filter=${statusFilter}&bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`
+  );
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const GetBike = async (
@@ -66,23 +39,11 @@ const GetBike = async (
 ): Promise<{
   data: Bike;
 }> => {
-  try {
-    const response = await axios.get(`${URL}/bikes/${id}`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  const response = await api.get(`/bikes/${id}`);
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data;
 };
 
 const AddBike = async (data: {
@@ -96,24 +57,12 @@ const AddBike = async (data: {
     station: string;
   };
 }> => {
-  try {
-    const response = await axios.post(`${URL}/bikes`, data, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.post(`/bikes`, data);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const UpdateBike = async (data: {
@@ -127,47 +76,23 @@ const UpdateBike = async (data: {
     station: string;
   };
 }> => {
-  try {
-    const payload = {
-      model: data.model,
-      currentStation: data.station,
-    };
-    const response = await axios.put(`${URL}/bikes/${data.id}`, payload, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const payload = {
+    model: data.model,
+    currentStation: data.station,
+  };
+  const response = await api.put(`/bikes/${data.id}`, payload);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const DeleteBike = async (id: string): Promise<void> => {
-  try {
-    const response = await axios.delete(`${URL}/bikes/${id}`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.delete(`/bikes/${id}`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
 };
 
@@ -177,24 +102,27 @@ const GetBikeLocation = async (): Promise<
     coordinates: number[];
   }[]
 > => {
-  try {
-    const response = await axios.get(`${URL}/bikes/locations`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.get(`/bikes/locations`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
+};
+
+const CheckBike = async (
+  bikeId: string
+): Promise<{
+  data: {
+    bikeId: string;
+    status: boolean;
+  };
+}> => {
+  const response = await api.get(`/bikes/check/${bikeId}`);
+  if (response.status === 404) {
+    throw new Error(response.data.message);
+  }
+  return response.data;
 };
 
 export {
@@ -205,4 +133,5 @@ export {
   DeleteBike,
   GetBikeStats,
   GetBikeLocation,
+  CheckBike,
 };

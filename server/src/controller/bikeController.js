@@ -3,7 +3,6 @@ const Alert = require("../models/Alert");
 const Station = require("../models/Station");
 const catchAsync = require("../utils/catchAsync");
 const { isBikeInsideGeofence } = require("../utils/rideUtils");
-const generateQRCode = require("../utils/generateQrCode");
 const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
 
@@ -24,10 +23,10 @@ exports.getAllBikes = catchAsync(async (req, res) => {
 
   let matchQuery = {};
   if (search) {
-    matchQuery.$or = [{ model: { $regex: search, $options: "i" } }];
-    if (mongoose.isValidObjectId(search)) {
-      matchQuery.$or.push({ _id: new mongoose.Types.ObjectId(search) });
-    }
+    matchQuery.$or = [
+      { model: { $regex: search, $options: "i" } },
+      { bikeId: { $regex: search, $options: "i" } },
+    ];
   }
   if (
     filter &&
@@ -57,6 +56,7 @@ exports.getAllBikes = catchAsync(async (req, res) => {
     },
     {
       $project: {
+        bikeId: 1,
         model: 1,
         qrCode: 1,
         status: 1,
@@ -118,17 +118,35 @@ exports.addBike = catchAsync(async (req, res) => {
     });
   }
 
-  const { model, station } = req.body;
-  const file = req.file;
-  const imgUrl = file ? `/uploads/${file.filename}` : "";
+  const { model, station, bikeId } = req.body;
+
+  const existingBike = await Bike.findOne({ bikeId });
+  if (existingBike) {
+    return res.status(400).json({
+      success: false,
+      message: "Bike ID already exists",
+    });
+  }
 
   const qrCode = uuidv4();
 
+  const currentStation = await Station.findById(station);
+  if (!station) {
+    return res.status(404).json({
+      success: false,
+      message: "Station not found",
+    });
+  }
+
   const newBike = await Bike.create({
     model,
+    bikeId,
     currentStation: station,
-    imageUrl: imgUrl,
-    qrCode: qrCode,
+    qrCode,
+    currentLocation: {
+      type: "Point",
+      coordinates: currentStation.location.coordinates, // Default current station location
+    },
   });
 
   await Station.updateOne(
@@ -143,24 +161,21 @@ exports.addBike = catchAsync(async (req, res) => {
 });
 
 exports.updateBikeLocation = catchAsync(async (req, res) => {
+  // const { qrCode, longitude, latitude } = req.body;
+  // const bike = await Bike.findOne({ qrCode });
+  const { bikeId, longitude, latitude } = req.body;
+  const bike = await Bike.findOne({ bikeId });
 
-    // const { qrCode, longitude, latitude } = req.body;
-    // const bike = await Bike.findOne({ qrCode });
-    const { bikeId, longitude, latitude } = req.body;
-    const bike = await Bike.findOne({ bikeId });
+  if (!bike) {
+    return res.status(404).json({ success: false, message: "Bike not found" });
+  }
+  // =======
+  //   const { qrCode, longitude, latitude } = req.body;
 
-
-    if (!bike) {
-        return res.status(404).json({ success: false, message: "Bike not found" });
-    }
-// =======
-//   const { qrCode, longitude, latitude } = req.body;
-
-//   const bike = await Bike.findOne({ qrCode });
-//   if (!bike) {
-//     return res.status(404).json({ success: false, message: "Bike not found" });
-//   }
-
+  //   const bike = await Bike.findOne({ qrCode });
+  //   if (!bike) {
+  //     return res.status(404).json({ success: false, message: "Bike not found" });
+  //   }
 
   // Validate GPS coordinates
   if (!longitude || !latitude || isNaN(longitude) || isNaN(latitude)) {
@@ -192,14 +207,14 @@ exports.updateBikeLocation = catchAsync(async (req, res) => {
 
     // Emit real-time alert to all connected admins
     const io = req.app.get("io");
-    
+
     io.emit("bikeLocationUpdated", {
-        bikeId,
-        longitude,
-        latitude,
-        geofenceStatus: bike.geofenceStatus,
+      bikeId,
+      longitude,
+      latitude,
+      geofenceStatus: bike.geofenceStatus,
     });
-    
+
     // io.emit("bikeLocationUpdated", {
     //     qrCode,
     //     longitude,
@@ -216,13 +231,12 @@ exports.updateBikeLocation = catchAsync(async (req, res) => {
     bike.geofenceStatus = "inside"; // Bike re-entered the geofence
   }
 
-
   await bike.save();
 
   // Emit real-time location update
   const io = req.app.get("io");
   io.emit("bikeLocationUpdated", {
-    qrCode,
+    bikeId,
     longitude,
     latitude,
     geofenceStatus: bike.geofenceStatus,
@@ -248,10 +262,18 @@ exports.deleteBike = catchAsync(async (req, res) => {
       message: "Bike not found",
     });
   }
-  if (bike.status !== "available") {
+
+  if (bike.status == "in-use" || bike.status == "reserved") {
     return res.status(400).json({
       success: false,
       message: "Can not delete bike in-use.",
+    });
+  }
+
+  if (bike.status == "underMaintenance") {
+    return res.status(400).json({
+      success: false,
+      message: "Can not delete bike under maintenance.",
     });
   }
 
@@ -368,6 +390,10 @@ exports.updateBikeDetails = catchAsync(async (req, res) => {
     {
       model,
       currentStation,
+      currentLocation: {
+        type: "Point",
+        coordinates: newStation.location.coordinates,
+      },
     },
     { new: true, runValidators: true }
   );
@@ -375,5 +401,58 @@ exports.updateBikeDetails = catchAsync(async (req, res) => {
   res.status(201).json({
     success: true,
     data: updatedBike,
+  });
+});
+
+exports.getBikeLocations = catchAsync(async (req, res) => {
+  const bike = await Bike.find({}, { bikeId: 1, currentLocation: 1 }).sort({
+    createdAt: -1,
+  });
+
+  if (!bike) {
+    return res.status(404).json({
+      success: false,
+      message: "No Bikes found",
+    });
+  }
+
+  const bikeLocations =
+    bike &&
+    bike.map((bike) => {
+      return {
+        bikeId: bike.bikeId,
+        coordinates: bike.currentLocation.coordinates,
+      };
+    });
+  res.status(200).json({
+    success: true,
+    data: bikeLocations,
+  });
+});
+
+exports.checkBikeAvailability = catchAsync(async (req, res) => {
+  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
+  const bikeId = req.params.bikeId;
+  const bike = await Bike.findOne({ bikeId });
+
+  if (!bike) {
+    return res.status(404).json({
+      success: false,
+      message: "Bike not found",
+    });
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
+      bikeId: bike.bikeId,
+      status: bike.status === "available",
+    },
   });
 });

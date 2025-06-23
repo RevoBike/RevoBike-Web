@@ -4,21 +4,24 @@ const { protect, authorizeRoles } = require("../middlewares/middleware");
 
 // const { registerUser, loginUser, verifyOTP } = require("../controller/authController");
 
-
 //router.post("/register", registerUser);
 //router.post("/verify-otp", verifyOTP);
 //router.post("/login", loginUser);
 
-const { 
-  registerUser, 
-  loginUser, 
-  verifyOTP, 
-  deleteAccount, 
-  checkUser, 
-  resendOTP, 
-  forceVerify, directDelete, forgotPassword, requestPasswordReset,
-  resetPasswordWithOTP } = require("../controller/authController");
-
+const {
+  registerUser,
+  loginUser,
+  verifyOTP,
+  deleteAccount,
+  checkUser,
+  resendOTP,
+  forceVerify,
+  directDelete,
+  forgotPassword,
+  requestPasswordReset,
+  resetPasswordWithOTP,
+  changePassword,
+} = require("../controller/authController");
 
 /**
  * @swagger
@@ -536,6 +539,7 @@ router.post("/forgot-password", forgotPassword);
  */
 router.post("/reset-password", resetPasswordWithOTP);
 
+router.put("/change-password", protect, changePassword);
 
 // Test route
 router.get("/test", (req, res) => {

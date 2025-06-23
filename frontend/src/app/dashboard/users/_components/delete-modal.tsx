@@ -54,7 +54,7 @@ const DeleteUserModal = ({ opened, onClose, user }: DeleteUserModalProps) => {
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Confirm User Deletion
         </Text>
       }

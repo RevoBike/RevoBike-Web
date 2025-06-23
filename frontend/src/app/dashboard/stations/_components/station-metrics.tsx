@@ -4,6 +4,7 @@ import { Card, Group, Text, ThemeIcon } from "@mantine/core";
 import { IconHome, IconGlassFull } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";
 import { GetStationStats } from "@/app/api/station-api";
+import LoadingPage from "@/app/loading";
 
 export default function StationsMetrics() {
   const { data, isLoading, error } = useQuery({
@@ -12,11 +13,7 @@ export default function StationsMetrics() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Text>Loading...</Text>
-      </div>
-    );
+    return <LoadingPage />;
   }
   if (error) {
     return (
@@ -49,7 +46,7 @@ export default function StationsMetrics() {
           </ThemeIcon>
           <div>
             <Text size="sm" c="gray.6" fw={500} tt="uppercase" lh={1.2}>
-              Total Stations
+              Total Number of Stations
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
               {data?.totalStations || 0}{" "}
@@ -72,7 +69,7 @@ export default function StationsMetrics() {
           </ThemeIcon>
           <div>
             <Text size="sm" c="gray.6" fw={500} tt="uppercase" lh={1.2}>
-              Max Station Capacity
+              Maximum Station Capacity
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
               {data?.maxCapacity || 0} <span className="text-sm">Bikes</span>

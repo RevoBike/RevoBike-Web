@@ -7,6 +7,8 @@ const {
   getBikeMetrics,
   updateBikeLocation,
   updateBikeDetails,
+  getBikeLocations,
+  checkBikeAvailability,
 } = require("../controller/bikeController");
 const upload = require("../config/multerConfig");
 const { protect, authorizeRoles } = require("../middlewares/middleware");
@@ -35,7 +37,7 @@ const router = express.Router();
  *                   items:
  *                     $ref: '#/components/schemas/Bike'
  */
-router.get("/", getAllBikes);
+router.get("/", protect, getAllBikes);
 
 /**
  * @swagger
@@ -60,6 +62,15 @@ router.get("/", getAllBikes);
  *                   type: object
  */
 router.get("/bike-metrics", protect, getBikeMetrics);
+
+router.get("/locations", protect, getBikeLocations);
+
+router.get(
+  "/check/:bikeId",
+  protect,
+  authorizeRoles("Admin", "SuperAdmin"),
+  checkBikeAvailability
+);
 
 /**
  * @swagger
@@ -151,7 +162,7 @@ router.get("/:id", getBikeById);
 router.post(
   "/",
   protect,
-  authorizeRoles("admin"),
+  authorizeRoles("Admin", "SuperAdmin"),
   upload.single("file"),
   addBike
 );
@@ -196,7 +207,12 @@ router.post(
  *       403:
  *         description: Forbidden - Admin access required
  */
-router.delete("/:id", protect, authorizeRoles("admin"), deleteBike);
+router.delete(
+  "/:id",
+  protect,
+  authorizeRoles("Admin", "SuperAdmin"),
+  deleteBike
+);
 
 /**
  * @swagger

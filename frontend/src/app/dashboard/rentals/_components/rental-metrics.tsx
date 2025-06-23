@@ -22,11 +22,13 @@ ChartJS.register(
 );
 
 interface LineGraphProps {
-  rentals: { active: number; completed: number }[];
+  rentals: { month: number; active: number; completed: number }[];
 }
 
 const LineGraph: React.FC<LineGraphProps> = ({ rentals }) => {
   const chartRef = React.useRef(null);
+
+  console.log("Rentals Data:", rentals);
 
   const createGradient = (ctx: CanvasRenderingContext2D): CanvasGradient => {
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
@@ -132,6 +134,8 @@ const LineGraph: React.FC<LineGraphProps> = ({ rentals }) => {
             size: 12,
           },
           beginAtZero: true,
+          stepSize: 10,
+          precision: 0,
         },
       },
     },
@@ -143,12 +147,13 @@ const LineGraph: React.FC<LineGraphProps> = ({ rentals }) => {
 
   return (
     <div
-      className="shadow-lg rounded-lg p-4 bg-white hover:scale-95 transition-transform duration-300"
+      className="w-full overflow-x-auto shadow-lg rounded-lg p-4 bg-white hover:scale-95 transition-transform duration-300"
       style={{
         width: "100%",
-        height: "450px",
+        height: "300px",
         padding: "20px",
         borderRadius: "10px",
+        overflowX: "auto",
       }}
     >
       <Line ref={chartRef} data={data} options={options} />

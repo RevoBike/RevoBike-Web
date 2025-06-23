@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { notifications } from "@mantine/notifications";
 import { Login } from "../api/user";
+import { useEffect } from "react";
 
 const loginSchema = z.object({
   email: z
@@ -44,6 +45,17 @@ export default function AdminLogin() {
   const { register, handleSubmit, formState, reset } = form;
   const { errors, isSubmitting } = formState;
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const accessToken = localStorage.getItem("accessToken");
+      const role = localStorage.getItem("role");
+
+      if (accessToken && role) {
+        router.push("/dashboard");
+      }
+    }
+  });
+
   const login = useMutation({
     mutationFn: Login,
     onSuccess: (data) => {
@@ -56,6 +68,7 @@ export default function AdminLogin() {
         position: "top-right",
       });
       localStorage.setItem("accessToken", data.token);
+      localStorage.setItem("refreshToken", data.refreshToken);
       localStorage.setItem("role", data.user.role);
       reset();
       router.push("/dashboard");

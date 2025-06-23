@@ -79,8 +79,8 @@ const UpdateUserRoleModal: React.FC<UpdateUserRoleModalProps> = ({
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
-          Update Role: {user?.name}
+        <Text size="md" fw={700} c="gray.9">
+          Update Role
         </Text>
       }
       centered

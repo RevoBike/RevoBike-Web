@@ -15,7 +15,7 @@ import { useForm } from "@mantine/form";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UpdateStation } from "@/app/api/station-api";
 import { notifications } from "@mantine/notifications";
-import { Station, FormValues } from "@/app/interfaces/station";
+import { Station, UpdateFormValues } from "@/app/interfaces/station";
 import stations from "@/app/_lib/stations";
 
 interface UpdateStationProps {
@@ -72,7 +72,7 @@ const UpdateStationModal = ({
     },
   });
 
-  const handleSubmit = (values: FormValues): void => {
+  const handleSubmit = (values: UpdateFormValues): void => {
     if (form.validate().hasErrors) return;
 
     const selectedStation = stations.find(
@@ -80,10 +80,7 @@ const UpdateStationModal = ({
     );
     if (selectedStation) {
       values.address = selectedStation.label;
-    } else {
-      values.address = "Unknown Address";
     }
-
     values.location = selectedStation?.value || [
       8.885462193542084, 38.809689022037034,
     ];
@@ -102,7 +99,7 @@ const UpdateStationModal = ({
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Update Station
         </Text>
       }
@@ -147,7 +144,6 @@ const UpdateStationModal = ({
           <Select
             label="Address"
             placeholder="Select address"
-            required
             data={stations.map((station) => ({
               ...station,
               value: station.value.toString(),

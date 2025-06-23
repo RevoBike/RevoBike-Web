@@ -17,6 +17,13 @@ export interface FormValues {
   location: number[];
 }
 
+export interface UpdateFormValues {
+  name: string;
+  address: string;
+  capacity: number;
+  location: number[] | null;
+}
+
 export interface HandleSubmitProps {
   (values: FormValues): void;
 }

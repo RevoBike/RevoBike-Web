@@ -16,22 +16,28 @@ exports.getAllStations = catchAsync(async (req, res) => {
     const capacityFilter = {};
     if (filter === "underloaded") {
       capacityFilter.$expr = {
-        $lt: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.2],
+        $lt: [{ $divide: [{ $size: "$available_bikes" }, "$totalSlots"] }, 0.2],
       };
     } else if (filter === "normal") {
       capacityFilter.$expr = {
         $and: [
           {
-            $gte: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.2],
+            $gte: [
+              { $divide: [{ $size: "$available_bikes" }, "$totalSlots"] },
+              0.2,
+            ],
           },
           {
-            $lte: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.8],
+            $lte: [
+              { $divide: [{ $size: "$available_bikes" }, "$totalSlots"] },
+              0.8,
+            ],
           },
         ],
       };
     } else if (filter === "overloaded") {
       capacityFilter.$expr = {
-        $gt: [{ $divide: ["$available_bikes.length", "$capacity"] }, 0.8],
+        $gt: [{ $divide: [{ $size: "$available_bikes" }, "$totalSlots"] }, 0.8],
       };
     }
     query = { ...query, ...capacityFilter };
@@ -105,6 +111,24 @@ exports.addStation = catchAsync(async (req, res) => {
   }
 
   const { name, location, totalSlots, address } = req.body;
+
+  const existingStationByName = await Station.find({ name });
+  if (existingStationByName && existingStationByName.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Station with that name already exists",
+    });
+  }
+  const existingStation = await Station.findOne({
+    location: { type: "Point", coordinates: location.coordinates },
+  });
+
+  if (existingStation) {
+    return res.status(400).json({
+      success: false,
+      message: "Station with that location already exists",
+    });
+  }
 
   if (
     !location ||
@@ -250,10 +274,25 @@ exports.updateStation = catchAsync(async (req, res) => {
     });
   }
 
+  if (!name) {
+    name = station.name;
+  }
+
+  if (!totalSlots) {
+    totalSlots = station.totalSlots;
+  }
+
+  if (!address) {
+    address = station.address;
+  }
+
+  if (!location) {
+    location = station.location;
+  }
+
   if (
-    !location ||
-    !Array.isArray(location.coordinates) ||
-    location.coordinates.length !== 2
+    location &&
+    (!Array.isArray(location.coordinates) || location.coordinates.length !== 2)
   ) {
     return res.status(400).json({
       success: false,
@@ -265,12 +304,8 @@ exports.updateStation = catchAsync(async (req, res) => {
   if (totalSlots < station.available_bikes.length) {
     return res.status(400).json({
       success: false,
-      mesage: "Total slots cannot be less than available bikes",
+      message: "Total slots cannot be less than available bikes",
     });
-  }
-
-  if (!name) {
-    name = station.name;
   }
 
   const updatedStation = await Station.findByIdAndUpdate(
@@ -287,5 +322,34 @@ exports.updateStation = catchAsync(async (req, res) => {
   res.status(200).json({
     success: true,
     data: updatedStation,
+  });
+});
+
+// getStationLocations
+
+exports.getStationLocations = catchAsync(async (req, res) => {
+  const stations = await Station.find({}, { name: 1, location: 1 }).sort({
+    createdAt: -1,
+  });
+
+  if (!stations) {
+    return res.status(404).json({
+      success: false,
+      message: "No stations found",
+    });
+  }
+
+  const stationLocations =
+    stations &&
+    stations.map((station) => {
+      return {
+        name: station.name,
+        coordinates: station.location.coordinates,
+      };
+    });
+
+  res.status(200).json({
+    success: true,
+    data: stationLocations,
   });
 });
