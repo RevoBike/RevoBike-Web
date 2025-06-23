@@ -3,7 +3,8 @@ import api from "./api";
 import { User } from "@/app/interfaces/user";
 import axios from "axios";
 
-const URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+const URL =
+  process.env.NEXT_PUBLIC_API_URL || "https://backend-ge4m.onrender.com/api";
 
 const CreateAdmin = async (data: {
   name: string;
