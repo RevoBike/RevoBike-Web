@@ -3,12 +3,12 @@ export interface Alert {
   user: {
     _id: string;
     name: string;
-    email: string;
+    phone_number: string;
   };
   bike: {
     _id: string;
     bikeId: string;
-    status: string;
+    model: string;
   };
   alertType: string;
   location: string;

@@ -38,7 +38,7 @@ export default function BikeMetrics() {
           </div>
           <div>
             <Text size="sm" c="dimmed" fw={500}>
-              Total Bikes{" "}
+              Total Number of Bikes{" "}
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>

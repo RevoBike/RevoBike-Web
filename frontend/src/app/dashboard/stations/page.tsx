@@ -34,9 +34,12 @@ import StationDetailsModal from "./_components/details-modal";
 import DeleteConfirmationModal from "./_components/delete-modal";
 import MapModal from "./_components/map-modal";
 import { Station } from "@/app/interfaces/station";
+import { useCheckRole } from "@/app/_utils/check-role";
+import LoadingPage from "@/app/loading";
 
 export default function StationsManagement() {
-  const limit = 5;
+  const isSuperAdmin = useCheckRole();
+  const limit = 10;
   const [filter, setFilter] = useState<
     "all" | "normal" | "overloaded" | "underloaded"
   >("all");
@@ -92,11 +95,7 @@ export default function StationsManagement() {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Text>Loading...</Text>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (error) {
@@ -123,15 +122,20 @@ export default function StationsManagement() {
             color="#154B1B"
             className="hover:cursor-pointer"
           />
-          <Text className="text-[#154B1B] hover:cursor-pointer">View Map</Text>
+          <Text className="text-[#154B1B] hover:cursor-pointer hover:text-green-600">
+            View Map
+          </Text>
         </div>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={openAddModal}
-          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
-        >
-          Add Station
-        </Button>
+
+        {isSuperAdmin && (
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={openAddModal}
+            className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
+          >
+            Add Station
+          </Button>
+        )}
       </Group>
       <StationsMetrics />
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 px-2">
@@ -176,76 +180,81 @@ export default function StationsManagement() {
         </div>
       </div>
 
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400 ">
-            <Table.Th>Name</Table.Th>
-            <Table.Th>Address</Table.Th>
-            <Table.Th>Capacity</Table.Th>
-            <Table.Th>Bikes</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>CreatedAt</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {stations &&
-            stations.map((station) => {
-              const occupancy =
-                station && station.totalSlots && station.totalSlots > 0
-                  ? (station.available_bikes.length / station.totalSlots) * 100
-                  : 0;
-              const status =
-                occupancy > 80
-                  ? "Overloaded"
-                  : occupancy < 20
-                  ? "Underloaded"
-                  : "Normal";
-              const statusColor =
-                occupancy > 80 ? "red" : occupancy < 20 ? "yellow" : "green";
+      <div className="w-full overflow-x-auto">
+        <Table highlightOnHover className="min-w-full md:table-hidden">
+          <Table.Thead>
+            <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400 ">
+              <Table.Th>Name</Table.Th>
+              <Table.Th>Address</Table.Th>
+              <Table.Th>Capacity</Table.Th>
+              <Table.Th>Bikes</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Created At</Table.Th>
+              {isSuperAdmin && <Table.Th>Actions</Table.Th>}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {stations &&
+              stations.map((station) => {
+                const occupancy =
+                  station && station.totalSlots && station.totalSlots > 0
+                    ? (station.available_bikes.length / station.totalSlots) *
+                      100
+                    : 0;
+                const status =
+                  occupancy > 80
+                    ? "Overloaded"
+                    : occupancy < 20
+                    ? "Underloaded"
+                    : "Normal";
+                const statusColor =
+                  occupancy > 80 ? "red" : occupancy < 20 ? "yellow" : "green";
 
-              return (
-                <Table.Tr
-                  key={station._id}
-                  style={{ cursor: "pointer" }}
-                  onClick={() => handleRowClick(station)}
-                >
-                  <Table.Td>{station.name}</Table.Td>
-                  <Table.Td>{station.address}</Table.Td>
-                  <Table.Td>{station.totalSlots || 0}</Table.Td>
-                  <Table.Td>
-                    {(station.available_bikes &&
-                      station.available_bikes.length) ||
-                      0}
-                  </Table.Td>
-                  <Table.Td>
-                    <Badge color={statusColor} variant="light">
-                      {status}
-                    </Badge>
-                  </Table.Td>
-                  <Table.Td>{formatDate(station.createdAt)}</Table.Td>
-                  <Table.Td className="ml-auto">
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleEditClick(station, e)}
-                    >
-                      <IconEdit size={18} color="green" />
-                    </Button>
-                    |
-                    <Button
-                      size="xs"
-                      variant="subtle"
-                      onClick={(e) => handleDeleteClick(station, e)}
-                    >
-                      <IconTrash size={18} color="red" />
-                    </Button>
-                  </Table.Td>
-                </Table.Tr>
-              );
-            })}
-        </Table.Tbody>
-      </Table>
+                return (
+                  <Table.Tr
+                    key={station._id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() => handleRowClick(station)}
+                  >
+                    <Table.Td>{station.name}</Table.Td>
+                    <Table.Td>{station.address}</Table.Td>
+                    <Table.Td>{station.totalSlots || 0}</Table.Td>
+                    <Table.Td>
+                      {(station.available_bikes &&
+                        station.available_bikes.length) ||
+                        0}
+                    </Table.Td>
+                    <Table.Td>
+                      <Badge color={statusColor} variant="light">
+                        {status}
+                      </Badge>
+                    </Table.Td>
+                    <Table.Td>{formatDate(station.createdAt)}</Table.Td>
+                    {isSuperAdmin && (
+                      <Table.Td className="ml-auto">
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          onClick={(e) => handleEditClick(station, e)}
+                        >
+                          <IconEdit size={18} color="green" />
+                        </Button>
+                        |
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          onClick={(e) => handleDeleteClick(station, e)}
+                        >
+                          <IconTrash size={18} color="red" />
+                        </Button>
+                      </Table.Td>
+                    )}
+                  </Table.Tr>
+                );
+              })}
+          </Table.Tbody>
+        </Table>
+      </div>
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button
           className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "

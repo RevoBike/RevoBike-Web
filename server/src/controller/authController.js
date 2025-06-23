@@ -315,3 +315,25 @@ exports.resetPasswordWithOTP = catchAsync(async (req, res) => {
 
   res.status(200).json({ message: "Password has been reset successfully" });
 });
+
+// Change Password
+exports.changePassword = catchAsync(async (req, res, next) => {
+  const { email, oldPassword, newPassword } = req.body;
+  if (!email || !oldPassword || !newPassword) {
+    return res.status(400).json({ message: "All fields are required" });
+  }
+
+  const user = await User.findOne({ email }).select("+password");
+  if (!user || user.length === 0) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const isPasswordValid = await user.comparePassword(oldPassword);
+
+  if (!user || !isPasswordValid) {
+    return res.status(401).json({ message: "Invalid credentials" });
+  }
+  user.password = newPassword;
+  await user.save();
+  res.status(200).json({ message: "Password changed successfully" });
+});

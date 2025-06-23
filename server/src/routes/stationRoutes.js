@@ -10,6 +10,7 @@ const {
   getStationMetrics,
   getStationsList,
   updateStation,
+  getStationLocations,
 } = require("../controller/stationController");
 
 /**
@@ -129,6 +130,8 @@ router.get("/", protect, getAllStations);
  */
 
 router.get("/station-metrics", protect, getStationMetrics);
+
+router.get("/locations", protect, getStationLocations);
 
 /**
  * @swagger

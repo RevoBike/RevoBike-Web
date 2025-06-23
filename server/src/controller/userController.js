@@ -1,6 +1,10 @@
 const User = require("../models/User");
 const catchAsync = require("../utils/catchAsync");
-const { sendAdminEmail } = require("../utils/adminEmail");
+const {
+  sendAdminEmail,
+  sendAdminRoleUpdateEmail,
+  sendAdminDeleteEmail,
+} = require("../utils/adminEmail");
 
 // Admin verifies a user
 exports.verifyUser = catchAsync(async (req, res) => {
@@ -184,6 +188,48 @@ exports.createAdmin = catchAsync(async (req, res) => {
   });
 });
 
+exports.createSuperAdmin = catchAsync(async (req, res) => {
+  const { name, email, phone_number, role } = req.body;
+  const existingUser = await User.find({
+    email,
+  });
+  if (existingUser.length > 0) {
+    return res.status(400).json({
+      success: false,
+      message: "Email already exists",
+    });
+  }
+
+  const password = Math.random().toString(36).slice(-8);
+  const admin = await User.create({
+    name,
+    email,
+    password: password,
+    phone_number,
+    role,
+  });
+
+  if (!admin) {
+    return res.status(400).json({
+      success: false,
+      message: "Error creating super admin",
+    });
+  }
+
+  try {
+    sendAdminEmail(email, password);
+  } catch (err) {
+    console.log("Error sending email", err);
+  }
+
+  admin.password = undefined;
+
+  res.status(201).json({
+    success: true,
+    data: admin,
+  });
+});
+
 // Delete a user (Only SuperAdmin)
 exports.deleteUser = catchAsync(async (req, res) => {
   if (req.user.role !== "SuperAdmin") {
@@ -192,12 +238,23 @@ exports.deleteUser = catchAsync(async (req, res) => {
       message: "Access denied",
     });
   }
-  const user = await User.findByIdAndDelete(req.params.id);
-  if (!user)
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
     return res.status(404).json({
       success: false,
       message: "User not found",
     });
+  }
+  if (user.role === "SuperAdmin") {
+    return res.status(400).json({
+      success: false,
+      message: "Cannot delete SuperAdmin",
+    });
+  }
+  await User.findByIdAndDelete(req.params.id);
+
+  sendAdminDeleteEmail(user.email);
 
   res.status(200).json({
     success: true,
@@ -222,6 +279,94 @@ exports.getUserMetrics = catchAsync(async (req, res) => {
       totalCustomers,
       totalAdmins,
       totalSuperAdmins,
+    },
+  });
+});
+
+//updateUserRole
+
+exports.updateUserRole = catchAsync(async (req, res) => {
+  if (req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Access denied",
+    });
+  }
+  const { role } = req.body;
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+
+  if (user.role === "User") {
+    return res.status(400).json({
+      success: false,
+      message: `User cannot be assigned a role ${role}`,
+    });
+  }
+
+  if (user.role === role) {
+    return res.status(400).json({
+      success: false,
+      message: "User already has this role",
+    });
+  }
+  user.role = role;
+  await user.save();
+  sendAdminRoleUpdateEmail(user.email);
+  res.status(200).json({
+    success: true,
+    message: "User role updated successfully",
+  });
+});
+
+// Get user profile (Users can view their own profile)
+exports.getUserProfile = catchAsync(async (req, res) => {
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+  res.status(200).json({
+    success: true,
+    data: {
+      name: user.name,
+      email: user.email,
+      phone_number: user.phone_number,
+      universityId: user.universityId,
+      role: user.role,
+    },
+  });
+});
+
+// updateProfile
+exports.updateProfile = catchAsync(async (req, res) => {
+  const { name, email, phone_number } = req.body;
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
+  }
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (phone_number) user.phone_number = phone_number;
+  if (universityId) user.universityId = universityId;
+  await user.save();
+  res.status(200).json({
+    success: true,
+    data: {
+      name: user.name,
+      email: user.email,
+      phone_number: user.phone_number,
+      universityId: user.universityId,
+      role: user.role,
     },
   });
 });

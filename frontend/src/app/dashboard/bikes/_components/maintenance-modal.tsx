@@ -42,9 +42,8 @@ const MaintenanceBikeModal = ({
         value.trim().length < 5
           ? "Description must be at least 5 characters long"
           : null,
-      // cost: (value) => (value <= 0 ? "Cost must be greater than 0" : null),
-      // technician: (value) =>
-      //   value.trim().length < 3 ? "Technician name is required" : null,
+      date: (value) => (!value ? "Date is required" : null),
+      cost: (value) => (value < 1 ? "Cost must be at least 1" : null),
     },
   });
 
@@ -96,7 +95,7 @@ const MaintenanceBikeModal = ({
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Schedule Maintenance
         </Text>
       }

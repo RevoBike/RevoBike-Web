@@ -29,6 +29,7 @@ import { GetBikesUnderMaintenance } from "@/app/api/maintenance-api";
 import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
 import UpdateMaintenanceModal from "./_components/update-modal";
+import LoadingPage from "@/app/loading";
 
 export default function BikesManagement() {
   const limit = 5;
@@ -77,11 +78,7 @@ export default function BikesManagement() {
   const hasNextPage = bikes && bikes.length === limit;
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Text>Loading...</Text>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (error) {
@@ -143,63 +140,65 @@ export default function BikesManagement() {
         </div>
       </Group>
 
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
-            <Table.Th>Bike ID</Table.Th>
-            <Table.Th>Model</Table.Th>
-            <Table.Th>Station</Table.Th>
-            <Table.Th>Last Maintenance</Table.Th>
-            <Table.Th>Next Maintenance</Table.Th>
-            <Table.Th>Total Rides</Table.Th>
-            <Table.Th>Total distance</Table.Th>
-            <Table.Th>Created At</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bikes &&
-            bikes.map((bike) => (
-              <Table.Tr key={bike._id} style={{ cursor: "pointer" }}>
-                <Table.Td>{bike.bikeId}</Table.Td>
-                <Table.Td>{bike.model}</Table.Td>
-                <Table.Td>{bike.currentStation}</Table.Td>
+      <div className="w-full overflow-x-auto">
+        <Table highlightOnHover>
+          <Table.Thead>
+            <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
+              <Table.Th>Bike ID</Table.Th>
+              <Table.Th>Model</Table.Th>
+              <Table.Th>Station</Table.Th>
+              <Table.Th>Last Maintenance</Table.Th>
+              <Table.Th>Next Maintenance</Table.Th>
+              <Table.Th>Total Rides</Table.Th>
+              <Table.Th>Total distance</Table.Th>
+              <Table.Th>Created At</Table.Th>
+              <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {bikes &&
+              bikes.map((bike) => (
+                <Table.Tr key={bike._id} style={{ cursor: "pointer" }}>
+                  <Table.Td>{bike.bikeId}</Table.Td>
+                  <Table.Td>{bike.model}</Table.Td>
+                  <Table.Td>{bike.currentStation}</Table.Td>
 
-                <Table.Td>{formatDate(bike.lastMaintenance)}</Table.Td>
-                <Table.Td>{formatDate(bike.nextMaintenance)}</Table.Td>
-                <Table.Td>{bike.totalRides}</Table.Td>
-                <Table.Td>{bike.totalDistance}</Table.Td>
-                <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
+                  <Table.Td>{formatDate(bike.lastMaintenance)}</Table.Td>
+                  <Table.Td>{formatDate(bike.nextMaintenance)}</Table.Td>
+                  <Table.Td>{bike.totalRides}</Table.Td>
+                  <Table.Td>{bike.totalDistance}</Table.Td>
+                  <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
 
-                <Table.Td className="ml-auto">
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleMaintenanceClick(bike, e)}
-                  >
-                    <IconCheck size={18} />
-                  </Button>
-                  |
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleEditClick(bike, e)}
-                  >
-                    <IconEdit size={18} color="green" />
-                  </Button>
-                  |
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleDeleteClick(bike, e)}
-                  >
-                    <IconTrash size={18} color="red" />
-                  </Button>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-        </Table.Tbody>
-      </Table>
+                  <Table.Td className="ml-auto">
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={(e) => handleMaintenanceClick(bike, e)}
+                    >
+                      <IconCheck size={18} />
+                    </Button>
+                    |
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={(e) => handleEditClick(bike, e)}
+                    >
+                      <IconEdit size={18} color="green" />
+                    </Button>
+                    |
+                    <Button
+                      size="xs"
+                      variant="subtle"
+                      onClick={(e) => handleDeleteClick(bike, e)}
+                    >
+                      <IconTrash size={18} color="red" />
+                    </Button>
+                  </Table.Td>
+                </Table.Tr>
+              ))}
+          </Table.Tbody>
+        </Table>
+      </div>
 
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button

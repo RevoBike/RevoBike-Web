@@ -26,7 +26,7 @@ const BikeMapModal = ({ opened, onClose }: MapModalProps) => {
   });
 
   const offsetCoordinates = (coordinates: [number, number], index: number) => {
-    const offset = 0.0001 * index;
+    const offset = 0.00002 * index;
     return [coordinates[0] + offset, coordinates[1] + offset];
   };
 

@@ -54,7 +54,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Confirm Deletion
         </Text>
       }

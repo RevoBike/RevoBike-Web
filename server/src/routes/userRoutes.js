@@ -8,6 +8,10 @@ const {
   verifyUser,
   getUserMetrics,
   getAllUsersInTheSystem,
+  updateUserRole,
+  createSuperAdmin,
+  getUserProfile,
+  updateProfile,
 } = require("../controller/userController");
 const { protect, authorizeRoles } = require("../middlewares/middleware");
 
@@ -47,40 +51,8 @@ router.get("/all", protect, getAllUsersInTheSystem);
  *         description: List of users
  */
 router.get("/", protect, authorizeRoles("admin"), getAllUsers);
-
-/**
- * @swagger
- * /api/admin/user-metrics:
- *   get:
- *     summary: Get user metrics (admin only)
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User metrics data
- */
-router.get("/user-metrics", protect, authorizeRoles("admin"), getUserMetrics);
-
-/**
- * @swagger
- * /api/admin/{id}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: User ID
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: User data
- */
+router.get("/profile", protect, getUserProfile);
+router.get("/user-metrics", protect, getUserMetrics);
 router.get("/:id", protect, getUserById);
 
 /**
@@ -120,28 +92,19 @@ router.get("/:id", protect, getUserById);
  *       200:
  *         description: User updated successfully
  */
+
+router.put("/profile", protect, updateProfile);
+
 router.put("/:id", protect, updateUser);
 
-/**
- * @swagger
- * /api/admin/{id}:
- *   delete:
- *     summary: Delete user by ID (admin only)
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         description: User ID
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: User deleted successfully
- */
-router.delete("/:id", protect, authorizeRoles("admin"), deleteUser);
+router.put(
+  "/update/:id",
+  protect,
+  authorizeRoles("SuperAdmin"),
+  updateUserRole
+);
+
+router.delete("/:id", protect, authorizeRoles("SuperAdmin"), deleteUser);
 
 /**
  * @swagger
@@ -202,5 +165,7 @@ router.put(
  *         description: Admin user created successfully
  */
 router.post("/", protect, authorizeRoles("SuperAdmin"), createAdmin);
+// for adding superadmin
+router.post("/superadmin", createSuperAdmin);
 
 module.exports = router;

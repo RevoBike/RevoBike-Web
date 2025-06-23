@@ -1,7 +1,14 @@
+"use client";
 import { Avatar, Group, Text, Box, Container } from "@mantine/core";
-import { IconSearch, IconSettings, IconBell } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { GetProfile } from "@/app/api/user";
 
 export default function DashboardHeader() {
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: GetProfile,
+  });
+
   return (
     <Box
       component="header"
@@ -17,30 +24,19 @@ export default function DashboardHeader() {
           </Text>
 
           <Group gap="md">
-            <div className="bg-white text-gray-500 flex items-center rounded-lg px-2 py-1 shadow-sm hover:bg-gray-100 hover:cursor-pointer">
-              <IconSearch size={20} stroke={1.5} />
-            </div>
-
-            <div className="bg-white text-gray-500 flex items-center rounded-lg px-2 py-1 shadow-sm hover:bg-gray-100 hover:cursor-pointer">
-              <IconSettings size={20} stroke={1.5} />
-            </div>
-            <div className="bg-white text-gray-500 flex items-center rounded-lg px-2 py-1 shadow-sm hover:bg-gray-100 hover:cursor-pointer">
-              <IconBell size={20} stroke={1.5} />
-            </div>
-
             <Group gap="sm">
               <Avatar
                 radius="xl"
                 size="md"
                 src="/placeholder-user.jpg"
-                alt="Abram Schneller"
+                alt="User"
               />
               <Box>
-                <Text size="sm" fw={500} lh="tight">
-                  Abebe Belete{" "}
+                <Text size="sm" fw={500} lh="tight" c="dimmed">
+                  {profile && profile.name}{" "}
                 </Text>
                 <Text size="xs" c="dimmed" lh="tight">
-                  Admin
+                  {profile && profile.role}
                 </Text>
               </Box>
             </Group>

@@ -1,8 +1,6 @@
 "use client";
-import axios from "axios";
+import api from "./api";
 import { Bike } from "@/app/interfaces/bike";
-
-const URL = process.env.API_URL || "http://localhost:5000/api";
 
 const GetBikesUnderMaintenance = async (
   page: number,
@@ -10,27 +8,14 @@ const GetBikesUnderMaintenance = async (
   searchTerm?: string,
   bikeFilter?: string
 ): Promise<Bike[]> => {
-  try {
-    const response = await axios.get(
-      `${URL}/maintenance?bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`,
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.get(
+    `/maintenance?bikeFilter=${bikeFilter}&search=${searchTerm}&limit=${limit}&page=${page}`
+  );
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const AddBikeUnderMaintenance = async (data: {
@@ -41,55 +26,27 @@ const AddBikeUnderMaintenance = async (data: {
   technician: string;
   cost: number;
 }): Promise<Bike> => {
-  try {
-    const response = await axios.post(
-      `${URL}/maintenance/${data.bikeId}`,
-      {
-        description: data.description,
-        date: data.date,
-        type: data.type,
-        technician: data.technician,
-        cost: data.cost,
-      },
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.post(`/maintenance/${data.bikeId}`, {
+    description: data.description,
+    date: data.date,
+    type: data.type,
+    technician: data.technician,
+    cost: data.cost,
+  });
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const DoneBikeMaintenance = async (id: string): Promise<Bike> => {
-  try {
-    const response = await axios.get(`${URL}/maintenance/${id}`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.get(`/maintenance/${id}`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const UpdateBikeUnderMaintenance = async (data: {
@@ -100,57 +57,29 @@ const UpdateBikeUnderMaintenance = async (data: {
   technician: string;
   cost: number;
 }): Promise<Bike> => {
-  try {
-    const response = await axios.put(
-      `${URL}/maintenance/${data.bikeId}`,
-      {
-        description: data.description,
-        date: data.date,
-        type: data.type,
-        technician: data.technician,
-        cost: data.cost,
-      },
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.put(`/maintenance/${data.bikeId}`, {
+    description: data.description,
+    date: data.date,
+    type: data.type,
+    technician: data.technician,
+    cost: data.cost,
+  });
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const DeleteBikeMaintenance = async (data: {
   bikeId: string;
 }): Promise<Bike> => {
-  try {
-    const response = await axios.delete(`${URL}/maintenance/${data.bikeId}`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.delete(`/maintenance/${data.bikeId}`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 export {

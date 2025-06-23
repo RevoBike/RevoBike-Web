@@ -4,7 +4,7 @@ import { Modal, Text, Box } from "@mantine/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useQuery } from "@tanstack/react-query";
-import { GetStationLocation } from "@/app/api/station-api";
+import { GetAlertLocation } from "@/app/api/alerts";
 
 interface MapModalProps {
   opened: boolean;
@@ -20,22 +20,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 const MapModal = ({ opened, onClose }: MapModalProps) => {
-  const {
-    data: stations,
-    // isLoading,
-    // error,
-  } = useQuery({
-    queryKey: ["stationLocations"],
-    queryFn: GetStationLocation,
+  const { data: alerts } = useQuery({
+    queryKey: ["alertsLocations"],
+    queryFn: GetAlertLocation,
+    refetchInterval: 5000,
   });
-
-  //   if (isLoading) {
-  //     return <div>Loading...</div>;
-  //   }
-
-  //   if (error) {
-  //     return <div>Error: {error.message}</div>;
-  //   }
 
   return (
     <Modal
@@ -43,7 +32,7 @@ const MapModal = ({ opened, onClose }: MapModalProps) => {
       onClose={onClose}
       title={
         <Text size="lg" fw={700} c="gray.9">
-          AASTU Stations
+          Alerts
         </Text>
       }
       centered
@@ -71,20 +60,20 @@ const MapModal = ({ opened, onClose }: MapModalProps) => {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
-          {stations &&
-            stations.map((station, index) => (
+          {alerts &&
+            alerts.map((alert, index) => (
               <Marker
                 key={index}
-                position={[station.coordinates[0], station.coordinates[1]]}
+                position={[alert.coordinates[0], alert.coordinates[1]]}
               >
                 <Popup>
                   {" "}
                   <Text>
-                    <strong>Location:</strong> {station.name}
+                    <strong>Location:</strong> {alert.bikeId}
                   </Text>
                   <Text>
-                    <strong>Coordinates:</strong> {station.coordinates[0]},{" "}
-                    {station.coordinates[1]}
+                    <strong>Coordinates:</strong> {alert.coordinates[0]},{" "}
+                    {alert.coordinates[1]}
                   </Text>
                 </Popup>
               </Marker>

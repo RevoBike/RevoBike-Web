@@ -39,7 +39,7 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
       opened={opened}
       onClose={onClose}
       title={
-        <Text fw={700} size="xl" className="text-gray-900">
+        <Text fw={700} size="lg" className="text-gray-900">
           Station: {station?.name}
         </Text>
       }

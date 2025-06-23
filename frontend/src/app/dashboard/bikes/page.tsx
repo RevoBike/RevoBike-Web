@@ -35,9 +35,12 @@ import { GetStationsList } from "@/app/api/station-api";
 import { GetBikes } from "@/app/api/bikes-api";
 import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
+import { useCheckRole } from "@/app/_utils/check-role";
+import LoadingPage from "@/app/loading";
 
 export default function BikesManagement() {
-  const limit = 5;
+  const isSuperAdmin = useCheckRole();
+  const limit = 10;
 
   const [statusFilter, setStatusFilter] = useState<
     "all" | "available" | "in-use" | "underMaintenance"
@@ -97,11 +100,7 @@ export default function BikesManagement() {
   const hasNextPage = bikes && bikes.length === limit;
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-full">
-        <Text>Loading...</Text>
-      </div>
-    );
+    return <LoadingPage />;
   }
 
   if (error) {
@@ -147,13 +146,15 @@ export default function BikesManagement() {
           />
           <Text className="text-[#154B1B] hover:cursor-pointer">View Map</Text>
         </div>
-        <Button
-          leftSection={<IconPlus size={16} />}
-          onClick={openAddModal}
-          className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
-        >
-          Add Bike
-        </Button>
+        {isSuperAdmin && (
+          <Button
+            leftSection={<IconPlus size={16} />}
+            onClick={openAddModal}
+            className="bg-[#154B1B] text-white hover:bg-green-600 ml-auto"
+          >
+            Add Bike
+          </Button>
+        )}
       </Group>
       <BikeMetrics />
 
@@ -213,74 +214,76 @@ export default function BikesManagement() {
           />
         </div>
       </Group>
-
-      <Table highlightOnHover>
-        <Table.Thead>
-          <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
-            <Table.Th>Bike ID</Table.Th>
-            <Table.Th>Model</Table.Th>
-            <Table.Th>Station</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th>CreatedAt</Table.Th>
-            <Table.Th>Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {bikes &&
-            bikes.map((bike) => (
-              <Table.Tr
-                key={bike._id}
-                onClick={(e) => handleRowClick(bike, e)}
-                style={{ cursor: "pointer" }}
-              >
-                <Table.Td>{bike.bikeId}</Table.Td>
-                <Table.Td>{bike.model}</Table.Td>
-                <Table.Td>{bike.currentStation}</Table.Td>
-                <Table.Td>
-                  <Badge
-                    color={
-                      bike.status === "available"
-                        ? "green"
-                        : bike.status === "in-use"
-                        ? "yellow"
-                        : "blue"
-                    }
-                    variant="light"
-                  >
-                    {bike.status}
-                  </Badge>
-                </Table.Td>
-                <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
-
-                <Table.Td className="ml-auto">
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleMaintenanceClick(bike, e)}
-                  >
-                    <IconTool size={18} />
-                  </Button>
-                  |
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleEditClick(bike, e)}
-                  >
-                    <IconEdit size={18} color="green" />
-                  </Button>
-                  |
-                  <Button
-                    size="xs"
-                    variant="subtle"
-                    onClick={(e) => handleDeleteClick(bike, e)}
-                  >
-                    <IconTrash size={18} color="red" />
-                  </Button>
-                </Table.Td>
-              </Table.Tr>
-            ))}
-        </Table.Tbody>
-      </Table>
+      <div className="w-full overflow-x-auto">
+        <Table highlightOnHover>
+          <Table.Thead>
+            <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400">
+              <Table.Th>Bike ID</Table.Th>
+              <Table.Th>Model</Table.Th>
+              <Table.Th>Station</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Created At</Table.Th>
+              {isSuperAdmin && <Table.Th>Actions</Table.Th>}
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {bikes &&
+              bikes.map((bike) => (
+                <Table.Tr
+                  key={bike._id}
+                  onClick={(e) => handleRowClick(bike, e)}
+                  style={{ cursor: "pointer" }}
+                >
+                  <Table.Td>{bike.bikeId}</Table.Td>
+                  <Table.Td>{bike.model}</Table.Td>
+                  <Table.Td>{bike.currentStation}</Table.Td>
+                  <Table.Td>
+                    <Badge
+                      color={
+                        bike.status === "available"
+                          ? "green"
+                          : bike.status === "in-use"
+                          ? "yellow"
+                          : "blue"
+                      }
+                      variant="light"
+                    >
+                      {bike.status}
+                    </Badge>
+                  </Table.Td>
+                  <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
+                  {isSuperAdmin && (
+                    <Table.Td className="ml-auto">
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        onClick={(e) => handleMaintenanceClick(bike, e)}
+                      >
+                        <IconTool size={18} />
+                      </Button>
+                      |
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        onClick={(e) => handleEditClick(bike, e)}
+                      >
+                        <IconEdit size={18} color="green" />
+                      </Button>
+                      |
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        onClick={(e) => handleDeleteClick(bike, e)}
+                      >
+                        <IconTrash size={18} color="red" />
+                      </Button>
+                    </Table.Td>
+                  )}
+                </Table.Tr>
+              ))}
+          </Table.Tbody>
+        </Table>
+      </div>
 
       <Container className="flex flex-row justify-center items-center gap-2 mt-5">
         <Button

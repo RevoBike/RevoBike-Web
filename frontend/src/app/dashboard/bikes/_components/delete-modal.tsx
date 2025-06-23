@@ -8,7 +8,7 @@ import { notifications } from "@mantine/notifications";
 interface DeleteBikeModalProps {
   opened: boolean;
   onClose: () => void;
-  bike: { _id?: string; model?: string } | null;
+  bike: { _id?: string; model?: string; bikeId: string } | null;
 }
 
 const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
@@ -54,7 +54,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Confirm Deletion
         </Text>
       }
@@ -79,7 +79,7 @@ const DeleteBikeModal = ({ opened, onClose, bike }: DeleteBikeModalProps) => {
         <Text size="md" c="gray.7" lineClamp={2}>
           Are you sure you want to delete the bike{" "}
           <Text span fw={600} c="gray.9">
-            {bike?.model}
+            {bike?.bikeId}
           </Text>{" "}
           ?
         </Text>

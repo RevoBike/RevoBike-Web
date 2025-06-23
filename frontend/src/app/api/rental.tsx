@@ -1,37 +1,22 @@
 "use client";
-import axios from "axios";
+import api from "./api";
 import { Ride } from "@/app/interfaces/rides";
-
-const URL = process.env.API_URL || "http://localhost:5000/api";
 
 const GetRides = async (
   page: number,
   limit: number,
-  search?: string,
-  filter?: string
+  filter?: string,
+  date: Date | null = null
 ): Promise<Ride[]> => {
-  try {
-    const response = await axios.get(
-      `${URL}/rides?filter=${filter}&search=${search}&limit=${limit}&page=${page}`,
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.get(
+    `/rides?filter=${filter}&date=${date}&limit=${limit}&page=${page}`
+  );
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    console.log(response.data.data);
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  console.log(response.data.data);
+  return response.data.data;
 };
 
 export { GetRides };

@@ -1,18 +1,33 @@
+"use client";
 import { Card, Group, Text, Badge } from "@mantine/core";
 import {
   IconArrowDown,
   IconArrowUp,
   IconCalendar,
   IconBike,
-  IconCreditCard,
+  IconTool,
 } from "@tabler/icons-react";
 
+import { useQuery } from "@tanstack/react-query";
+import { GetStats } from "@/app/api/stats";
+
 export default function DashboardMetrics() {
+  const { data: stats } = useQuery({
+    queryKey: ["stats"],
+    queryFn: GetStats,
+  });
+
   return (
     <div className="grid grid-rows-2 grid-cols-2 gap-4">
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-200"
+      >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconCalendar size={20} />
           </div>
           <div>
@@ -21,84 +36,111 @@ export default function DashboardMetrics() {
             </Text>
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                386
+                {stats?.rented.count} Rentals
               </Text>
+            </Group>
+
+            <div className="flex items-center justify-center mt-2 gap-1">
               <Badge
                 color="green"
                 variant="light"
                 leftSection={<IconArrowUp size={12} />}
                 size="sm"
               >
-                1.73%
+                {stats?.rented.change}%
               </Badge>
-            </Group>
-            <Text size="xs" c="dimmed" mt={4}>
-              from last week
-            </Text>
+              <Text size="xs" c="dimmed">
+                from last week
+              </Text>
+            </div>
           </div>
         </Group>
       </Card>
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-200"
+      >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
-            <IconCreditCard size={20} />
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
+            <IconTool size={20} />
           </div>
           <div>
             <Text size="sm" c="dimmed" fw={500}>
               Bikes in maintenance
             </Text>
+
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                214 Unit
+                {stats?.maintenance.count} Bikes
               </Text>
+            </Group>
+            <div className="flex items-center justify-center mt-2 gap-1">
               <Badge
                 color="green"
                 variant="light"
                 leftSection={<IconArrowUp size={12} />}
                 size="sm"
               >
-                2.86%
+                {stats?.maintenance.count}%
               </Badge>
-            </Group>
-            <Text size="xs" c="dimmed" mt={4}>
-              from last week
-            </Text>
+              <Text size="xs" c="dimmed">
+                from last week
+              </Text>
+            </div>
           </div>
         </Group>
       </Card>
 
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-200"
+      >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconBike size={20} />
           </div>
           <div>
             <Text size="sm" c="dimmed" fw={500}>
-              Rented Bikes
+              Total Revenue
             </Text>
+
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                214 Unit
+                {stats?.revenue.total} Birr
               </Text>
+            </Group>
+            <div className="flex items-center justify-center mt-2 gap-1">
               <Badge
                 color="red"
                 variant="light"
                 leftSection={<IconArrowDown size={12} />}
                 size="sm"
               >
-                2.86%
+                {stats?.revenue.change}%
               </Badge>
-            </Group>
-            <Text size="xs" c="dimmed" mt={4}>
-              from last week
-            </Text>
+              <Text size="xs" c="dimmed">
+                from last week
+              </Text>
+            </div>
           </div>
         </Group>
       </Card>
 
-      <Card padding="md" withBorder shadow="sm" radius="md">
+      <Card
+        padding="md"
+        withBorder
+        shadow="sm"
+        radius="md"
+        className="hover:shadow-lg transition-shadow duration-200"
+      >
         <Group align="flex-start" gap="md">
-          <div className="bg-gray-900 text-white rounded-full p-1">
+          <div className="bg-[#154B1B] text-white rounded-full p-1">
             <IconBike size={20} />
           </div>
 
@@ -106,22 +148,25 @@ export default function DashboardMetrics() {
             <Text size="sm" c="dimmed" fw={500}>
               Available Bikes
             </Text>
+
             <Group gap="xs" mt={4}>
               <Text size="xl" fw={700}>
-                89 Unit
+                {stats?.available.count} bikes
               </Text>
+            </Group>
+            <div className="flex items-center justify-center mt-2 gap-1">
               <Badge
-                color="green"
+                color="red"
                 variant="light"
-                leftSection={<IconArrowUp size={12} />}
+                leftSection={<IconArrowDown size={12} />}
                 size="sm"
               >
-                3.45%
+                {stats?.available.change}%
               </Badge>
-            </Group>
-            <Text size="xs" c="dimmed" mt={4}>
-              from last week
-            </Text>
+              <Text size="xs" c="dimmed">
+                from last week
+              </Text>
+            </div>
           </div>
         </Group>
       </Card>

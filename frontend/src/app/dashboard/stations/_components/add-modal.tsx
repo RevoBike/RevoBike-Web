@@ -25,6 +25,8 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
     validate: {
       name: (value) =>
         value.length < 2 ? "Name must be at least 2 characters" : null,
+      address: (value) =>
+        !value || value.length === 0 ? "Address is required" : null,
       capacity: (value) =>
         value < 1 ? "Capacity must be a positive number" : null,
     },
@@ -69,8 +71,6 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
     );
     if (selectedStation) {
       values.address = selectedStation.label;
-    } else {
-      values.address = "Unknown Address";
     }
 
     values.location = selectedStation?.value || [
@@ -85,7 +85,7 @@ const AddStationModal = ({ opened, onClose }: AddStationModalProps) => {
       opened={opened}
       onClose={onClose}
       title={
-        <Text size="lg" fw={700} c="gray.9">
+        <Text size="md" fw={700} c="gray.9">
           Add New Station
         </Text>
       }

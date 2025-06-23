@@ -1,9 +1,9 @@
-  "use client";
-import axios from "axios";
+"use client";
+import api from "./api";
 import { User } from "@/app/interfaces/user";
+import axios from "axios";
 
-const URL = process.env.API_URL || "https://revobike-web-3.onrender.com/api";
-
+const URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const CreateAdmin = async (data: {
   name: string;
@@ -14,24 +14,12 @@ const CreateAdmin = async (data: {
   name: string;
   email: string;
 }> => {
-  try {
-    const response = await axios.post(`${URL}/admin`, data, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.post("/admin", data, {});
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const GetUserStats = async (): Promise<{
@@ -40,24 +28,12 @@ const GetUserStats = async (): Promise<{
   totalAdmins: number;
   totalSuperAdmins: number;
 }> => {
-  try {
-    const response = await axios.get(`${URL}/admin/user-metrics`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.get(`/admin/user-metrics`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const GetAllUsers = async (
@@ -66,27 +42,14 @@ const GetAllUsers = async (
   search?: string,
   filter?: string
 ): Promise<User[]> => {
-  try {
-    const response = await axios.get(
-      `${URL}/admin/all?filter=${filter}&search=${search}&limit=${limit}&page=${page}`,
-      {
-        headers: {
-          "x-auth-token": localStorage.getItem("accessToken"),
-          Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        },
-      }
-    );
+  const response = await api.get(
+    `/admin/all?filter=${filter}&search=${search}&limit=${limit}&page=${page}`
+  );
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const Login = async (data: {
@@ -94,6 +57,7 @@ const Login = async (data: {
   password: string;
 }): Promise<{
   token: string;
+  refreshToken: string;
   user: {
     id: string;
     email: string;
@@ -129,24 +93,12 @@ const UpdateRole = async (data: {
   success: string;
   message: string;
 }> => {
-  try {
-    const response = await axios.put(`${URL}/admin/update/${data.id}`, data, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.put(`/admin/update/${data.id}`, data);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
 };
 
 const DeleteUser = async (data: {
@@ -155,24 +107,61 @@ const DeleteUser = async (data: {
   success: string;
   message: string;
 }> => {
-  try {
-    const response = await axios.delete(`${URL}/admin/${data.id}`, {
-      headers: {
-        "x-auth-token": localStorage.getItem("accessToken"),
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-      },
-    });
+  const response = await api.delete(`/admin/${data.id}`);
 
-    if (response.status === 404) {
-      throw new Error(response.data.message);
-    }
-    return response.data.data;
-  } catch (error: Error | unknown) {
-    if (axios.isAxiosError(error) && error.response) {
-      throw new Error(error.response.data.message || error.message);
-    }
-    throw new Error("An unknown error occurred");
+  if (response.status === 404) {
+    throw new Error(response.data.message);
   }
+  return response.data.data;
+};
+
+const GetProfile = async (): Promise<{
+  name: string;
+  email: string;
+  phone_number: string;
+  role: string;
+  isVerified: boolean;
+}> => {
+  const response = await api.get(`/admin/profile`);
+
+  if (response.status === 404) {
+    throw new Error(response.data.message);
+  }
+  return response.data.data;
+};
+
+const UpdateProfile = async (user: {
+  name: string;
+  email: string;
+  phone_number: string;
+}): Promise<{
+  name: string;
+  email: string;
+  phone_number: string;
+  role: string;
+  isVerified: boolean;
+}> => {
+  const response = await api.put(`/admin/profile`, user);
+
+  if (response.status === 404) {
+    throw new Error(response.data.message);
+  }
+  return response.data.data;
+};
+
+const ChangePassword = async (user: {
+  email: string;
+  oldPassword: string;
+  newPassword: string;
+}): Promise<{
+  message: string;
+}> => {
+  const response = await api.put(`/users/change-password`, user);
+
+  if (response.status === 404) {
+    throw new Error(response.data.message);
+  }
+  return response.data.data;
 };
 
 export {
@@ -182,4 +171,7 @@ export {
   Login,
   UpdateRole,
   DeleteUser,
+  GetProfile,
+  UpdateProfile,
+  ChangePassword,
 };

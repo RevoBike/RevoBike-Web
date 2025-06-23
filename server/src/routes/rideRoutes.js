@@ -1,11 +1,11 @@
-const express = require('express');
-const { 
-    startRide, 
-    endRide, 
-    getUserRides, 
-    getAllRides 
-} = require('../controller/rideController');
-const { protect, authorizeRoles } = require('../middlewares/middleware');
+const express = require("express");
+const {
+  startRide,
+  endRide,
+  getUserRides,
+  getAllRides,
+} = require("../controller/rideController");
+const { protect, authorizeRoles } = require("../middlewares/middleware");
 const router = express.Router();
 
 /**
@@ -87,7 +87,7 @@ const router = express.Router();
  *       403:
  *         description: Only users can start a ride
  */
-router.post('/start/:bikeId', protect, authorizeRoles("User"), startRide);
+router.post("/start/:bikeId", protect, authorizeRoles("User"), startRide);
 
 /**
  * @swagger
@@ -116,7 +116,7 @@ router.post('/start/:bikeId', protect, authorizeRoles("User"), startRide);
  *       403:
  *         description: Only users can end a ride
  */
-router.post('/end/:rideId', protect, authorizeRoles("User"), endRide);
+router.post("/end/:rideId", protect, authorizeRoles("User"), endRide);
 
 /**
  * @swagger
@@ -136,7 +136,7 @@ router.post('/end/:rideId', protect, authorizeRoles("User"), endRide);
  *               items:
  *                 $ref: '#/components/schemas/Ride'
  */
-router.get('/history', protect, getUserRides);
+router.get("/history", protect, getUserRides);
 
 /**
  * @swagger
@@ -158,6 +158,6 @@ router.get('/history', protect, getUserRides);
  *       403:
  *         description: Unauthorized access
  */
-router.get('/', protect, authorizeRoles("Admin", "SuperAdmin"), getAllRides);
+router.get("/", protect, authorizeRoles("Admin", "SuperAdmin"), getAllRides);
 
 module.exports = router;

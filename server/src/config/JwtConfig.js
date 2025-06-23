@@ -7,4 +7,10 @@ const generateToken = (user) => {
   });
 };
 
-module.exports = { generateToken };
+const generateRefreshToken = (user) => {
+  return jwt.sign({ id: user._id }, process.env.REFRESH_TOKEN_SECRET, {
+    expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
+  });
+};
+
+module.exports = { generateToken, generateRefreshToken };
