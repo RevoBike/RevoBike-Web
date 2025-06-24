@@ -10,14 +10,10 @@ const Layout = ({
   children: React.ReactNode;
 }>) => {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
+  const [isMobileDrawerOpen] = useState(false);
 
   const handleSidebarToggle = (collapsed: boolean) => {
     setIsSidebarCollapsed(collapsed);
-  };
-
-  const handleMobileDrawerToggle = () => {
-    setIsMobileDrawerOpen((prev) => !prev);
   };
 
   return (
@@ -34,17 +30,12 @@ const Layout = ({
         <Sidebar
           onToggle={handleSidebarToggle}
           isCollapsed={isSidebarCollapsed}
-          isMobileDrawerOpen={isMobileDrawerOpen}
-          onMobileDrawerClose={() => setIsMobileDrawerOpen(false)}
         />
       </div>
 
       {/* Main Content Area */}
       <div className="flex flex-col flex-1">
-        <Header
-          onMobileDrawerToggle={handleMobileDrawerToggle}
-          isMobileDrawerOpen={isMobileDrawerOpen}
-        />
+        <Header />
         <main className="p-2 md:p-4 lg:p-6 flex-1 overflow-auto">
           {children}
         </main>
