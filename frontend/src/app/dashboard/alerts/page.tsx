@@ -74,7 +74,9 @@ export default function AlertsPage() {
   console.log("Alerts data:", alerts);
 
   useEffect(() => {
-    const socket = io("http://localhost:5000", { reconnection: true });
+    const socket = io("https://backend-ge4m.onrender.com", {
+      reconnection: true,
+    });
 
     socket.on("connect", () => {
       console.log("Connected to WebSocket server");
