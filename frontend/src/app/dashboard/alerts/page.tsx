@@ -21,11 +21,11 @@ import {
   IconArrowRight,
   IconX,
 } from "@tabler/icons-react";
-import { DatePickerInput } from "@mantine/dates";
+// import { DatePickerInput } from "@mantine/dates";
 import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 import { useDisclosure } from "@mantine/hooks";
-import MapModal from "./_components/map-modal";
+import dynamic from "next/dynamic";
 import {
   useQuery,
   keepPreviousData,
@@ -33,6 +33,11 @@ import {
 } from "@tanstack/react-query";
 import { GetAlerts, GetRecentAlerts } from "@/app/api/alerts";
 import LoadingPage from "@/app/loading";
+import { DatePickerInput } from "@mantine/dates";
+
+const MapModal = dynamic(() => import("./_components/map-modal"), {
+  ssr: false,
+});
 
 export default function AlertsPage() {
   const limit = 10;

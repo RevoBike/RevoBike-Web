@@ -1,3 +1,4 @@
+"use client";
 import { Card, Group, Text } from "@mantine/core";
 import { IconBike } from "@tabler/icons-react";
 import { useQuery } from "@tanstack/react-query";

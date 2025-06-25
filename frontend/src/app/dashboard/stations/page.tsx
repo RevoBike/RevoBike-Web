@@ -22,6 +22,8 @@ import {
   IconTrash,
   IconMapPin,
 } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
+
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStations } from "@/app/api/station-api";
 import { useDisclosure } from "@mantine/hooks";
@@ -32,10 +34,13 @@ import AddStationModal from "./_components/add-modal";
 import UpdateStationModal from "./_components/update-modal";
 import StationDetailsModal from "./_components/details-modal";
 import DeleteConfirmationModal from "./_components/delete-modal";
-import MapModal from "./_components/map-modal";
 import { Station } from "@/app/interfaces/station";
 import { useCheckRole } from "@/app/_utils/check-role";
 import LoadingPage from "@/app/loading";
+
+const MapModal = dynamic(() => import("./_components/map-modal"), {
+  ssr: false,
+});
 
 export default function StationsManagement() {
   const isSuperAdmin = useCheckRole();

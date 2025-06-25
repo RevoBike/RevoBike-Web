@@ -22,13 +22,14 @@ import {
   IconArrowLeft,
   IconMapPin,
 } from "@tabler/icons-react";
+import dynamic from "next/dynamic";
+
 import BikeMetrics from "./_components/bike-metrics";
 import UpdateBikeModal from "./_components/update-modal";
 import DeleteBikeModal from "./_components/delete-modal";
 import MaintenanceBikeModal from "./_components/maintenance-modal";
 import AddBikeModal from "./_components/add-modal";
 import BikeDetailsModal from "./_components/details-modal";
-import BikeMapModal from "./_components/map-modal";
 import { useDisclosure } from "@mantine/hooks";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
@@ -37,6 +38,10 @@ import { Bike } from "@/app/interfaces/bike";
 import formatDate from "@/app/_utils/format-date";
 import { useCheckRole } from "@/app/_utils/check-role";
 import LoadingPage from "@/app/loading";
+
+const BikeMapModal = dynamic(() => import("./_components/map-modal"), {
+  ssr: false,
+});
 
 export default function BikesManagement() {
   const isSuperAdmin = useCheckRole();
