@@ -41,16 +41,28 @@ export default function DashboardMetrics() {
             </Group>
 
             <div className="flex items-center justify-center mt-2 gap-1">
-              <Badge
-                color="green"
-                variant="light"
-                leftSection={<IconArrowUp size={12} />}
-                size="sm"
-              >
-                {stats?.rented.change}%
-              </Badge>
+              {stats && stats?.rented?.change >= 0 ? (
+                <Badge
+                  color="green"
+                  variant="light"
+                  leftSection={<IconArrowUp size={12} />}
+                  size="sm"
+                >
+                  {stats?.rented.change}%
+                </Badge>
+              ) : (
+                <Badge
+                  color="red"
+                  variant="light"
+                  leftSection={<IconArrowDown size={12} />}
+                  size="sm"
+                >
+                  {stats?.rented.change}%
+                </Badge>
+              )}
+
               <Text size="xs" c="dimmed">
-                from last week
+                from last month
               </Text>
             </div>
           </div>
@@ -78,16 +90,28 @@ export default function DashboardMetrics() {
               </Text>
             </Group>
             <div className="flex items-center justify-center mt-2 gap-1">
-              <Badge
-                color="green"
-                variant="light"
-                leftSection={<IconArrowUp size={12} />}
-                size="sm"
-              >
-                {stats?.maintenance.count}%
-              </Badge>
+              {stats && stats?.maintenance?.change >= 0 ? (
+                <Badge
+                  color="green"
+                  variant="light"
+                  leftSection={<IconArrowUp size={12} />}
+                  size="sm"
+                >
+                  {stats?.maintenance.change}%
+                </Badge>
+              ) : (
+                <Badge
+                  color="red"
+                  variant="light"
+                  leftSection={<IconArrowDown size={12} />}
+                  size="sm"
+                >
+                  {stats?.maintenance.change}%
+                </Badge>
+              )}
+
               <Text size="xs" c="dimmed">
-                from last week
+                from last month
               </Text>
             </div>
           </div>
@@ -116,16 +140,27 @@ export default function DashboardMetrics() {
               </Text>
             </Group>
             <div className="flex items-center justify-center mt-2 gap-1">
-              <Badge
-                color="red"
-                variant="light"
-                leftSection={<IconArrowDown size={12} />}
-                size="sm"
-              >
-                {stats?.revenue.change}%
-              </Badge>
+              {stats && stats?.revenue?.change >= 0 ? (
+                <Badge
+                  color="green"
+                  variant="light"
+                  leftSection={<IconArrowUp size={12} />}
+                  size="sm"
+                >
+                  {stats?.revenue.change}%
+                </Badge>
+              ) : (
+                <Badge
+                  color="red"
+                  variant="light"
+                  leftSection={<IconArrowDown size={12} />}
+                  size="sm"
+                >
+                  {stats?.revenue.change}%
+                </Badge>
+              )}
               <Text size="xs" c="dimmed">
-                from last week
+                from last month
               </Text>
             </div>
           </div>
@@ -155,16 +190,27 @@ export default function DashboardMetrics() {
               </Text>
             </Group>
             <div className="flex items-center justify-center mt-2 gap-1">
-              <Badge
-                color="red"
-                variant="light"
-                leftSection={<IconArrowDown size={12} />}
-                size="sm"
-              >
-                {stats?.available.change}%
-              </Badge>
+              {stats && stats?.available?.change >= 0 ? (
+                <Badge
+                  color="green"
+                  variant="light"
+                  leftSection={<IconArrowUp size={12} />}
+                  size="sm"
+                >
+                  {stats?.available.change}%
+                </Badge>
+              ) : (
+                <Badge
+                  color="red"
+                  variant="light"
+                  leftSection={<IconArrowDown size={12} />}
+                  size="sm"
+                >
+                  {stats?.available.change}%
+                </Badge>
+              )}
               <Text size="xs" c="dimmed">
-                from last week
+                from last month
               </Text>
             </div>
           </div>

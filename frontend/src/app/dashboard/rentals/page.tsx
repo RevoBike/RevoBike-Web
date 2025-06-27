@@ -95,7 +95,6 @@ export default function RentalsManagement() {
 
         <LineGraph rentals={rentalStats || []} />
       </Card>
-
       <Group mb="md" gap="md" align="flex-end">
         <Select
           label="Filter by Status"
@@ -156,7 +155,6 @@ export default function RentalsManagement() {
           Clear Filters
         </Button>
       </Group>
-
       <div className="w-full overflow-x-auto">
         <Table highlightOnHover>
           <Table.Thead>
@@ -172,7 +170,7 @@ export default function RentalsManagement() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {rentals &&
+            {rentals && rentals.length > 0 ? (
               rentals.map((rental) => (
                 <Table.Tr
                   key={rental._id}
@@ -187,9 +185,17 @@ export default function RentalsManagement() {
                       new Date(rental.startTime).toLocaleString().split(",")[1]}
                   </Table.Td>
                   <Table.Td>
-                    {formatDate(rental.endTime)}
-                    {rental.endTime &&
-                      new Date(rental.endTime).toLocaleString().split(",")[1]}
+                    {rental.endTime ? (
+                      <>
+                        {formatDate(rental.endTime)}
+                        {rental.endTime &&
+                          new Date(rental.endTime)
+                            .toLocaleString()
+                            .split(",")[1]}
+                      </>
+                    ) : (
+                      "Ongoing"
+                    )}
                   </Table.Td>
                   <Table.Td>
                     <Badge
@@ -216,35 +222,46 @@ export default function RentalsManagement() {
                   <Table.Td>{rental.cost.toFixed(2)} Birr</Table.Td>
                   <Table.Td>{rental.distance} km</Table.Td>
                 </Table.Tr>
-              ))}
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={8}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Text c="dimmed" mt="sm">
+                      No rentals found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
-
+      {rentals && rentals.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       <RentalMapModal
         opened={detailsModalOpened}
         onClose={closeDetailsModal}

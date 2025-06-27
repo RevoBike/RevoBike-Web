@@ -165,7 +165,6 @@ export default function BikesManagement() {
         )}
       </Group>
       <BikeMetrics />
-
       <Group mb="md" gap="md">
         <Select
           label="Filter by Status"
@@ -235,7 +234,7 @@ export default function BikesManagement() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {bikes &&
+            {bikes && bikes.length > 0 ? (
               bikes.map((bike) => (
                 <Table.Tr
                   key={bike._id}
@@ -288,35 +287,47 @@ export default function BikesManagement() {
                     </Table.Td>
                   )}
                 </Table.Tr>
-              ))}
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={isSuperAdmin ? 6 : 5}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <IconMapPin size={40} color="#f03e3e" />
+                    <Text c="dimmed" mt="sm">
+                      No bikes found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
-
+      {bikes && bikes.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       {selectedBike && (
         <BikeDetailsModal
           opened={detailsModalOpened}
@@ -324,27 +335,22 @@ export default function BikesManagement() {
           bikeId={selectedBike._id}
         />
       )}
-
       <BikeMapModal opened={mapModalOpened} onClose={closeMapModal} />
-
       <UpdateBikeModal
         opened={updateModalOpened}
         onClose={closeUpdateModal}
         bike={selectedBike}
       />
-
       <DeleteBikeModal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
         bike={selectedBike}
       />
-
       <MaintenanceBikeModal
         opened={maintenanceModalOpened}
         onClose={closeMaintenanceModal}
         bikeId={selectedBike?._id || ""}
       />
-
       <AddBikeModal opened={addModalOpened} onClose={closeAddModal} />
     </Card>
   );

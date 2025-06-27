@@ -190,7 +190,6 @@ export default function StationsManagement() {
           />
         </div>
       </div>
-
       <div className="w-full overflow-x-auto">
         <Table highlightOnHover className="min-w-full md:table-hidden">
           <Table.Thead>
@@ -205,7 +204,7 @@ export default function StationsManagement() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {stations &&
+            {stations && stations.length > 0 ? (
               stations.map((station) => {
                 const occupancy =
                   station && station.totalSlots && station.totalSlots > 0
@@ -262,37 +261,49 @@ export default function StationsManagement() {
                     )}
                   </Table.Tr>
                 );
-              })}
+              })
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={isSuperAdmin ? 7 : 6}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <IconMapPin size={40} color="#f03e3e" />
+                    <Text c="dimmed" mt="sm">
+                      No stations found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
-
+      {stations && stations.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       <AddStationModal opened={addModalOpened} onClose={closeAddModal} />
       <StationMapModal opened={mapModalOpened} onClose={closeMapModal} />
-
       <StationDetailsModal
         opened={detailsModalOpened}
         onClose={closeDetailsModal}
@@ -304,7 +315,6 @@ export default function StationsManagement() {
         onClose={closeUpdateModal}
         station={selectedStation}
       />
-
       <DeleteConfirmationModal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}

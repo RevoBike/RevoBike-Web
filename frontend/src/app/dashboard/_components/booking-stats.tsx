@@ -11,56 +11,65 @@ import {
   Flex,
 } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
+import { useQuery } from "@tanstack/react-query";
+import { GetRentalStats } from "@/app/api/stats";
 
 export default function BookingsOverview() {
-  const [timeframe, setTimeframe] = useState("This Year");
-
-  const bookingsData = [
-    { month: "Jan", value: 600 },
-    { month: "Feb", value: 900 },
-    { month: "Mar", value: 700 },
-    { month: "Apr", value: 950 },
-    { month: "May", value: 800 },
-    { month: "Jun", value: 985 },
-    { month: "Jul", value: 750 },
-    { month: "Aug", value: 850 },
-    { month: "Sep", value: 1000 },
-    { month: "Oct", value: 900 },
-    { month: "Nov", value: 750 },
-    { month: "Dec", value: 950 },
+  const months = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
   ];
 
-  const maxValue = Math.max(...bookingsData.map((item) => item.value));
-  const highlightedMonth = "Jun";
-  const currentMonth = "April 2028";
-  const currentValue = 985;
+  const { data: rentalStats = [] } = useQuery({
+    queryKey: ["rentalStats"],
+    queryFn: GetRentalStats,
+  });
+
+  const maxValue =
+    rentalStats.length > 0
+      ? Math.max(...rentalStats.map((item) => item.active + item.completed))
+      : 0;
+
+  const currentMonth = months[new Date().getMonth()];
+  let currentValue = 0;
+  if (rentalStats) {
+    const currentMonthIndex = new Date().getMonth() + 1;
+    const currentMonthStats = rentalStats.find(
+      (item) => item.month === currentMonthIndex
+    );
+    if (currentMonthStats) {
+      currentValue =
+        (currentMonthStats.active ?? 0) + (currentMonthStats.completed ?? 0);
+    }
+  }
 
   return (
-    <div className="bg-white shadow-lg p-4 rounded-lg mt-10">
+    <div className="bg-white shadow-lg p-4 rounded-lg">
       <Group justify="space-between" mb="xl">
-        <Title order={5}>Bookings Overview</Title>
+        <Title order={4} className="text-gray-500">
+          Bookings Overview
+        </Title>
         <Menu position="bottom-end">
           <Menu.Target>
             <Button
               variant="outline"
               rightSection={<IconChevronDown size={16} />}
-              bg="gray.0"
-              c="gray.7"
+              bg="green.0"
+              c="green.7"
             >
-              {timeframe}
+              This Year{" "}
             </Button>
           </Menu.Target>
-          <Menu.Dropdown>
-            <Menu.Item onClick={() => setTimeframe("This Year")}>
-              This Year
-            </Menu.Item>
-            <Menu.Item onClick={() => setTimeframe("Last Year")}>
-              Last Year
-            </Menu.Item>
-            <Menu.Item onClick={() => setTimeframe("Last 6 Months")}>
-              Last 6 Months
-            </Menu.Item>
-          </Menu.Dropdown>
         </Menu>
       </Group>
 
@@ -99,36 +108,42 @@ export default function BookingsOverview() {
             </Box>
 
             <Flex justify="space-between" h="100%" align="flex-end">
-              {bookingsData.map((item, index) => (
-                <Box
-                  key={index}
-                  w="calc(100%/12 - 8px)"
-                  display="flex"
-                  style={{ flexDirection: "column", alignItems: "center" }}
-                >
+              {rentalStats &&
+                rentalStats.map((item, index) => (
                   <Box
-                    w="100%"
-                    style={{
-                      height: `${(item.value / maxValue) * 100}%`,
-                      minHeight: "10px",
-                      backgroundColor:
-                        item.month === highlightedMonth ? "#fa5252" : "#1a365d",
-                      borderRadius: "9999px",
-                    }}
-                  />
-                </Box>
-              ))}
+                    key={index}
+                    w="calc(100%/12 - 8px)"
+                    display="flex"
+                    style={{ flexDirection: "column", alignItems: "center" }}
+                  >
+                    <Box
+                      w="100%"
+                      style={{
+                        height: `${
+                          ((item.active + item.completed) / maxValue) * 100
+                        }%`,
+                        minHeight: "10px",
+                        backgroundColor:
+                          item.month === new Date().getMonth() + 1
+                            ? "#fa5252"
+                            : "#1a365d",
+                        borderRadius: "9999px",
+                      }}
+                    />
+                  </Box>
+                ))}
             </Flex>
           </Box>
 
           <Flex justify="space-between" mt="xs">
-            {bookingsData.map((item, index) => (
-              <Box key={index} w="calc(100%/12)" ta="center">
-                <Text fz="xs" c="gray.6">
-                  {item.month}
-                </Text>
-              </Box>
-            ))}
+            {rentalStats &&
+              rentalStats.map((item, index) => (
+                <Box key={index} w="calc(100%/12)" ta="center">
+                  <Text fz="xs" c="gray.6">
+                    {months[item.month - 1]}
+                  </Text>
+                </Box>
+              ))}
           </Flex>
         </Box>
       </Box>

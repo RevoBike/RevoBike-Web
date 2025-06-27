@@ -49,7 +49,7 @@ export default function RentStatusDashboard() {
 
           <div className="flex flex-col justify-center text-sm p-2">
             <StatusItem
-              color="#ef4444"
+              color="#43B97F"
               label={
                 (rentalStatus &&
                   rentalStatus.length > 0 &&
@@ -90,7 +90,7 @@ function DonutChart({
 }: {
   data: { label: string; percentage: string | number; count: number }[];
 }) {
-  const colors = ["#ef4444", "#154B1B"];
+  const colors = ["#43B97F", "#154B1B", "#43B97F", "#154B1B"];
   let cumulativeOffset = 0;
 
   type ChartData = {
@@ -121,7 +121,6 @@ function DonutChart({
           ...item,
           normalizedPercentage: 0,
         }));
-
   return (
     <div className="relative w-40 h-40">
       <svg viewBox="0 0 36 36" className="w-full h-full">
@@ -130,13 +129,13 @@ function DonutChart({
             a 15.9155 15.9155 0 0 1 0 31.831
             a 15.9155 15.9155 0 0 1 0 -31.831"
           fill="none"
-          stroke="#eaeaea"
           strokeWidth="3"
         />
         {normalizedData.map((item, idx) => {
           const dashLength = item.normalizedPercentage;
           const dashOffset = 100 - cumulativeOffset - dashLength;
           cumulativeOffset += dashLength;
+
           return (
             <path
               key={item.label}
@@ -144,7 +143,13 @@ function DonutChart({
                 a 15.9155 15.9155 0 0 1 0 31.831
                 a 15.9155 15.9155 0 0 1 0 -31.831"
               fill="none"
-              stroke={colors[idx % colors.length]}
+              stroke={
+                item.label === "Rented"
+                  ? "#43B97F"
+                  : item.label === "Completed"
+                  ? "#154B1B"
+                  : colors[idx % colors.length]
+              }
               strokeWidth="3"
               strokeDasharray={`${dashLength} ${100 - dashLength}`}
               strokeDashoffset={dashOffset}

@@ -110,7 +110,6 @@ export default function BikesManagement() {
   return (
     <Card padding="lg" withBorder radius="md" shadow="sm">
       <BikeMetrics />
-
       <Group mb="md" gap="md">
         <Select
           label="Filter by Station"
@@ -139,7 +138,6 @@ export default function BikesManagement() {
           />
         </div>
       </Group>
-
       <div className="w-full overflow-x-auto">
         <Table highlightOnHover>
           <Table.Thead>
@@ -156,19 +154,17 @@ export default function BikesManagement() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {bikes &&
+            {bikes && bikes.length > 0 ? (
               bikes.map((bike) => (
                 <Table.Tr key={bike._id} style={{ cursor: "pointer" }}>
                   <Table.Td>{bike.bikeId}</Table.Td>
                   <Table.Td>{bike.model}</Table.Td>
                   <Table.Td>{bike.currentStation}</Table.Td>
-
                   <Table.Td>{formatDate(bike.lastMaintenance)}</Table.Td>
                   <Table.Td>{formatDate(bike.nextMaintenance)}</Table.Td>
                   <Table.Td>{bike.totalRides}</Table.Td>
                   <Table.Td>{bike.totalDistance}</Table.Td>
                   <Table.Td>{formatDate(bike.createdAt)}</Table.Td>
-
                   <Table.Td className="ml-auto">
                     <Button
                       size="xs"
@@ -195,47 +191,56 @@ export default function BikesManagement() {
                     </Button>
                   </Table.Td>
                 </Table.Tr>
-              ))}
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={9}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Text c="dimmed" mt="sm">
+                      No bikes under maintenance found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600`}
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
-
+      {bikes && bikes.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600"
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600`}
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       <UpdateMaintenanceModal
         opened={updateModalOpened}
         onClose={closeUpdateModal}
         bike={selectedBike}
       />
-
       <DeleteBikeModal
         opened={deleteModalOpened}
         onClose={closeDeleteModal}
         bike={selectedBike}
       />
-
       <DoneBikeMaintenanceModal
         opened={maintenanceModalOpened}
         onClose={closeMaintenanceModal}
