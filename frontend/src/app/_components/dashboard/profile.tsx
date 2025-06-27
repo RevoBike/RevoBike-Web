@@ -20,7 +20,6 @@ const ProfileModal = ({
   opened,
   onClose,
   isEditing,
-  setIsEditing,
   user,
   setUser,
   onSave,
