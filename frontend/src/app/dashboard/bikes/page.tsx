@@ -29,7 +29,6 @@ import UpdateBikeModal from "./_components/update-modal";
 import DeleteBikeModal from "./_components/delete-modal";
 import MaintenanceBikeModal from "./_components/maintenance-modal";
 import AddBikeModal from "./_components/add-modal";
-import BikeDetailsModal from "./_components/details-modal";
 import { useDisclosure } from "@mantine/hooks";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { GetStationsList } from "@/app/api/station-api";
@@ -40,6 +39,10 @@ import { useCheckRole } from "@/app/_utils/check-role";
 import LoadingPage from "@/app/loading";
 
 const BikeMapModal = dynamic(() => import("./_components/map-modal"), {
+  ssr: false,
+});
+
+const BikeDetailsModal = dynamic(() => import("./_components/details-modal"), {
   ssr: false,
 });
 

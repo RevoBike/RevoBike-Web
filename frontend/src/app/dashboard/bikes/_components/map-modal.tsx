@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import { Modal, Text, Box } from "@mantine/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -8,15 +11,6 @@ interface MapModalProps {
   opened: boolean;
   onClose: () => void;
 }
-
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 
 const BikeMapModal = ({ opened, onClose }: MapModalProps) => {
   const { data: bikes } = useQuery({
@@ -29,6 +23,18 @@ const BikeMapModal = ({ opened, onClose }: MapModalProps) => {
     const offset = 0.00002 * index;
     return [coordinates[0] + offset, coordinates[1] + offset];
   };
+
+  useEffect(() => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
+      ._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  }, []);
 
   return (
     <Modal

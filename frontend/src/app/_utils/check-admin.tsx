@@ -1,12 +1,13 @@
 "use client";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export const useCheckAdmin = () => {
-  const accessToken = useMemo(() => {
+  const [accessToken, setAccessToken] = useState("");
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("accessToken") || "";
+      setAccessToken(localStorage.getItem("accessToken") || "");
     }
-    return "";
   }, []);
 
   return !!accessToken;

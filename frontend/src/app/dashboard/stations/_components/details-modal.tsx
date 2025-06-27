@@ -1,20 +1,12 @@
 "use client";
 
+import { useEffect } from "react";
 import { Modal, Stack, Text, Group, Badge, Title, Card } from "@mantine/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { Station } from "@/app/interfaces/station";
 import formatDate from "@/app/_utils/format-date";
-
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 
 interface StationDetailsModalProps {
   opened: boolean;
@@ -34,6 +26,19 @@ const StationDetailsModal: React.FC<StationDetailsModalProps> = ({
   const position: [number, number] = station?.location?.coordinates
     ? [station.location.coordinates[0], station.location.coordinates[1]]
     : defaultPosition;
+
+  useEffect(() => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
+      ._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  }, []);
+
   return (
     <Modal
       opened={opened}

@@ -5,26 +5,30 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import { useQuery } from "@tanstack/react-query";
 import { GetAlertLocation } from "@/app/api/alerts";
-
+import { useEffect } from "react";
 interface MapModalProps {
   opened: boolean;
   onClose: () => void;
 }
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 const MapModal = ({ opened, onClose }: MapModalProps) => {
   const { data: alerts } = useQuery({
     queryKey: ["alertsLocations"],
     queryFn: GetAlertLocation,
     refetchInterval: 5000,
   });
+
+  useEffect(() => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
+      ._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  }, []);
 
   return (
     <Modal
