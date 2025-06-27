@@ -10,9 +10,11 @@ const api = axios.create({
 // Request interceptor to add access token to headers
 api.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
+    if (typeof window !== "undefined") {
+      const accessToken = localStorage.getItem("accessToken");
+      if (accessToken) {
+        config.headers.Authorization = `Bearer ${accessToken}`;
+      }
     }
     return config;
   },
@@ -25,44 +27,46 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Check if error is 401 and request hasn't been retried
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    // Only run this logic in the browser
+    if (typeof window !== "undefined") {
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        originalRequest._retry = true;
 
-      try {
-        // Attempt to refresh token
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) {
-          throw new Error("No refresh token available");
-        }
-
-        const response = await axios.post(
-          "https://backend-ge4m.onrender.com/api/auth/refresh-token",
-          {
-            refreshToken,
+        try {
+          // Attempt to refresh token
+          const refreshToken = localStorage.getItem("refreshToken");
+          if (!refreshToken) {
+            throw new Error("No refresh token available");
           }
-        );
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
+          const response = await axios.post(
+            "https://backend-ge4m.onrender.com/api/auth/refresh-token",
+            {
+              refreshToken,
+            }
+          );
 
-        // Store new tokens
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", newRefreshToken);
+          const { accessToken, refreshToken: newRefreshToken } = response.data;
 
-        // Update original request with new access token
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          // Store new tokens
+          localStorage.setItem("accessToken", accessToken);
+          localStorage.setItem("refreshToken", newRefreshToken);
 
-        // Retry original request
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.error("Token refresh failed:", refreshError);
+          // Update original request with new access token
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
 
-        // Clear tokens and redirect to login
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("role");
-        window.location.href = "/login"; // Adjust to your login route
-        return Promise.reject(refreshError);
+          // Retry original request
+          return api(originalRequest);
+        } catch (refreshError) {
+          console.error("Token refresh failed:", refreshError);
+
+          // Clear tokens and redirect to login
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("role");
+          window.location.href = "/login"; // Adjust to your login route
+          return Promise.reject(refreshError);
+        }
       }
     }
 

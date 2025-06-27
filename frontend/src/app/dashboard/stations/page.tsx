@@ -32,15 +32,21 @@ import formatDate from "@/app/_utils/format-date";
 import StationsMetrics from "./_components/station-metrics";
 import AddStationModal from "./_components/add-modal";
 import UpdateStationModal from "./_components/update-modal";
-import StationDetailsModal from "./_components/details-modal";
 import DeleteConfirmationModal from "./_components/delete-modal";
 import { Station } from "@/app/interfaces/station";
 import { useCheckRole } from "@/app/_utils/check-role";
 import LoadingPage from "@/app/loading";
 
-const MapModal = dynamic(() => import("./_components/map-modal"), {
+const StationMapModal = dynamic(() => import("./_components/map-modal"), {
   ssr: false,
 });
+
+const StationDetailsModal = dynamic(
+  () => import("./_components/details-modal"),
+  {
+    ssr: false,
+  }
+);
 
 export default function StationsManagement() {
   const isSuperAdmin = useCheckRole();
@@ -285,7 +291,7 @@ export default function StationsManagement() {
       </Container>
 
       <AddStationModal opened={addModalOpened} onClose={closeAddModal} />
-      <MapModal opened={mapModalOpened} onClose={closeMapModal} />
+      <StationMapModal opened={mapModalOpened} onClose={closeMapModal} />
 
       <StationDetailsModal
         opened={detailsModalOpened}

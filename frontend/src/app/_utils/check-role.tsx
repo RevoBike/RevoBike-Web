@@ -1,13 +1,14 @@
 "use client";
-import { useMemo } from "react";
+import { useState, useEffect } from "react";
 
 export const useCheckRole = () => {
-  const role = useMemo(() => {
+  const [role, setRole] = useState("");
+
+  useEffect(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("role") || "";
+      setRole(localStorage.getItem("role") || "");
     }
-    return "";
   }, []);
 
-  return role.toLowerCase() == "superadmin";
+  return role.toLowerCase() === "superadmin";
 };

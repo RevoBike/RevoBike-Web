@@ -24,9 +24,13 @@ import { GetRides } from "@/app/api/rental";
 import { GetRentalStats } from "@/app/api/stats";
 import { Ride } from "@/app/interfaces/rides";
 import { useDisclosure } from "@mantine/hooks";
-import RentalMapModal from "./_components/details-modal";
 import formatDate from "@/app/_utils/format-date";
 import LoadingPage from "@/app/loading";
+import dynamic from "next/dynamic";
+
+const RentalMapModal = dynamic(() => import("./_components/details-modal"), {
+  ssr: false,
+});
 
 export default function RentalsManagement() {
   const [date, setDate] = useState<Date | null>(null);

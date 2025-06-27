@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Modal, Text, Box } from "@mantine/core";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
@@ -11,15 +12,19 @@ interface MapModalProps {
   onClose: () => void;
 }
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
 const StationMapModal = ({ opened, onClose }: MapModalProps) => {
+  useEffect(() => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
+      ._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  }, []);
+
   const {
     data: stations,
     // isLoading,
@@ -28,14 +33,6 @@ const StationMapModal = ({ opened, onClose }: MapModalProps) => {
     queryKey: ["stationLocations"],
     queryFn: GetStationLocation,
   });
-
-  //   if (isLoading) {
-  //     return <div>Loading...</div>;
-  //   }
-
-  //   if (error) {
-  //     return <div>Error: {error.message}</div>;
-  //   }
 
   return (
     <Modal
@@ -78,7 +75,6 @@ const StationMapModal = ({ opened, onClose }: MapModalProps) => {
                 position={[station.coordinates[0], station.coordinates[1]]}
               >
                 <Popup>
-                  {" "}
                   <Text>
                     <strong>Location:</strong> {station.name}
                   </Text>

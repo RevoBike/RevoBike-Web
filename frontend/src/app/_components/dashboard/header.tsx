@@ -76,10 +76,12 @@ const NavBar = () => {
   });
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
-    localStorage.removeItem("role");
-    window.location.href = "/login";
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("refreshToken");
+      localStorage.removeItem("role");
+      window.location.href = "/login";
+    }
   };
 
   const handleProfileClick = () => {

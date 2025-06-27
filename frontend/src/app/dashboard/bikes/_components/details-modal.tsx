@@ -9,15 +9,6 @@ import { GetBike } from "@/app/api/bikes-api";
 import { format } from "date-fns";
 import L from "leaflet";
 
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
-  ._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl:
-    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-});
-
 interface BikeDetailsModalProps {
   opened: boolean;
   onClose: () => void;
@@ -83,6 +74,18 @@ const BikeDetailsModal: React.FC<BikeDetailsModalProps> = ({
   // if (error) {
   //   return <Text color="red">Error: {error?.message || "Bike not found"}</Text>;
   // }
+
+  useEffect(() => {
+    delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: () => void })
+      ._getIconUrl;
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+      shadowUrl:
+        "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    });
+  }, []);
 
   return (
     <Modal
