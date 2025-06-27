@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://backend-ge4m.onrender.com/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -40,7 +40,7 @@ api.interceptors.response.use(
           }
 
           const response = await axios.post(
-            "https://backend-ge4m.onrender.com/api/auth/refresh-token",
+            `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh-token`,
             {
               refreshToken,
             }

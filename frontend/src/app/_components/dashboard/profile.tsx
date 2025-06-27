@@ -1,14 +1,6 @@
 import React from "react";
-import {
-  Card,
-  TextInput,
-  Button,
-  Stack,
-  Avatar,
-  ActionIcon,
-  Modal,
-} from "@mantine/core";
-import { IconUser, IconPhone, IconEdit, IconMail } from "@tabler/icons-react";
+import { Card, TextInput, Button, Stack, Avatar, Modal } from "@mantine/core";
+import { IconUser, IconPhone, IconMail } from "@tabler/icons-react";
 
 interface ProfileModalProps {
   opened: boolean;
@@ -61,7 +53,7 @@ const ProfileModal = ({
                 : "U"}
             </Avatar>
           </div>
-          <div className="">
+          {/* <div className="">
             <ActionIcon
               variant="light"
               className="bg-[#154B1B] text-white"
@@ -69,7 +61,7 @@ const ProfileModal = ({
             >
               <IconEdit size={20} />
             </ActionIcon>
-          </div>
+          </div> */}
         </div>
         <Stack gap="md">
           <TextInput

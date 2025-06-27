@@ -8,6 +8,7 @@ import "./globals.css";
 import { MantineProvider } from "@mantine/core";
 import { Notifications } from "@mantine/notifications";
 import Providers from "./client/provider";
+import Footer from "./dashboard/_components/footer";
 const poppins = Poppins({
   weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
@@ -26,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head></head>
-      <body className={`${poppins.className} flex flex-col min-h-screen`}>
+      <body
+        className={`${poppins.className} flex flex-col min-h-screen bg-[#FAFBFF]`}
+      >
         <Providers>
           <MantineProvider
             theme={{
@@ -43,6 +46,7 @@ export default function RootLayout({
             <div className="flex-grow">{children}</div>
           </MantineProvider>
         </Providers>
+        <Footer />
       </body>
     </html>
   );

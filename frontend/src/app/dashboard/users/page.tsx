@@ -142,7 +142,6 @@ export default function UserPage() {
           />
         </div>
       </div>
-
       <div className="w-full overflow-x-auto">
         <Table highlightOnHover>
           <Table.Thead>
@@ -157,7 +156,7 @@ export default function UserPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {users &&
+            {users && users.length > 0 ? (
               users.map((user) => {
                 return (
                   <Table.Tr key={user._id} style={{ cursor: "pointer" }}>
@@ -166,7 +165,6 @@ export default function UserPage() {
                     <Table.Td>{user.phone_number}</Table.Td>
                     <Table.Td>{user.universityId || "NA"}</Table.Td>
                     <Table.Td>{user.role}</Table.Td>
-
                     <Table.Td>{formatDate(user.createdAt)}</Table.Td>
                     {isSuperAdmin && (
                       <Table.Td className="ml-auto">
@@ -189,33 +187,46 @@ export default function UserPage() {
                     )}
                   </Table.Tr>
                 );
-              })}
+              })
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={isSuperAdmin ? 7 : 6}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <Text c="dimmed" mt="sm">
+                      No users found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
+      {users && users.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       <AddUserModal opened={addModalOpened} onClose={closeAddModal} />
       <UpdateUserRoleModal
         opened={updateModalOpened}

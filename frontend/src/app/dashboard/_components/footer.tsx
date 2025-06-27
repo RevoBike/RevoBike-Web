@@ -10,11 +10,11 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full py-4 border-t border-gray-100">
+    <footer className="w-full py-4 bg-[#154B1B] text-white mt-10 border-t border-gray-100">
       <div className="container flex flex-col items-center justify-between gap-4 px-4 mx-auto md:flex-row">
-        <div className="text-sm text-gray-500">Copyright © 2025 RevoBike</div>
+        <div className="text-sm">Copyright © 2025 RevoBike</div>
 
-        <nav className="flex flex-wrap items-center justify-center gap-4 text-sm text-gray-500">
+        <nav className="flex flex-wrap items-center justify-center gap-4 text-sm">
           <Link
             href="/privacy-policy"
             className="hover:text-gray-700 transition-colors"
@@ -33,35 +33,35 @@ export default function Footer() {
           <Link
             href="/"
             aria-label="Facebook"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="hover:text-gray-600 transition-colors"
           >
             <IconBrandFacebook size={18} />
           </Link>
           <Link
             href="/"
             aria-label="Twitter"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className=" hover:text-gray-600 transition-colors"
           >
             <IconBrandTwitter size={18} />
           </Link>
           <Link
             href="/"
             aria-label="Instagram"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="hover:text-gray-600 transition-colors"
           >
             <IconBrandInstagram size={18} />
           </Link>
           <Link
             href="/"
             aria-label="YouTube"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="hover:text-gray-600 transition-colors"
           >
             <IconBrandYoutube size={18} />
           </Link>
           <Link
             href="/"
             aria-label="LinkedIn"
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="hover:text-gray-600 transition-colors"
           >
             <IconBrandLinkedin size={18} />
           </Link>

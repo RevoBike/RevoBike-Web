@@ -21,7 +21,6 @@ import {
   IconArrowRight,
   IconX,
 } from "@tabler/icons-react";
-// import { DatePickerInput } from "@mantine/dates";
 import { io } from "socket.io-client";
 import "leaflet/dist/leaflet.css";
 import { useDisclosure } from "@mantine/hooks";
@@ -75,8 +74,6 @@ export default function AlertsPage() {
     placeholderData: keepPreviousData,
     refetchInterval: 5000,
   });
-
-  console.log("Alerts data:", alerts);
 
   useEffect(() => {
     const socket = io("https://backend-ge4m.onrender.com", {
@@ -261,14 +258,14 @@ export default function AlertsPage() {
             <Table.Tr className="bg-[#154B1B] text-white hover:bg-gray-400 ">
               <Table.Th>Bike ID</Table.Th>
               <Table.Th>Model</Table.Th>
-              <Table.Th>Username</Table.Th>
+              <Table.Th>Name</Table.Th>
               <Table.Th>Phone Number</Table.Th>
               <Table.Th>Alert Type</Table.Th>
               <Table.Th>Timestamp</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {alerts &&
+            {alerts && alerts.length > 0 ? (
               alerts.map((alert) => (
                 <Table.Tr key={alert._id} style={{ cursor: "pointer" }}>
                   <Table.Td>{alert.bike.bikeId}</Table.Td>
@@ -280,33 +277,47 @@ export default function AlertsPage() {
                     {new Date(alert.timestamp).toLocaleString()}
                   </Table.Td>
                 </Table.Tr>
-              ))}
+              ))
+            ) : (
+              <Table.Tr>
+                <Table.Td colSpan={6}>
+                  <div className="flex flex-col items-center justify-center py-8">
+                    <IconAlertCircle size={40} color="#f03e3e" />
+                    <Text c="dimmed" mt="sm">
+                      No alerts found.
+                    </Text>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
+            )}
           </Table.Tbody>
         </Table>
       </div>
-      <Container className="flex flex-row justify-center items-center gap-2 mt-5">
-        <Button
-          className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
-          variant="small"
-          onClick={() => {
-            setCurrentPage(Math.max(currentPage - 1, 1));
-          }}
-          disabled={currentPage === 1}
-        >
-          <IconArrowLeft />
-        </Button>
-        <Button
-          className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
-          onClick={() => {
-            if (hasNextPage) {
-              setCurrentPage((old) => old + 1);
-            }
-          }}
-          disabled={!hasNextPage}
-        >
-          <IconArrowRight />
-        </Button>
-      </Container>
+      {alerts && alerts.length > 0 && (
+        <Container className="flex flex-row justify-center items-center gap-2 mt-5">
+          <Button
+            className="bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 "
+            variant="small"
+            onClick={() => {
+              setCurrentPage(Math.max(currentPage - 1, 1));
+            }}
+            disabled={currentPage === 1}
+          >
+            <IconArrowLeft />
+          </Button>
+          <Button
+            className={`bg-[#154B1B] text-white w-fit h-fit p-1 hover:bg-green-600 `}
+            onClick={() => {
+              if (hasNextPage) {
+                setCurrentPage((old) => old + 1);
+              }
+            }}
+            disabled={!hasNextPage}
+          >
+            <IconArrowRight />
+          </Button>
+        </Container>
+      )}
       <MapModal opened={mapModalOpened} onClose={closeMapModal} />
     </Card>
   );

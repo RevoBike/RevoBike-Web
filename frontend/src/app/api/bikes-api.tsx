@@ -118,7 +118,7 @@ const CheckBike = async (
     status: boolean;
   };
 }> => {
-  const response = await api.get(`/bikes/check/${bikeId}`);
+  const response = await api.get(`/bikes/check?bikeId=${bikeId}`);
   if (response.status === 404) {
     throw new Error(response.data.message);
   }

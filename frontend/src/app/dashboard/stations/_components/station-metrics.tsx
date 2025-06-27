@@ -45,7 +45,7 @@ export default function StationsMetrics() {
             <IconHome size={20} color="white" />
           </ThemeIcon>
           <div>
-            <Text size="sm" c="gray.6" fw={500} tt="uppercase" lh={1.2}>
+            <Text size="sm" c="gray.6" fw={500} lh={1.2}>
               Total Number of Stations
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>
@@ -68,7 +68,7 @@ export default function StationsMetrics() {
             <IconGlassFull size={20} color="white" />
           </ThemeIcon>
           <div>
-            <Text size="sm" c="gray.6" fw={500} tt="uppercase" lh={1.2}>
+            <Text size="sm" c="gray.6" fw={500} lh={1.2}>
               Maximum Station Capacity
             </Text>
             <Text size="xl" fw={700} c="gray.9" mt={6}>

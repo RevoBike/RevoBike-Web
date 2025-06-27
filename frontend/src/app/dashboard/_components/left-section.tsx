@@ -26,7 +26,7 @@ export default function CarAvailability() {
     onError: (error) => {
       notifications.show({
         title: "Error",
-        message: error?.message || "An error occurred",
+        message: error.message || "An error occurred",
         color: "red",
         autoClose: 1000,
         withCloseButton: true,
@@ -41,9 +41,9 @@ export default function CarAvailability() {
   };
 
   return (
-    <div className="h-fit p-2">
+    <div className="h-fit p-2 bg-white shadow-lg rounded-lg border border-gray-200">
       <Stack>
-        <Title order={4} className="text-gray-700">
+        <Title order={4} className="text-gray-500">
           Bike Availability
         </Title>{" "}
         <Paper radius="md" p="md" withBorder>
@@ -63,7 +63,7 @@ export default function CarAvailability() {
             />
 
             <button
-              className="bg-[#154B1B] hover:bg-green-600 text-white text-sm p-2"
+              className="bg-[#154B1B] rounded-lg hover:bg-green-600 text-white text-sm p-2"
               onClick={handleCheck}
             >
               Check

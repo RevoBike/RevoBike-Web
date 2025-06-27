@@ -28,8 +28,6 @@ interface LineGraphProps {
 const LineGraph: React.FC<LineGraphProps> = ({ rentals }) => {
   const chartRef = React.useRef(null);
 
-  console.log("Rentals Data:", rentals);
-
   const createGradient = (ctx: CanvasRenderingContext2D): CanvasGradient => {
     const gradient = ctx.createLinearGradient(0, 0, 0, 400);
     gradient.addColorStop(0, "rgba(75, 192, 192, 1)");
