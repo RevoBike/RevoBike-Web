@@ -11,57 +11,65 @@ function getPercentageChange(current, previous) {
 
 // Get dashboard stats (All admins and superadmins)
 exports.getDashboardStats = catchAsync(async (req, res) => {
+  // limit the role to be admin or superadmin
+  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
   const now = new Date();
-  const startOfThisWeek = new Date(now);
-  startOfThisWeek.setDate(now.getDate() - now.getDay());
-  startOfThisWeek.setHours(0, 0, 0, 0);
 
-  const startOfLastWeek = new Date(startOfThisWeek);
-  startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+  // Start of this month
+  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  // Start of last month
+  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
-  // Rented bikes (rides started this week)
-  const rentedThisWeek = await Ride.countDocuments({
-    startTime: { $gte: startOfThisWeek },
+  // Rented bikes (rides started this month)
+  const rentedThisMonth = await Ride.countDocuments({
+    startTime: { $gte: startOfThisMonth },
   });
-  const rentedLastWeek = await Ride.countDocuments({
-    startTime: { $gte: startOfLastWeek, $lt: startOfThisWeek },
+  const rentedLastMonth = await Ride.countDocuments({
+    startTime: { $gte: startOfLastMonth, $lt: startOfThisMonth },
   });
-  const rentedChange = getPercentageChange(rentedThisWeek, rentedLastWeek);
+
+  const rentedChange = getPercentageChange(rentedThisMonth, rentedLastMonth);
 
   // Bikes in maintenance
-  const maintenanceThisWeek = await Bike.countDocuments({
+  const maintenanceThisMonth = await Bike.countDocuments({
     status: "underMaintenance",
-    updatedAt: { $gte: startOfThisWeek },
+    updatedAt: { $gte: startOfThisMonth },
   });
-  const maintenanceLastWeek = await Bike.countDocuments({
+  const maintenanceLastMonth = await Bike.countDocuments({
     status: "underMaintenance",
-    updatedAt: { $gte: startOfLastWeek, $lt: startOfThisWeek },
+    updatedAt: { $gte: startOfLastMonth, $lt: startOfThisMonth },
   });
   const maintenanceChange = getPercentageChange(
-    maintenanceThisWeek,
-    maintenanceLastWeek
+    maintenanceThisMonth,
+    maintenanceLastMonth
   );
 
   // Available bikes
-  const availableThisWeek = await Bike.countDocuments({
+  const availableThisMonth = await Bike.countDocuments({
     status: "available",
-    updatedAt: { $gte: startOfThisWeek },
+    updatedAt: { $gte: startOfThisMonth },
   });
-  const availableLastWeek = await Bike.countDocuments({
+  const availableLastMonth = await Bike.countDocuments({
     status: "available",
-    updatedAt: { $gte: startOfLastWeek, $lt: startOfThisWeek },
+    updatedAt: { $gte: startOfLastMonth, $lt: startOfThisMonth },
   });
   const availableChange = getPercentageChange(
-    availableThisWeek,
-    availableLastWeek
+    availableThisMonth,
+    availableLastMonth
   );
 
   // Revenue (sum of cost for paid rides)
-  const revenueThisWeekAgg = await Ride.aggregate([
+  const revenueThisMonthAgg = await Ride.aggregate([
     {
       $match: {
         paymentStatus: "paid",
-        startTime: { $gte: startOfThisWeek },
+        startTime: { $gte: startOfThisMonth },
       },
     },
     {
@@ -71,13 +79,13 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       },
     },
   ]);
-  const revenueThisWeek = revenueThisWeekAgg[0]?.total || 0;
+  const revenueThisMonth = revenueThisMonthAgg[0]?.total || 0;
 
-  const revenueLastWeekAgg = await Ride.aggregate([
+  const revenueLastMonthAgg = await Ride.aggregate([
     {
       $match: {
         paymentStatus: "paid",
-        startTime: { $gte: startOfLastWeek, $lt: startOfThisWeek },
+        startTime: { $gte: startOfLastMonth, $lt: startOfThisMonth },
       },
     },
     {
@@ -87,104 +95,41 @@ exports.getDashboardStats = catchAsync(async (req, res) => {
       },
     },
   ]);
-  const revenueLastWeek = revenueLastWeekAgg[0]?.total || 0;
+  const revenueLastMonth = revenueLastMonthAgg[0]?.total || 0;
 
-  const revenueChange = getPercentageChange(revenueThisWeek, revenueLastWeek);
+  const revenueChange = getPercentageChange(revenueThisMonth, revenueLastMonth);
 
   res.status(200).json({
     success: true,
     data: {
       rented: {
-        count: rentedThisWeek,
+        count: rentedThisMonth,
         change: rentedChange,
       },
       maintenance: {
-        count: maintenanceThisWeek,
+        count: maintenanceThisMonth,
         change: maintenanceChange,
       },
       available: {
-        count: availableThisWeek,
+        count: availableThisMonth,
         change: availableChange,
       },
       revenue: {
-        total: revenueThisWeek,
+        total: revenueThisMonth,
         change: revenueChange,
       },
     },
   });
 });
 
-// exports.getRentalStats = catchAsync(async (req, res) => {
-//   const currentYear = new Date().getFullYear();
-//   const startOfYear = new Date(currentYear, 0, 1);
-
-//   const completedRidesAgg = await Ride.aggregate([
-//     {
-//       $match: {
-//         startTime: { $gte: startOfYear },
-//         paymentStatus: "paid",
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: { $month: "$startTime" },
-//         count: { $sum: 1 },
-//       },
-//     },
-//     {
-//       $sort: { _id: 1 },
-//     },
-//   ]);
-
-//   const completedRides = Array.from({ length: 12 }, (_, i) => {
-//     const monthData = completedRidesAgg.find((m) => m._id === i + 1);
-//     return {
-//       month: i + 1,
-//       count: monthData ? monthData.count : 0,
-//     };
-//   });
-//   const activeRidesAgg = await Ride.aggregate([
-//     {
-//       $match: {
-//         startTime: { $gte: startOfYear },
-//         endTime: null,
-//       },
-//     },
-//     {
-//       $group: {
-//         _id: { $month: "$startTime" },
-//         count: { $sum: 1 },
-//       },
-//     },
-//     {
-//       $sort: { _id: 1 },
-//     },
-//   ]);
-
-//   const activeRides = Array.from({ length: 12 }, (_, i) => {
-//     const monthData = activeRidesAgg.find((m) => m._id === i + 1);
-//     return {
-//       month: i + 1,
-//       count: monthData ? monthData.count : 0,
-//     };
-//   });
-
-//   const rentals = completedRides.map((ride, index) => {
-//     return {
-//       month: ride.month,
-//       active: activeRides[index].count,
-//       completed: ride.count,
-//     };
-//   });
-
-//   res.status(200).json({
-//     success: true,
-//     data: rentals,
-//   });
-// });
-
 exports.getRentalStats = catchAsync(async (req, res) => {
   // limit the role to be admin or superadmin
+  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
 
   const year = parseInt(req.query.year) || 2025;
 
@@ -255,6 +200,13 @@ exports.getRentalStats = catchAsync(async (req, res) => {
 });
 
 exports.getRentStatus = catchAsync(async (req, res) => {
+  if (req.user.role !== "Admin" && req.user.role !== "SuperAdmin") {
+    return res.status(403).json({
+      success: false,
+      message: "Unauthorized",
+    });
+  }
+
   const { timeframe = "this-week" } = req.query;
 
   let startDate;

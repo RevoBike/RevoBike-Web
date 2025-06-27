@@ -438,8 +438,14 @@ exports.checkBikeAvailability = catchAsync(async (req, res) => {
     });
   }
 
-  const bikeId = req.params.bikeId;
-  const bike = await Bike.findOne({ bikeId });
+  const bikeId = req.query.bikeId;
+  if (!bikeId) {
+    return res.status(400).json({
+      success: false,
+      message: "Bike ID is required",
+    });
+  }
+  const bike = await Bike.findOne({ bikeId: bikeId });
 
   if (!bike) {
     return res.status(404).json({

@@ -208,6 +208,9 @@ exports.updateBikeUnderMaintenance = catchAsync(async (req, res) => {
     });
   }
 
+  // if new date greater than nextMaintenance date, update nextMaintenance and make bike available
+  // cron job will handle the status change
+
   if (date) {
     bike.nextMaintenance = new Date(date);
   }
@@ -226,6 +229,10 @@ exports.updateBikeUnderMaintenance = catchAsync(async (req, res) => {
 
   if (cost) {
     bike.maintenanceHistory[bike.maintenanceHistory.length - 1].cost = cost;
+  }
+
+  if (date && new Date(date) > bike.nextMaintenance) {
+    bike.status = "available";
   }
 
   await bike.save();

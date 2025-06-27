@@ -66,7 +66,7 @@ router.get("/bike-metrics", protect, getBikeMetrics);
 router.get("/locations", protect, getBikeLocations);
 
 router.get(
-  "/check/:bikeId",
+  "/check",
   protect,
   authorizeRoles("Admin", "SuperAdmin"),
   checkBikeAvailability
