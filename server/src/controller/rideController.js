@@ -51,6 +51,7 @@ exports.startRide = catchAsync(async (req, res) => {
   }
 
   // Create ride entry
+
   const ride = await Ride.create({
     user: req.user._id,
     bike: bike._id,

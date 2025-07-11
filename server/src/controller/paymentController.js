@@ -16,63 +16,85 @@ exports.initiatePayment = catchAsync(async (req, res) => {
   const tx_ref = uuidv4(); // Now inside the controller
 
   const Payload = {
-    amount: ride.cost,
+    amount: ride.cost ? ride.cost > 0 : 1,
     currency: "ETB",
-    email: user.email,
+    email: ride.user.email,
     first_name: ride.user.name,
     phone_number: ride.user.phone_number,
     tx_ref,
     callback_url: `${process.env.BASE_URL}/api/payments/callback/${tx_ref}`,
-    return_url: `${process.env.FRONTEND_URL}/payment-success/${tx_ref}`,
+    return_url: `${process.env.FRONTEND_URL}`,
     customizations: {
-        title: "Bike Sharing Payment",
-        description: `Payment for ride ${rideId}`,
+      title: "Bike Sharing Payment",
+      description: `Payment for ride ${rideId}`,
     },
-};
+    meta: {
+      hide_receipt: true,
+    },
+  };
 
-  const chapaRes = await initiateChapaPayment(Payload);
+  let chapaRes;
+  try {
+    chapaRes = await initiateChapaPayment(Payload);
+  } catch (error) {
+    return res.status(error.status).json({
+      success: false,
+      message: "Failed to initiate payment",
+      error: error.message || "Unknown error",
+    });
+  }
 
   const payment = await Payment.create({
-    user: user._id,
+    user: ride.user._id,
     ride: ride._id,
-    amount: ride.cost,
+    amount: ride.cost ? ride.cost > 0 : 1,
     tx_ref,
-    checkout_url: chapaRes.data.checkout_url,
+    checkout_url: chapaRes,
   });
 
   await payment.save();
 
-  res.status(200).json({ success: true, checkout_url: chapaRes.data.checkout_url });
+  res.status(200).json({ success: true, checkout_url: chapaRes });
 });
 
-// verify payemet 
+// verify payemet
 exports.handleChapaCallback = catchAsync(async (req, res) => {
-    const { tx_ref } = req.params;
+  const { tx_ref } = req.params;
 
-    const existingPayment = await Payment.findOne({ tx_ref }).populate("ride");
-    if (!existingPayment) {
-        return res.status(404).json({ success: false, message: "Payment not found" });
-    }
+  const existingPayment = await Payment.findOne({ tx_ref }).populate("ride");
+  if (!existingPayment) {
+    return res
+      .status(404)
+      .json({ success: false, message: "Payment not found" });
+  }
 
-    if (existingPayment.status === "successful") {
-        return res.status(200).send("Payment already verified.");
-    }
+  if (existingPayment.status === "successful") {
+    return res.status(200).send("Payment already verified.");
+  }
 
-    const chapaData = await verifyChapaPayment(tx_ref);
+  const chapaData = await verifyChapaPayment(tx_ref);
 
-    if (chapaData.status === "success") {
-        existingPayment.status = "successful";
-        existingPayment.verifiedAt = new Date();
-        existingPayment.chapa_tx_id = chapaData.data.id;
-        await existingPayment.save();
+  if (chapaData.status === "success") {
+    existingPayment.status = "successful";
+    existingPayment.verifiedAt = new Date();
+    // existingPayment.chapa_tx_id = chapaData.data.id;
+    await existingPayment.save();
 
-        existingPayment.ride.paymentStatus = "paid";
-        await existingPayment.ride.save();
+    existingPayment.ride.paymentStatus = "paid";
+    await existingPayment.ride.save();
 
-        return res.status(200).send("Payment verified and ride updated.");
-    } else {
-        existingPayment.status = "failed";
-        await existingPayment.save();
-        return res.status(400).send("Payment failed or not completed.");
-    }
+    return res.status(200).json({
+      success: true,
+      message: "Payment verified successfully",
+      ride: existingPayment.ride,
+    });
+  } else {
+    existingPayment.status = "failed";
+    await existingPayment.save();
+    return res.status(400).json({
+      success: false,
+      message: "Payment verification failed",
+      error: chapaData.message || "Unknown error",
+    });
+  }
 });
