@@ -79,6 +79,8 @@ exports.endRide = catchAsync(async (req, res) => {
   }
 
   const { rideId } = req.params;
+  const { destination } = req.body;
+
   const ride = await Ride.findById(rideId).populate("bike");
 
   if (!ride || ride.status !== "active") {
@@ -87,7 +89,10 @@ exports.endRide = catchAsync(async (req, res) => {
       .json({ success: false, message: "Ride not found or already ended" });
   }
 
-  const endLocation = ride.bike.currentLocation;
+  const endLocation =
+    destination && destination.coordinates
+      ? destination
+      : ride.bike.currentLocation;
   const distance = calculateDistance(
     ride.startLocation.coordinates,
     endLocation.coordinates
@@ -104,6 +109,9 @@ exports.endRide = catchAsync(async (req, res) => {
 
   // Mark bike as available
   ride.bike.status = "available";
+  // Ensure 2dsphere index exists on Station.locations
+
+  await Station.collection.createIndex({ locations: "2dsphere" });
 
   // Assign the bike to the nearest station
   const nearestStation = await Station.aggregate([
@@ -119,8 +127,10 @@ exports.endRide = catchAsync(async (req, res) => {
   if (nearestStation.length > 0) {
     const station = await Station.findById(nearestStation[0]._id);
     if (station) {
-      station.available_bikes.push(ride.bike._id);
-      await station.save();
+      if (!station.available_bikes.includes(ride.bike._id)) {
+        station.available_bikes.push(ride.bike._id);
+        await station.save();
+      }
       ride.bike.currentStation = station._id;
       await ride.bike.save();
     }
